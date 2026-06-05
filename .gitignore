@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+*.tsbuildinfo
+
+# pnpm
+.pnpm-store/
+.pnpm/
+*.tgz
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Test
+coverage/
+
+# Build artifacts
+*.tgz
+
+# Turborepo
+.turbo/
+
+# changesets
+.changeset/*.md
+!changeset-config.*.json
+
+# Documentation generation
+storybook-static/
+
+# Misc
+*.local
+*.backup
