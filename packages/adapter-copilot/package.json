@@ -1,0 +1,49 @@
+{
+  "name": "@agentbridge/adapter-copilot",
+  "version": "0.1.0",
+  "description": "GitHub Copilot CLI platform adapter for AgentBridge — compiles AgentBridge plugins into Copilot-compatible manifests, hooks, skills, and MCP configuration",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/**/*.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@agentbridge/core": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/agentbridge/agentbridge",
+    "directory": "packages/adapter-copilot"
+  },
+  "keywords": [
+    "agentbridge",
+    "github-copilot",
+    "copilot-cli",
+    "plugin-adapter",
+    "ai-agent",
+    "mcp"
+  ]
+}
