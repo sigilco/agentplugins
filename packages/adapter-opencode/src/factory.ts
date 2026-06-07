@@ -16,7 +16,18 @@ import {
   type UniversalHookName,
   type HandlerType,
   type TargetPlatform,
+  type HookDefinition,
 } from "@agentbridge/core";
+
+import { createValidate } from "./validate";
+import {
+  HOOK_MAPPING,
+  EVENT_HOOKS,
+  buildEventHookBlock,
+  buildHookArgs,
+} from "./hook-mapping";
+import { buildHandlerInvocation } from "./handler-invocation";
+import { generatePluginFile, generateManifest } from "./output-generators";
 
 /**
  * The 8 hooks supported by OpenCode.
@@ -71,43 +82,63 @@ class OpenCodeAdapter implements PlatformAdapter {
 
   /**
    * Validates a plugin for this platform, returning any issues.
-   *
-   * @param _plugin - The universal plugin manifest to validate.
-   * @returns An empty array (stub - will be wired in Task 11).
    */
-  validate(_plugin: PluginManifest): ValidationIssue[] {
-    // Stub implementation - will be wired from src/validate.ts in Task 11
-    return [];
+  validate(plugin: PluginManifest): ValidationIssue[] {
+    const validateFn = createValidate();
+    return validateFn(plugin);
   }
 
   /**
    * Compiles the universal plugin into platform-specific output.
-   *
-   * @param plugin - The universal plugin manifest to compile.
-   * @returns AdapterOutput with basic structure (stub - will be wired in Task 11).
    */
   compile(plugin: PluginManifest): AdapterOutput {
-    // Stub implementation - will be wired from compile logic in Task 11
-    const pluginFileName = `${plugin.name}.ts`;
-    const configFileName = "opencode.json";
+    // Run validation first
+    const validateFn = createValidate();
+    const issues = validateFn(plugin);
+
+    // Build hook code map
+    const hookCodeMap: Map<string, string> = new Map();
+
+    // Collect event hook registrations separately (they share the 'event' key)
+    const eventRegistrations: { hook: UniversalHookName; def: HookDefinition }[] = [];
+
+    const hooks = plugin.hooks ?? {};
+    for (const [hookName, hookDef] of Object.entries(hooks)) {
+      const universalHook = hookName as UniversalHookName;
+      const ocHook = HOOK_MAPPING[universalHook];
+      if (!ocHook || !hookDef) continue;
+
+      if (EVENT_HOOKS.includes(universalHook)) {
+        // Collect event hooks for buildEventHookBlock
+        eventRegistrations.push({ hook: universalHook, def: hookDef });
+      } else {
+        // Direct mapping hooks (tool.execute.before, tool.execute.after, …)
+        const contextVar = buildHookArgs(ocHook, universalHook);
+        const handlerCode = buildHandlerInvocation(hookDef.handler, universalHook, contextVar);
+        hookCodeMap.set(ocHook, handlerCode);
+      }
+    }
+
+    // Build event hook block if we have event registrations
+    if (eventRegistrations.length > 0) {
+      const eventBlock = buildEventHookBlock(eventRegistrations);
+      hookCodeMap.set("event", eventBlock);
+    }
+
+    // Generate output files
+    const files = [
+      generatePluginFile(plugin, hookCodeMap),
+      generateManifest(plugin, hookCodeMap),
+    ];
 
     return {
-      files: [
-        {
-          path: pluginFileName,
-          content: `// Stub plugin file for ${plugin.name}`,
-        },
-        {
-          path: configFileName,
-          content: JSON.stringify({ name: plugin.name, version: plugin.version }, null, 2),
-        },
-      ],
+      files,
       manifest: { name: plugin.name, version: plugin.version },
       warnings: [],
-      issues: [],
+      issues,
       postInstall: [
-        `cp ${pluginFileName} .opencode/plugins/`,
-        `cp ${configFileName} .opencode/plugins/`,
+        `cp ${plugin.name}.ts .opencode/plugins/`,
+        `cp opencode.json .opencode/plugins/`,
       ],
     };
   }
@@ -115,15 +146,6 @@ class OpenCodeAdapter implements PlatformAdapter {
 
 /**
  * Creates a new instance of the OpenCode adapter.
- *
- * @example
- * ```ts
- * import { createOpenCodeAdapter } from "@agentbridge/adapter-opencode";
- * import { compilePlugin } from "@agentbridge/core";
- *
- * const adapter = createOpenCodeAdapter();
- * const output = compilePlugin(manifest, adapter);
- * ```
  */
 export function createOpenCodeAdapter(): PlatformAdapter {
   return new OpenCodeAdapter();
