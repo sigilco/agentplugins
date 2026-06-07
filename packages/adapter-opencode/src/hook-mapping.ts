@@ -190,7 +190,7 @@ export function buildHandlerInvocation(
     }
 
     default: {
-      return `${indent}throw new Error("Unsupported handler type: ${(handler as any).type}");`;
+      return `${indent}throw new Error("Unsupported handler type: ${(handler as { type: string }).type}");`;
     }
   }
 }
