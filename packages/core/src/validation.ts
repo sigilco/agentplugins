@@ -298,8 +298,8 @@ export function getPlatformConstraints(platform: TargetPlatform): PlatformConstr
       supportsMCPToolHandler: false,
       maxDescriptionLength: 1024,
       supportedHooks: [
-        'sessionStart', 'preToolUse', 'postToolUse', 'permissionRequest',
-        'notification', 'preCompact', 'stop',
+        'sessionStart', 'sessionEnd', 'preToolUse', 'postToolUse',
+        'permissionRequest', 'notification', 'preCompact', 'stop',
       ],
       manifestPath: 'package.json', // Uses npm package.json + opencode.json
       requiresStrictValidation: false,
