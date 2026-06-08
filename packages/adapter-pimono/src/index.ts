@@ -35,6 +35,7 @@ import {
   type InlineHookHandler,
   type HookContext,
   type HookResult,
+  type FileOutput,
   Severity,
 } from "@agentbridge/core";
 
@@ -643,7 +644,7 @@ function generateFlagRegistrations(
  * @returns AdapterOutput with generated files and metadata.
  */
 function compilePlugin(plugin: PluginManifest): AdapterOutput {
-  const files: Record<string, string> = {};
+  const files: FileOutput[] = [];
 
   // ── Determine if this is a multi-file extension ──
   let isMultiFile = false;
@@ -822,7 +823,7 @@ function compilePlugin(plugin: PluginManifest): AdapterOutput {
   tsLines.push(`}`);
   tsLines.push(``);
 
-  files["index.ts"] = tsLines.join("\n");
+  files.push({ path: "index.ts", content: tsLines.join("\n") });
 
   // ── Build package.json (for multi-file extensions) ──
   if (isMultiFile) {
@@ -852,27 +853,17 @@ function compilePlugin(plugin: PluginManifest): AdapterOutput {
       },
     };
 
-    files["package.json"] = JSON.stringify(pkg, null, 2) + "\n";
+    files.push({ path: "package.json", content: JSON.stringify(pkg, null, 2) + "\n" });
   }
 
-  // ── Metadata ──
-  const metadata = {
-    platform: PLATFORM_NAME,
-    filesGenerated: Object.keys(files),
-    isMultiFile,
-    hookCount: Object.keys(plugin.hooks ?? {}).length,
-    toolCount: plugin.tools?.length ?? 0,
-    commandCount: plugin.commands?.length ?? 0,
-    shortcutCount: plugin.shortcuts?.length ?? 0,
-    flagCount: plugin.flags?.length ?? 0,
-    warnings: [] as string[],
-  };
+  // ── Warnings ──
+  const warnings: string[] = [];
 
   // Emit warnings for unsupported hooks.
   if (plugin.hooks) {
     for (const hookName of Object.keys(plugin.hooks)) {
       if (!SUPPORTED_HOOKS.includes(hookName as UniversalHookName)) {
-        metadata.warnings.push(
+        warnings.push(
           `Hook "${hookName}" is not supported by the Pi Mono adapter and was skipped.`
         );
       }
@@ -881,7 +872,9 @@ function compilePlugin(plugin: PluginManifest): AdapterOutput {
 
   return {
     files,
-    metadata,
+    manifest: plugin,
+    warnings,
+    issues: [],
   };
 }
 
