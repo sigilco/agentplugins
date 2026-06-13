@@ -26,7 +26,8 @@
     "typescript": "^5.5.0"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "license": "MIT"
 }

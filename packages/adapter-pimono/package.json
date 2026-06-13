@@ -26,7 +26,8 @@
   },
   "files": [
     "dist",
-    "src"
+    "src",
+    "README.md"
   ],
   "keywords": [
     "agentplugin",

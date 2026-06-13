@@ -18,6 +18,10 @@
     "test": "vitest",
     "test:run": "vitest run __tests__/placeholder.test.ts"
   },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "keywords": [
     "agentplugin",
     "ai",

@@ -12,6 +12,10 @@
     "dev": "tsc --watch",
     "clean": "rm -rf dist"
   },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "dependencies": {
     "@agentplugin/core": "workspace:*",
     "@agentplugin/adapter-claude": "workspace:*",
