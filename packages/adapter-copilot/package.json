@@ -35,7 +35,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/agentplugin/agentplugin",
+    "url": "https://github.com/espetro/agentplugin.git",
     "directory": "packages/adapter-copilot"
   },
   "keywords": [

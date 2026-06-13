@@ -119,7 +119,7 @@ node_modules/
   // ─── README.md ────────────────────────────────────────────────────────────
   const readme = `# ${name}
 
-An [AgentPlugin](https://github.com/agentplugin/agentplugin) plugin that works across multiple AI agent harnesses.
+An [AgentPlugin](https://github.com/espetro/agentplugin) plugin that works across multiple AI agent harnesses.
 
 ## Supported Platforms
 
