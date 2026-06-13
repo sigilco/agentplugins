@@ -1,6 +1,6 @@
 {
   "name": "@agentplugin/adapter-codex",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "AgentBridge platform adapter for OpenAI Codex CLI",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

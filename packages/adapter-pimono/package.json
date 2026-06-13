@@ -1,6 +1,6 @@
 {
   "name": "@agentplugin/adapter-pimono",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Pi Mono platform adapter for AgentBridge — generates TypeScript-native extensions for the Pi agent runtime",
   "type": "module",
   "main": "./dist/index.js",

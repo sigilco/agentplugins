@@ -1,6 +1,6 @@
 {
   "name": "@agentplugin/adapter-kimi",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "AgentBridge platform adapter for Kimi (Moonshot AI)",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

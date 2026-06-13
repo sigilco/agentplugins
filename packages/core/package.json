@@ -1,6 +1,6 @@
 {
   "name": "@agentplugin/core",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Core types, validation, and plugin registry for AgentBridge",
   "type": "module",
   "main": "./dist/index.js",
