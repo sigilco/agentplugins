@@ -1,6 +1,6 @@
 {
-  "name": "@agentbridge/cli",
-  "version": "0.1.0",
+  "name": "@agentplugin/cli",
+  "version": "0.0.1",
   "description": "CLI for building AgentBridge plugins across multiple AI agent harnesses",
   "type": "module",
   "bin": {
@@ -13,14 +13,14 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@agentbridge/core": "workspace:*",
-    "@agentbridge/adapter-claude": "workspace:*",
-    "@agentbridge/adapter-codex": "workspace:*",
-    "@agentbridge/adapter-copilot": "workspace:*",
-    "@agentbridge/adapter-gemini": "workspace:*",
-    "@agentbridge/adapter-kimi": "workspace:*",
-    "@agentbridge/adapter-opencode": "workspace:*",
-    "@agentbridge/adapter-pimono": "workspace:*",
+    "@agentplugin/core": "workspace:*",
+    "@agentplugin/adapter-claude": "workspace:*",
+    "@agentplugin/adapter-codex": "workspace:*",
+    "@agentplugin/adapter-copilot": "workspace:*",
+    "@agentplugin/adapter-gemini": "workspace:*",
+    "@agentplugin/adapter-kimi": "workspace:*",
+    "@agentplugin/adapter-opencode": "workspace:*",
+    "@agentplugin/adapter-pimono": "workspace:*",
     "cac": "^6.7.14",
     "chalk": "^5.3.0",
     "jiti": "^1.21.6"

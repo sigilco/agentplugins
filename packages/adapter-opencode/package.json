@@ -1,6 +1,6 @@
 {
-  "name": "@agentbridge/adapter-opencode",
-  "version": "0.1.0",
+  "name": "@agentplugin/adapter-opencode",
+  "version": "0.0.1",
   "description": "OpenCode platform adapter for AgentBridge - generates OpenCode-compatible plugins from universal manifests",
   "type": "module",
   "main": "./dist/index.js",
@@ -20,7 +20,7 @@
     "test:run": "vitest run"
   },
   "dependencies": {
-    "@agentbridge/core": "workspace:*",
+    "@agentplugin/core": "workspace:*",
     "zod": "^3.22.0"
   },
   "devDependencies": {

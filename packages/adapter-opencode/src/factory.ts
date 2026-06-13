@@ -5,7 +5,7 @@
  * This module provides the createOpenCodeAdapter() factory and the
  * default adapter instance.
  *
- * @module @agentbridge/adapter-opencode
+ * @module @agentplugin/adapter-opencode
  */
 
 import {
@@ -17,7 +17,7 @@ import {
   type HandlerType,
   type TargetPlatform,
   type HookDefinition,
-} from "@agentbridge/core";
+} from "@agentplugin/core";
 
 import { createValidate } from "./validate";
 import {

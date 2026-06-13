@@ -1,6 +1,6 @@
 {
-  "name": "@agentbridge/adapter-kimi",
-  "version": "0.1.0",
+  "name": "@agentplugin/adapter-kimi",
+  "version": "0.0.1",
   "description": "AgentBridge platform adapter for Kimi (Moonshot AI)",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -21,14 +21,14 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@agentbridge/core": "workspace:*"
+    "@agentplugin/core": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.0.0",
     "typescript": "^5.3.0"
   },
   "peerDependencies": {
-    "@agentbridge/core": "^0.1.0"
+    "@agentplugin/core": "^0.1.0"
   },
   "keywords": [
     "agentbridge",

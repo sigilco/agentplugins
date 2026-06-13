@@ -1,5 +1,5 @@
 /**
- * @agentbridge/adapter-codex
+ * @agentplugin/adapter-codex
  *
  * Platform adapter for OpenAI Codex CLI.
  *
@@ -42,9 +42,9 @@ import type {
   TargetPlatform,
   HookDefinition,
   Skill,
-} from "@agentbridge/core";
+} from "@agentplugin/core";
 
-import { Severity } from "@agentbridge/core";
+import { Severity } from "@agentplugin/core";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -425,7 +425,7 @@ export class CodexPlatformAdapter implements PlatformAdapter {
  *
  * @example
  * ```ts
- * import { createCodexAdapter } from "@agentbridge/adapter-codex";
+ * import { createCodexAdapter } from "@agentplugin/adapter-codex";
  *
  * const adapter = createCodexAdapter();
  * const issues = adapter.validate(manifest);

@@ -25,13 +25,13 @@ Your Plugin → AgentBridge Core (Universal IR) → Platform Adapters → 7 Agen
 ### 1. Create a Plugin
 
 ```bash
-npx @agentbridge/cli init my-plugin
+npx @agentplugin/cli init my-plugin
 ```
 
 This scaffolds a new plugin with `agentbridge.config.ts`:
 
 ```typescript
-import { definePlugin } from '@agentbridge/core';
+import { definePlugin } from '@agentplugin/core';
 
 export default definePlugin({
   name: 'my-security-guard',

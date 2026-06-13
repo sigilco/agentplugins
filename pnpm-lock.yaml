@@ -14,7 +14,7 @@ importers:
 
   packages/adapter-claude:
     dependencies:
-      '@agentbridge/core':
+      '@agentplugin/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -30,7 +30,7 @@ importers:
 
   packages/adapter-codex:
     dependencies:
-      '@agentbridge/core':
+      '@agentplugin/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -49,7 +49,7 @@ importers:
 
   packages/adapter-copilot:
     dependencies:
-      '@agentbridge/core':
+      '@agentplugin/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -65,7 +65,7 @@ importers:
 
   packages/adapter-gemini:
     dependencies:
-      '@agentbridge/core':
+      '@agentplugin/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -78,7 +78,7 @@ importers:
 
   packages/adapter-kimi:
     dependencies:
-      '@agentbridge/core':
+      '@agentplugin/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -91,7 +91,7 @@ importers:
 
   packages/adapter-opencode:
     dependencies:
-      '@agentbridge/core':
+      '@agentplugin/core':
         specifier: workspace:*
         version: link:../core
       zod:
@@ -110,7 +110,7 @@ importers:
 
   packages/adapter-pimono:
     dependencies:
-      '@agentbridge/core':
+      '@agentplugin/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -123,28 +123,28 @@ importers:
 
   packages/cli:
     dependencies:
-      '@agentbridge/adapter-claude':
+      '@agentplugin/adapter-claude':
         specifier: workspace:*
         version: link:../adapter-claude
-      '@agentbridge/adapter-codex':
+      '@agentplugin/adapter-codex':
         specifier: workspace:*
         version: link:../adapter-codex
-      '@agentbridge/adapter-copilot':
+      '@agentplugin/adapter-copilot':
         specifier: workspace:*
         version: link:../adapter-copilot
-      '@agentbridge/adapter-gemini':
+      '@agentplugin/adapter-gemini':
         specifier: workspace:*
         version: link:../adapter-gemini
-      '@agentbridge/adapter-kimi':
+      '@agentplugin/adapter-kimi':
         specifier: workspace:*
         version: link:../adapter-kimi
-      '@agentbridge/adapter-opencode':
+      '@agentplugin/adapter-opencode':
         specifier: workspace:*
         version: link:../adapter-opencode
-      '@agentbridge/adapter-pimono':
+      '@agentplugin/adapter-pimono':
         specifier: workspace:*
         version: link:../adapter-pimono
-      '@agentbridge/core':
+      '@agentplugin/core':
         specifier: workspace:*
         version: link:../core
       cac:
@@ -179,10 +179,10 @@ importers:
 
   plugins/example-logger:
     devDependencies:
-      '@agentbridge/cli':
+      '@agentplugin/cli':
         specifier: workspace:*
         version: link:../../packages/cli
-      '@agentbridge/core':
+      '@agentplugin/core':
         specifier: workspace:*
         version: link:../../packages/core
       typescript:

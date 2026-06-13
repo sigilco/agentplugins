@@ -1,5 +1,5 @@
 /**
- * @agentbridge/adapter-copilot
+ * @agentplugin/adapter-copilot
  *
  * GitHub Copilot CLI platform adapter for the AgentBridge plugin system.
  *
@@ -57,7 +57,7 @@ import {
   type HookDefinition,
   type Skill,
   Severity,
-} from "@agentbridge/core";
+} from "@agentplugin/core";
 
 /* ──────────────────────────────────────────────────────────────────────────── */
 /*  CONSTANTS                                                                  */
@@ -1053,7 +1053,7 @@ ${scriptBody}
  * GitHub Copilot CLI platform:
  *
  * ```ts
- * import { copilotAdapter } from "@agentbridge/adapter-copilot";
+ * import { copilotAdapter } from "@agentplugin/adapter-copilot";
  *
  * const issues = copilotAdapter.validate(myPlugin);
  * if (issues.length === 0) {

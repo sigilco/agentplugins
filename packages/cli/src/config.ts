@@ -13,7 +13,7 @@ import jiti from 'jiti';
 const createJITI = jiti as unknown as (filename: string, opts?: Record<string, unknown>) => {
   import: (id: string, opts?: Record<string, unknown>) => Promise<unknown>;
 };
-import type { PluginManifest } from '@agentbridge/core';
+import type { PluginManifest } from '@agentplugin/core';
 
 export interface LoadedConfig {
   /** Resolved manifest */

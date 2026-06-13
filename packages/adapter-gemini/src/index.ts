@@ -1,5 +1,5 @@
 /**
- * @agentbridge/adapter-gemini
+ * @agentplugin/adapter-gemini
  *
  * Platform adapter for the Google Gemini CLI extension system.
  * Generates `gemini-extension.json` manifests and the `hooks/hooks.json`
@@ -30,7 +30,7 @@ import {
   type UniversalHookName,
   type HandlerType,
   Severity,
-} from "@agentbridge/core";
+} from "@agentplugin/core";
 
 /* ───────────────────── Gemini-specific types ───────────────────── */
 

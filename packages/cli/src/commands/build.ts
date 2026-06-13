@@ -12,7 +12,7 @@ import {
   validateForPlatform,
   ALL_TARGETS,
   type TargetPlatform,
-} from '@agentbridge/core';
+} from '@agentplugin/core';
 import type { LoadedConfig } from '../config.js';
 
 
@@ -31,25 +31,25 @@ async function getAdapterFactory(target: TargetPlatform): Promise<AdapterFactory
   switch (target) {
     case 'claude':
       // @ts-ignore - adapter loaded dynamically at runtime
-      return (await import('@agentbridge/adapter-claude')).createClaudeAdapter;
+      return (await import('@agentplugin/adapter-claude')).createClaudeAdapter;
     case 'codex':
       // @ts-ignore - adapter loaded dynamically at runtime
-      return (await import('@agentbridge/adapter-codex')).createCodexAdapter;
+      return (await import('@agentplugin/adapter-codex')).createCodexAdapter;
     case 'copilot':
       // @ts-ignore - adapter loaded dynamically at runtime
-      return (await import('@agentbridge/adapter-copilot')).createCopilotAdapter;
+      return (await import('@agentplugin/adapter-copilot')).createCopilotAdapter;
     case 'gemini':
       // @ts-ignore - adapter loaded dynamically at runtime
-      return (await import('@agentbridge/adapter-gemini')).createGeminiAdapter;
+      return (await import('@agentplugin/adapter-gemini')).createGeminiAdapter;
     case 'kimi':
       // @ts-ignore - adapter loaded dynamically at runtime
-      return (await import('@agentbridge/adapter-kimi')).createKimiAdapter;
+      return (await import('@agentplugin/adapter-kimi')).createKimiAdapter;
     case 'opencode':
       // @ts-ignore - adapter loaded dynamically at runtime
-      return (await import('@agentbridge/adapter-opencode')).createOpenCodeAdapter;
+      return (await import('@agentplugin/adapter-opencode')).createOpenCodeAdapter;
     case 'pimono':
       // @ts-ignore - adapter loaded dynamically at runtime
-      return (await import('@agentbridge/adapter-pimono')).createPiMonoAdapter;
+      return (await import('@agentplugin/adapter-pimono')).createPiMonoAdapter;
     default:
       throw new Error(`Unknown target: ${target}`);
   }

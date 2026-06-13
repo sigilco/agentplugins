@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import type { PluginManifest, AdapterOutput } from "@agentbridge/core";
+import type { PluginManifest, AdapterOutput } from "@agentplugin/core";
 import { createOpenCodeAdapter } from "../src/factory";
 
 const adapter = createOpenCodeAdapter();

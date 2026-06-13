@@ -57,7 +57,7 @@ A single **example-logger** plugin config can be compiled to **Claude Code + Ope
 ## Implementation & Results
 
 ### Phase 1: Universal Manifest (Completed)
-Created `PluginManifest` TypeScript interface in `@agentbridge/core`:
+Created `PluginManifest` TypeScript interface in `@agentplugin/core`:
 - Supports hooks, tools, commands, shortcuts, flags, MCP servers
 - Platform-agnostic: no adapter-specific fields
 - Validation schema catches missing required fields
@@ -79,7 +79,7 @@ Each adapter:
 **Result:** Core hook mapping is 20 lines; adapters are 300-800 LOC each.
 
 ### Phase 3: CLI & Build System (Completed)
-Built `@agentbridge/cli` with `agentbridge build` command:
+Built `@agentplugin/cli` with `agentbridge build` command:
 - Discovers plugin manifest in project root
 - Validates universal manifest
 - Compiles to all target platforms in parallel

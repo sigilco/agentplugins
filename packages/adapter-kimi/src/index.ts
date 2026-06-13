@@ -1,5 +1,5 @@
 /**
- * @agentbridge/adapter-kimi
+ * @agentplugin/adapter-kimi
  *
  * Platform adapter for Kimi (Moonshot AI) — AgentBridge plugin system.
  *
@@ -45,8 +45,8 @@ import type {
   Skill,
   FileOutput,
   UniversalHooks,
-} from "@agentbridge/core";
-import { Severity } from "@agentbridge/core";
+} from "@agentplugin/core";
+import { Severity } from "@agentplugin/core";
 
 /* -------------------------------------------------------------------------- */
 /*                               CONSTANTS                                    */
@@ -742,7 +742,7 @@ ${manifest.skills && manifest.skills.length > 0
  *
  * @example
  * ```typescript
- * import { KimiAdapter } from "@agentbridge/adapter-kimi";
+ * import { KimiAdapter } from "@agentplugin/adapter-kimi";
  *
  * const adapter = new KimiAdapter();
  * const issues = adapter.validate(manifest);

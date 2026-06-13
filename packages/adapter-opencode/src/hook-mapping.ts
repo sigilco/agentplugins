@@ -16,7 +16,7 @@ import type {
   CommandHookHandler,
   HttpHookHandler,
   UniversalHookName,
-} from '@agentbridge/core';
+} from '@agentplugin/core';
 
 // ─── Public Exports ────────────────────────────────────────────────────────────
 

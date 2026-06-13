@@ -1,6 +1,6 @@
 {
-  "name": "@agentbridge/adapter-codex",
-  "version": "0.1.0",
+  "name": "@agentplugin/adapter-codex",
+  "version": "0.0.1",
   "description": "AgentBridge platform adapter for OpenAI Codex CLI",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -19,7 +19,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@agentbridge/core": "workspace:*"
+    "@agentplugin/core": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
@@ -28,7 +28,7 @@
     "vitest": "^1.0.0"
   },
   "peerDependencies": {
-    "@agentbridge/core": "^0.1.0"
+    "@agentplugin/core": "^0.1.0"
   },
   "files": [
     "dist"

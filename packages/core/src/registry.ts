@@ -35,7 +35,7 @@ export async function loadAdapter(platform: TargetPlatform): Promise<PlatformAda
   if (!factory) {
     throw new Error(
       `No adapter registered for platform "${platform}". ` +
-      `Install the corresponding adapter package: npm install @agentbridge/adapter-${platform}`
+      `Install the corresponding adapter package: npm install @agentplugin/adapter-${platform}`
     );
   }
   return factory();
@@ -66,13 +66,13 @@ export function getRegisteredPlatforms(): TargetPlatform[] {
 export async function registerBuiltinAdapters(): Promise<void> {
   // Dynamic imports to avoid loading adapters that aren't installed
   const builtinAdapters: { platform: TargetPlatform; pkg: string }[] = [
-    { platform: 'claude', pkg: '@agentbridge/adapter-claude' },
-    { platform: 'codex', pkg: '@agentbridge/adapter-codex' },
-    { platform: 'copilot', pkg: '@agentbridge/adapter-copilot' },
-    { platform: 'gemini', pkg: '@agentbridge/adapter-gemini' },
-    { platform: 'kimi', pkg: '@agentbridge/adapter-kimi' },
-    { platform: 'opencode', pkg: '@agentbridge/adapter-opencode' },
-    { platform: 'pimono', pkg: '@agentbridge/adapter-pimono' },
+    { platform: 'claude', pkg: '@agentplugin/adapter-claude' },
+    { platform: 'codex', pkg: '@agentplugin/adapter-codex' },
+    { platform: 'copilot', pkg: '@agentplugin/adapter-copilot' },
+    { platform: 'gemini', pkg: '@agentplugin/adapter-gemini' },
+    { platform: 'kimi', pkg: '@agentplugin/adapter-kimi' },
+    { platform: 'opencode', pkg: '@agentplugin/adapter-opencode' },
+    { platform: 'pimono', pkg: '@agentplugin/adapter-pimono' },
   ];
 
   for (const { platform, pkg } of builtinAdapters) {

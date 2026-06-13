@@ -23,8 +23,8 @@ import type {
   HandlerType,
   UniversalHooks,
   TargetPlatform,
-} from '@agentbridge/core';
-import { UNIVERSAL_HOOK_NAMES, Severity } from '@agentbridge/core';
+} from '@agentplugin/core';
+import { UNIVERSAL_HOOK_NAMES, Severity } from '@agentplugin/core';
 
 // Adapter imports — use relative paths since these are workspace packages
 import { createOpenCodeAdapter } from '../../adapter-opencode/src/index.ts';

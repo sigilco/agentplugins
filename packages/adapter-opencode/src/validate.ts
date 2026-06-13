@@ -19,7 +19,7 @@ import {
   type CommandHookHandler,
   type HttpHookHandler,
   Severity,
-} from "@agentbridge/core";
+} from "@agentplugin/core";
 
 /**
  * The 8 hooks supported by OpenCode.
@@ -40,7 +40,7 @@ const SUPPORTED_HOOKS: readonly UniversalHookName[] = [
  *
  * @example
  * ```ts
- * import { createValidate } from "@agentbridge/adapter-opencode";
+ * import { createValidate } from "@agentplugin/adapter-opencode";
  * const validate = createValidate();
  * const issues = validate(manifest);
  * ```

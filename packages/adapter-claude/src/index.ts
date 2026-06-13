@@ -38,7 +38,7 @@ import {
   validateForPlatform,
   type TargetPlatform,
   Severity,
-} from '@agentbridge/core';
+} from '@agentplugin/core';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -186,7 +186,7 @@ interface ClaudeHandlerConfig {
  *
  * Usage:
  * ```ts
- * import { createAdapter } from '@agentbridge/adapter-claude';
+ * import { createAdapter } from '@agentplugin/adapter-claude';
  * const adapter = createAdapter();
  * const output = adapter.compile(manifest);
  * ```

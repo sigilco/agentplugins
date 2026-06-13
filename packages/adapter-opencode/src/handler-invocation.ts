@@ -18,7 +18,7 @@ import type {
   CommandHookHandler,
   HttpHookHandler,
   UniversalHookName,
-} from "@agentbridge/core";
+} from "@agentplugin/core";
 
 /**
  * The standard indentation used for code inside hook functions.

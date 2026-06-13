@@ -1,4 +1,4 @@
-import { definePlugin } from '@agentbridge/core';
+import { definePlugin } from '@agentplugin/core';
 
 /**
  * AgentBridge Example Logger Plugin

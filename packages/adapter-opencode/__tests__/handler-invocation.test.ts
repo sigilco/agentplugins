@@ -18,7 +18,7 @@ import type {
   CommandHookHandler,
   HttpHookHandler,
   UniversalHookName,
-} from "@agentbridge/core";
+} from "@agentplugin/core";
 import { buildHandlerInvocation } from "../src/handler-invocation";
 
 // ─── Test Factories ───────────────────────────────────────────────────────────

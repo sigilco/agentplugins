@@ -1,6 +1,6 @@
 {
-  "name": "@agentbridge/adapter-claude",
-  "version": "0.1.0",
+  "name": "@agentplugin/adapter-claude",
+  "version": "0.0.1",
   "description": "AgentBridge platform adapter for Claude Code",
   "type": "module",
   "main": "./dist/index.js",
@@ -18,7 +18,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@agentbridge/core": "workspace:*"
+    "@agentplugin/core": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

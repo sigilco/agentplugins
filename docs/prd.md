@@ -52,7 +52,7 @@ AgentBridge solves the fragmentation problem in AI agent plugin development. Plu
 ## v0.1.0 Scope
 
 ### Core Components
-1. **@agentbridge/core** — Universal plugin manifest types and validation
+1. **@agentplugin/core** — Universal plugin manifest types and validation
 2. **CLI** (`agentbridge` binary) — build, validate, and test plugins
 3. **7 Platform Adapters** — compile universal format to:
    - Claude Code (9 files: plugin.json, hooks.json, skills, MCP configs)
@@ -88,7 +88,7 @@ AgentBridge solves the fragmentation problem in AI agent plugin development. Plu
 - [ ] Zero runtime errors in example-logger across all platforms
 
 ### Ecosystem
-- [ ] Public npm release: @agentbridge/core, @agentbridge/cli, @agentbridge/adapter-*
+- [ ] Public npm release: @agentplugin/core, @agentplugin/cli, @agentplugin/adapter-*
 - [ ] GitHub repo public; open for community contributions
 - [ ] Examples and tutorials for 2 common use cases (custom tools, lifecycle hooks)
 
@@ -182,7 +182,7 @@ interface PlatformAdapter {
 
 ### Adoption
 - Number of plugins using AgentBridge (target: 5+ by end of Q3 2026)
-- npm download rate for @agentbridge/* packages
+- npm download rate for @agentplugin/* packages
 - GitHub stars and community contributions
 
 ### Quality

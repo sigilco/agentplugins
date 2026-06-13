@@ -9,7 +9,7 @@ import {
   validateUniversal,
   validateForPlatform,
   ALL_TARGETS,
-} from '@agentbridge/core';
+} from '@agentplugin/core';
 import type { LoadedConfig } from '../config.js';
 
 export interface ValidateOptions {

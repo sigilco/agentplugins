@@ -10,8 +10,8 @@
     "build:core": "cd ../../packages/core && pnpm build"
   },
   "devDependencies": {
-    "@agentbridge/core": "workspace:*",
-    "@agentbridge/cli": "workspace:*",
+    "@agentplugin/core": "workspace:*",
+    "@agentplugin/cli": "workspace:*",
     "typescript": "^5.5.0"
   }
 }

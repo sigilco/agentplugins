@@ -24,7 +24,7 @@ export async function init(options: InitOptions): Promise<void> {
   await mkdir(pluginDir, { recursive: true });
 
   // ─── agentbridge.config.ts ────────────────────────────────────────────────
-  const configContent = `import { definePlugin } from '@agentbridge/core';
+  const configContent = `import { definePlugin } from '@agentplugin/core';
 
 export default definePlugin({
   name: '${toKebabCase(name)}',
@@ -88,8 +88,8 @@ When using this plugin, always log your actions for transparency.
       validate: 'agentbridge validate',
     },
     devDependencies: {
-      '@agentbridge/core': '^0.1.0',
-      '@agentbridge/cli': '^0.1.0',
+      '@agentplugin/core': '^0.1.0',
+      '@agentplugin/cli': '^0.1.0',
       typescript: '^5.5.0',
     },
   };
