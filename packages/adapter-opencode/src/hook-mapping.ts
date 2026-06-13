@@ -1,7 +1,7 @@
 /**
  * Hook Mapping — OpenCode Adapter
  *
- * Maps universal AgentPlugin hooks to OpenCode hook names and generates
+ * Maps universal AgentPlugins hooks to OpenCode hook names and generates
  * the TypeScript code for hook handlers.
  *
  * Bug fixes in this module:
@@ -16,7 +16,7 @@ import type {
   CommandHookHandler,
   HttpHookHandler,
   UniversalHookName,
-} from '@agentplugin/core';
+} from '@agentplugins/core';
 
 // ─── Public Exports ────────────────────────────────────────────────────────────
 

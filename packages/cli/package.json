@@ -1,10 +1,10 @@
 {
-  "name": "@agentplugin/cli",
+  "name": "@agentplugins/cli",
   "version": "0.1.0",
-  "description": "CLI for building AgentPlugin plugins across multiple AI agent harnesses",
+  "description": "CLI for building AgentPlugins plugins across multiple AI agent harnesses",
   "type": "module",
   "bin": {
-    "agentplugin": "./dist/cli.js"
+    "agentplugins": "./dist/cli.js"
   },
   "main": "./dist/cli.js",
   "scripts": {
@@ -17,14 +17,14 @@
     "README.md"
   ],
   "dependencies": {
-    "@agentplugin/core": "workspace:*",
-    "@agentplugin/adapter-claude": "workspace:*",
-    "@agentplugin/adapter-codex": "workspace:*",
-    "@agentplugin/adapter-copilot": "workspace:*",
-    "@agentplugin/adapter-gemini": "workspace:*",
-    "@agentplugin/adapter-kimi": "workspace:*",
-    "@agentplugin/adapter-opencode": "workspace:*",
-    "@agentplugin/adapter-pimono": "workspace:*",
+    "@agentplugins/core": "workspace:*",
+    "@agentplugins/adapter-claude": "workspace:*",
+    "@agentplugins/adapter-codex": "workspace:*",
+    "@agentplugins/adapter-copilot": "workspace:*",
+    "@agentplugins/adapter-gemini": "workspace:*",
+    "@agentplugins/adapter-kimi": "workspace:*",
+    "@agentplugins/adapter-opencode": "workspace:*",
+    "@agentplugins/adapter-pimono": "workspace:*",
     "cac": "^6.7.14",
     "chalk": "^5.3.0",
     "jiti": "^1.21.6"
@@ -34,7 +34,7 @@
     "@types/node": "^20.0.0"
   },
   "keywords": [
-    "agentplugin",
+    "agentplugins",
     "cli",
     "ai",
     "plugin"

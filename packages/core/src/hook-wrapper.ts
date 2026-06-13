@@ -1,5 +1,5 @@
 /**
- * AgentPlugin Hook Wrapper Generator
+ * AgentPlugins Hook Wrapper Generator
  *
  * Generates Node.js scripts that wrap inline handlers for command-based platforms.
  * These scripts communicate via JSON stdin/stdout following the Codex/Gemini protocol.
@@ -33,7 +33,7 @@ export function generateHookWrapper(
 
   return `#!/usr/bin/env node
 /**
- * AgentPlugin Auto-Generated Hook Wrapper
+ * AgentPlugins Auto-Generated Hook Wrapper
  * Platform: ${platform}
  * Hook: ${hookName}
  * ID: ${wrapperId}
@@ -41,7 +41,7 @@ export function generateHookWrapper(
  * DO NOT EDIT — This file is regenerated on each build.
  */
 
-const { handler } = require('./__agentplugin_handlers__.js');
+const { handler } = require('./__agentplugins_handlers__.js');
 
 async function main() {
   // Read JSON context from stdin
@@ -188,7 +188,7 @@ export function generateHandlersModule(
   }
 
   return `/**
- * AgentPlugin Auto-Generated Handlers Module
+ * AgentPlugins Auto-Generated Handlers Module
  *
  * DO NOT EDIT — This file is regenerated on each build.
  */
@@ -200,9 +200,9 @@ ${entries.join('\n')}
 };
 
 async function handler(ctx) {
-  const handlerFn = handlers[process.env.AGENTPLUGIN_HOOK_ID];
+  const handlerFn = handlers[process.env.AGENTPLUGINS_HOOK_ID];
   if (!handlerFn) {
-    throw new Error(\`Unknown hook ID: \${process.env.AGENTPLUGIN_HOOK_ID}\`);
+    throw new Error(\`Unknown hook ID: \${process.env.AGENTPLUGINS_HOOK_ID}\`);
   }
   return handlerFn(ctx);
 }

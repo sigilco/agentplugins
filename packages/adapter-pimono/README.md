@@ -1,21 +1,21 @@
-# @agentplugin/adapter-pimono
+# @agentplugins/adapter-pimono
 
-> AgentPlugin platform adapter for [Pi Mono](https://pi.mono/).
+> AgentPlugins platform adapter for [Pi Mono](https://pi.mono/).
 
 Generates TypeScript-native extensions for the Pi agent runtime from a universal `PluginManifest`. Pi Mono extensions are regular TS modules, so handlers are emitted as real functions rather than wrapped scripts.
 
 ## Installation
 
 ```bash
-npm install @agentplugin/adapter-pimono
+npm install @agentplugins/adapter-pimono
 ```
 
-Typically installed transitively via [`@agentplugin/cli`](https://www.npmjs.com/package/@agentplugin/cli).
+Typically installed transitively via [`@agentplugins/cli`](https://www.npmjs.com/package/@agentplugins/cli).
 
 ## Usage
 
 ```typescript
-import { createPiMonoAdapter } from '@agentplugin/adapter-pimono';
+import { createPiMonoAdapter } from '@agentplugins/adapter-pimono';
 
 const adapter = createPiMonoAdapter();
 const output = await adapter.compile(manifest);
@@ -24,7 +24,7 @@ const output = await adapter.compile(manifest);
 Or via the CLI:
 
 ```bash
-npx agentplugin build --target pimono
+npx agentplugins build --target pimono
 ```
 
 ## Output shape

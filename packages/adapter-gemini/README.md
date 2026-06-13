@@ -1,21 +1,21 @@
-# @agentplugin/adapter-gemini
+# @agentplugins/adapter-gemini
 
-> AgentPlugin platform adapter for [Google Gemini CLI](https://ai.google.dev/gemini-cli/docs).
+> AgentPlugins platform adapter for [Google Gemini CLI](https://ai.google.dev/gemini-cli/docs).
 
 Compiles a universal `PluginManifest` into a Gemini CLI **extension**: `gemini-extension.json` manifest, hook wiring, and MCP server config. Inline handlers are wrapped as command scripts.
 
 ## Installation
 
 ```bash
-npm install @agentplugin/adapter-gemini
+npm install @agentplugins/adapter-gemini
 ```
 
-Typically installed transitively via [`@agentplugin/cli`](https://www.npmjs.com/package/@agentplugin/cli).
+Typically installed transitively via [`@agentplugins/cli`](https://www.npmjs.com/package/@agentplugins/cli).
 
 ## Usage
 
 ```typescript
-import { createGeminiAdapter } from '@agentplugin/adapter-gemini';
+import { createGeminiAdapter } from '@agentplugins/adapter-gemini';
 
 const adapter = createGeminiAdapter();
 const output = await adapter.compile(manifest);
@@ -24,7 +24,7 @@ const output = await adapter.compile(manifest);
 Or via the CLI:
 
 ```bash
-npx agentplugin build --target gemini
+npx agentplugins build --target gemini
 ```
 
 ## Output shape

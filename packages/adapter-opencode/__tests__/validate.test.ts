@@ -6,8 +6,8 @@
  */
 
 import { describe, it, expect } from "vitest";
-import type { PluginManifest, HookDefinition } from "@agentplugin/core";
-import { Severity } from "@agentplugin/core";
+import type { PluginManifest, HookDefinition } from "@agentplugins/core";
+import { Severity } from "@agentplugins/core";
 import { createValidate } from "../src/validate";
 
 const validate = createValidate();

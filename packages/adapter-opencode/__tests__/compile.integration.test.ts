@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import type { PluginManifest, AdapterOutput } from "@agentplugin/core";
+import type { PluginManifest, AdapterOutput } from "@agentplugins/core";
 import { createOpenCodeAdapter } from "../src/factory";
 
 const adapter = createOpenCodeAdapter();
@@ -239,7 +239,7 @@ describe("compile() integration", () => {
   describe("reference output matching", () => {
     it("produces output structure matching example-logger", () => {
       const manifest: PluginManifest = {
-        name: "agentplugin-example-logger",
+        name: "agentplugins-example-logger",
         version: "0.1.0",
         description: "Cross-platform logging and security plugin",
         hooks: {
@@ -285,7 +285,7 @@ describe("compile() integration", () => {
       const manifestFile = output.files.find((f) => f.path === "opencode.json");
       expect(manifestFile).toBeDefined();
       const parsed = JSON.parse(manifestFile!.content);
-      expect(parsed.name).toBe("agentplugin-example-logger");
+      expect(parsed.name).toBe("agentplugins-example-logger");
       expect(parsed.version).toBe("0.1.0");
       expect(parsed.hooks.event).toBe(true);
       expect(parsed.hooks["tool.execute.before"]).toBe(true);

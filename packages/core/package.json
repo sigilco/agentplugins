@@ -1,7 +1,7 @@
 {
-  "name": "@agentplugin/core",
+  "name": "@agentplugins/core",
   "version": "0.1.0",
-  "description": "Core types, validation, and plugin registry for AgentPlugin",
+  "description": "Core types, validation, and plugin registry for AgentPlugins",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -23,7 +23,7 @@
     "README.md"
   ],
   "keywords": [
-    "agentplugin",
+    "agentplugins",
     "ai",
     "plugin",
     "core"

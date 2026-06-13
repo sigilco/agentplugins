@@ -1,7 +1,7 @@
 {
-  "name": "@agentplugin/adapter-pimono",
+  "name": "@agentplugins/adapter-pimono",
   "version": "0.1.0",
-  "description": "Pi Mono platform adapter for AgentPlugin — generates TypeScript-native extensions for the Pi agent runtime",
+  "description": "Pi Mono platform adapter for AgentPlugins — generates TypeScript-native extensions for the Pi agent runtime",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -18,7 +18,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@agentplugin/core": "workspace:*"
+    "@agentplugins/core": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.0.0",
@@ -30,7 +30,7 @@
     "README.md"
   ],
   "keywords": [
-    "agentplugin",
+    "agentplugins",
     "pi",
     "pimono",
     "agent",

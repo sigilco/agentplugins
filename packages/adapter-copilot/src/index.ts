@@ -1,9 +1,9 @@
 /**
- * @agentplugin/adapter-copilot
+ * @agentplugins/adapter-copilot
  *
- * GitHub Copilot CLI platform adapter for the AgentPlugin plugin system.
+ * GitHub Copilot CLI platform adapter for the AgentPlugins plugin system.
  *
- * This adapter compiles AgentPlugin {@link PluginManifest} objects into the
+ * This adapter compiles AgentPlugins {@link PluginManifest} objects into the
  * multi-file layout expected by the Copilot CLI runtime:
  *
  *   - plugin.json          – top-level manifest (strict validation, metadata)
@@ -57,13 +57,13 @@ import {
   type HookDefinition,
   type Skill,
   Severity,
-} from "@agentplugin/core";
+} from "@agentplugins/core";
 
 /* ──────────────────────────────────────────────────────────────────────────── */
 /*  CONSTANTS                                                                  */
 /* ──────────────────────────────────────────────────────────────────────────── */
 
-/** Platform identifier used throughout AgentPlugin. */
+/** Platform identifier used throughout AgentPlugins. */
 const PLATFORM_NAME = "copilot" as const;
 
 /** Human-readable platform name. */
@@ -622,7 +622,7 @@ function compileHookEntry(
 /**
  * GitHub Copilot CLI platform adapter.
  *
- * Converts AgentPlugin {@link PluginManifest} objects into the file layout
+ * Converts AgentPlugins {@link PluginManifest} objects into the file layout
  * expected by the Copilot CLI runtime:
  *
  * ```
@@ -1053,7 +1053,7 @@ ${scriptBody}
  * GitHub Copilot CLI platform:
  *
  * ```ts
- * import { copilotAdapter } from "@agentplugin/adapter-copilot";
+ * import { copilotAdapter } from "@agentplugins/adapter-copilot";
  *
  * const issues = copilotAdapter.validate(myPlugin);
  * if (issues.length === 0) {

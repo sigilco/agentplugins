@@ -1,7 +1,7 @@
 {
-  "name": "@agentplugin/adapter-kimi",
+  "name": "@agentplugins/adapter-kimi",
   "version": "0.1.0",
-  "description": "AgentPlugin platform adapter for Kimi (Moonshot AI)",
+  "description": "AgentPlugins platform adapter for Kimi (Moonshot AI)",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -22,17 +22,17 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@agentplugin/core": "workspace:*"
+    "@agentplugins/core": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.0.0",
     "typescript": "^5.3.0"
   },
   "peerDependencies": {
-    "@agentplugin/core": "^0.1.0"
+    "@agentplugins/core": "^0.1.0"
   },
   "keywords": [
-    "agentplugin",
+    "agentplugins",
     "kimi",
     "moonshot",
     "plugin",
@@ -41,7 +41,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/espetro/agentplugin.git",
+    "url": "https://github.com/espetro/agentplugins.git",
     "directory": "packages/adapter-kimi"
   }
 }

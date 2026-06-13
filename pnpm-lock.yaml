@@ -14,7 +14,7 @@ importers:
 
   packages/adapter-claude:
     dependencies:
-      '@agentplugin/core':
+      '@agentplugins/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -30,7 +30,7 @@ importers:
 
   packages/adapter-codex:
     dependencies:
-      '@agentplugin/core':
+      '@agentplugins/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -49,7 +49,7 @@ importers:
 
   packages/adapter-copilot:
     dependencies:
-      '@agentplugin/core':
+      '@agentplugins/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -65,7 +65,7 @@ importers:
 
   packages/adapter-gemini:
     dependencies:
-      '@agentplugin/core':
+      '@agentplugins/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -78,7 +78,7 @@ importers:
 
   packages/adapter-kimi:
     dependencies:
-      '@agentplugin/core':
+      '@agentplugins/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -91,7 +91,7 @@ importers:
 
   packages/adapter-opencode:
     dependencies:
-      '@agentplugin/core':
+      '@agentplugins/core':
         specifier: workspace:*
         version: link:../core
       zod:
@@ -110,7 +110,7 @@ importers:
 
   packages/adapter-pimono:
     dependencies:
-      '@agentplugin/core':
+      '@agentplugins/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
@@ -123,28 +123,28 @@ importers:
 
   packages/cli:
     dependencies:
-      '@agentplugin/adapter-claude':
+      '@agentplugins/adapter-claude':
         specifier: workspace:*
         version: link:../adapter-claude
-      '@agentplugin/adapter-codex':
+      '@agentplugins/adapter-codex':
         specifier: workspace:*
         version: link:../adapter-codex
-      '@agentplugin/adapter-copilot':
+      '@agentplugins/adapter-copilot':
         specifier: workspace:*
         version: link:../adapter-copilot
-      '@agentplugin/adapter-gemini':
+      '@agentplugins/adapter-gemini':
         specifier: workspace:*
         version: link:../adapter-gemini
-      '@agentplugin/adapter-kimi':
+      '@agentplugins/adapter-kimi':
         specifier: workspace:*
         version: link:../adapter-kimi
-      '@agentplugin/adapter-opencode':
+      '@agentplugins/adapter-opencode':
         specifier: workspace:*
         version: link:../adapter-opencode
-      '@agentplugin/adapter-pimono':
+      '@agentplugins/adapter-pimono':
         specifier: workspace:*
         version: link:../adapter-pimono
-      '@agentplugin/core':
+      '@agentplugins/core':
         specifier: workspace:*
         version: link:../core
       cac:
@@ -179,10 +179,10 @@ importers:
 
   plugins/example-logger:
     devDependencies:
-      '@agentplugin/cli':
+      '@agentplugins/cli':
         specifier: workspace:*
         version: link:../../packages/cli
-      '@agentplugin/core':
+      '@agentplugins/core':
         specifier: workspace:*
         version: link:../../packages/core
       typescript:

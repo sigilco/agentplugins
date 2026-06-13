@@ -1,5 +1,5 @@
 /**
- * AgentPlugin Adapter Registry
+ * AgentPlugins Adapter Registry
  *
  * Central registry for all platform adapters.
  * Adapters register themselves; the CLI and build system look them up here.
@@ -35,7 +35,7 @@ export async function loadAdapter(platform: TargetPlatform): Promise<PlatformAda
   if (!factory) {
     throw new Error(
       `No adapter registered for platform "${platform}". ` +
-      `Install the corresponding adapter package: npm install @agentplugin/adapter-${platform}`
+      `Install the corresponding adapter package: npm install @agentplugins/adapter-${platform}`
     );
   }
   return factory();
@@ -66,13 +66,13 @@ export function getRegisteredPlatforms(): TargetPlatform[] {
 export async function registerBuiltinAdapters(): Promise<void> {
   // Dynamic imports to avoid loading adapters that aren't installed
   const builtinAdapters: { platform: TargetPlatform; pkg: string }[] = [
-    { platform: 'claude', pkg: '@agentplugin/adapter-claude' },
-    { platform: 'codex', pkg: '@agentplugin/adapter-codex' },
-    { platform: 'copilot', pkg: '@agentplugin/adapter-copilot' },
-    { platform: 'gemini', pkg: '@agentplugin/adapter-gemini' },
-    { platform: 'kimi', pkg: '@agentplugin/adapter-kimi' },
-    { platform: 'opencode', pkg: '@agentplugin/adapter-opencode' },
-    { platform: 'pimono', pkg: '@agentplugin/adapter-pimono' },
+    { platform: 'claude', pkg: '@agentplugins/adapter-claude' },
+    { platform: 'codex', pkg: '@agentplugins/adapter-codex' },
+    { platform: 'copilot', pkg: '@agentplugins/adapter-copilot' },
+    { platform: 'gemini', pkg: '@agentplugins/adapter-gemini' },
+    { platform: 'kimi', pkg: '@agentplugins/adapter-kimi' },
+    { platform: 'opencode', pkg: '@agentplugins/adapter-opencode' },
+    { platform: 'pimono', pkg: '@agentplugins/adapter-pimono' },
   ];
 
   for (const { platform, pkg } of builtinAdapters) {

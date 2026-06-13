@@ -1,7 +1,7 @@
 {
-  "name": "@agentplugin/adapter-claude",
+  "name": "@agentplugins/adapter-claude",
   "version": "0.1.0",
-  "description": "AgentPlugin platform adapter for Claude Code",
+  "description": "AgentPlugins platform adapter for Claude Code",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -18,7 +18,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@agentplugin/core": "workspace:*"
+    "@agentplugins/core": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

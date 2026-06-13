@@ -1,21 +1,21 @@
-# @agentplugin/adapter-codex
+# @agentplugins/adapter-codex
 
-> AgentPlugin platform adapter for [OpenAI Codex CLI](https://developers.openai.com/codex/plugins).
+> AgentPlugins platform adapter for [OpenAI Codex CLI](https://developers.openai.com/codex/plugins).
 
 Compiles a universal `PluginManifest` into OpenAI Codex's native plugin layout: `plugin.json` manifest and `hooks.json` hook wiring (inline handlers are wrapped as Node scripts that receive JSON on stdin and respond on stdout).
 
 ## Installation
 
 ```bash
-npm install @agentplugin/adapter-codex
+npm install @agentplugins/adapter-codex
 ```
 
-Typically installed transitively via [`@agentplugin/cli`](https://www.npmjs.com/package/@agentplugin/cli).
+Typically installed transitively via [`@agentplugins/cli`](https://www.npmjs.com/package/@agentplugins/cli).
 
 ## Usage
 
 ```typescript
-import { createCodexAdapter } from '@agentplugin/adapter-codex';
+import { createCodexAdapter } from '@agentplugins/adapter-codex';
 
 const adapter = createCodexAdapter();
 const output = await adapter.compile(manifest);
@@ -24,7 +24,7 @@ const output = await adapter.compile(manifest);
 Or via the CLI:
 
 ```bash
-npx agentplugin build --target codex
+npx agentplugins build --target codex
 ```
 
 ## Output shape

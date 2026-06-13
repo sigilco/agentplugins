@@ -1,11 +1,11 @@
-# AgentPlugin
+# AgentPlugins
 
 > **Write AI agent plugins once, ship to any harness.**
 
-AgentPlugin is a unifying library for AI agent plugin development — inspired by [unplugin](https://unplugin.unjs.io/) (unified build plugins) and [LLVM](https://llvm.org/) (unified compiler IR). It uses **Ports & Adapters** (Hexagonal Architecture) to let you define a plugin once and compile it for Claude Code, OpenAI Codex, GitHub Copilot CLI, Google Gemini CLI, Kimi, OpenCode, and Pi Mono.
+AgentPlugins is a unifying library for AI agent plugin development — inspired by [unplugin](https://unplugin.unjs.io/) (unified build plugins) and [LLVM](https://llvm.org/) (unified compiler IR). It uses **Ports & Adapters** (Hexagonal Architecture) to let you define a plugin once and compile it for Claude Code, OpenAI Codex, GitHub Copilot CLI, Google Gemini CLI, Kimi, OpenCode, and Pi Mono.
 
 ```
-Your Plugin → AgentPlugin Core (Universal IR) → Platform Adapters → 7 Agent Harnesses
+Your Plugin → AgentPlugins Core (Universal IR) → Platform Adapters → 7 Agent Harnesses
 ```
 
 ## Supported Platforms
@@ -25,13 +25,13 @@ Your Plugin → AgentPlugin Core (Universal IR) → Platform Adapters → 7 Agen
 ### 1. Create a Plugin
 
 ```bash
-npx @agentplugin/cli init my-plugin
+npx @agentplugins/cli init my-plugin
 ```
 
-This scaffolds a new plugin with `agentplugin.config.ts`:
+This scaffolds a new plugin with `agentplugins.config.ts`:
 
 ```typescript
-import { definePlugin } from '@agentplugin/core';
+import { definePlugin } from '@agentplugins/core';
 
 export default definePlugin({
   name: 'my-security-guard',
@@ -72,13 +72,13 @@ export default definePlugin({
 ### 2. Validate
 
 ```bash
-npx agentplugin validate
+npx agentplugins validate
 ```
 
 ### 3. Build
 
 ```bash
-npx agentplugin build
+npx agentplugins build
 ```
 
 Output:
@@ -124,7 +124,7 @@ cp -r dist/pimono ~/.pi/agent/extensions/
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│                     AgentPlugin Core                         │
+│                     AgentPlugins Core                         │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  │
 │  │ PluginManifest │  │  Validators  │  │  Hook Registry   │  │
 │  │  (The Port)    │  │              │  │                  │  │
@@ -141,7 +141,7 @@ cp -r dist/pimono ~/.pi/agent/extensions/
 
 ### The Port (Universal Interface)
 
-AgentPlugin defines a maximal common subset of capabilities across all platforms:
+AgentPlugins defines a maximal common subset of capabilities across all platforms:
 
 **Hooks** — 19 universal lifecycle events:
 - Session: `sessionStart`, `sessionEnd`
@@ -174,12 +174,12 @@ Each adapter transforms the universal representation into the platform-native fo
 
 ## Validation
 
-AgentPlugin catches cross-platform issues at build time:
+AgentPlugins catches cross-platform issues at build time:
 
 ```bash
-$ npx agentplugin validate
+$ npx agentplugins validate
 
-🔍 AgentPlugin Validation
+🔍 AgentPlugins Validation
 
 claude:
   ✓ No issues found
@@ -199,7 +199,7 @@ gemini:
 ## Monorepo Structure
 
 ```
-agentplugin/
+agentplugins/
 ├── packages/
 │   ├── core/              # Universal types, validation, registry
 │   ├── cli/               # Build and validate commands
@@ -230,7 +230,7 @@ pnpm build
 # → Check dist/ for generated platform outputs
 ```
 
-## Why AgentPlugin?
+## Why AgentPlugins?
 
 ### The Problem
 
@@ -250,16 +250,16 @@ Every AI agent framework has its own plugin system:
 
 ### The Solution: Ports & Adapters
 
-Like unplugin unified build tools and LLVM unified compilers, AgentPlugin unifies AI agent plugins:
+Like unplugin unified build tools and LLVM unified compilers, AgentPlugins unifies AI agent plugins:
 
-1. **You write** a plugin using the universal AgentPlugin interface (the Port)
-2. **AgentPlugin validates** your plugin against each target's constraints
+1. **You write** a plugin using the universal AgentPlugins interface (the Port)
+2. **AgentPlugins validates** your plugin against each target's constraints
 3. **Adapters compile** your plugin into each platform's native format
 4. **You ship** one codebase to 7 platforms
 
 ## Future Vision
 
-AgentPlugin aims to become the **standardschema.dev** of AI agent plugins — a common foundation that:
+AgentPlugins aims to become the **standardschema.dev** of AI agent plugins — a common foundation that:
 
 1. Enables plugin authors to reach all agent harnesses with one implementation
 2. Lets new agent frameworks join the ecosystem by implementing one adapter

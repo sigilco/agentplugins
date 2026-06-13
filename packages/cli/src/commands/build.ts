@@ -1,5 +1,5 @@
 /**
- * AgentPlugin Build Command
+ * AgentPlugins Build Command
  *
  * Compiles a universal plugin into platform-specific packages.
  */
@@ -12,7 +12,7 @@ import {
   validateForPlatform,
   ALL_TARGETS,
   type TargetPlatform,
-} from '@agentplugin/core';
+} from '@agentplugins/core';
 import type { LoadedConfig } from '../config.js';
 
 
@@ -31,25 +31,25 @@ async function getAdapterFactory(target: TargetPlatform): Promise<AdapterFactory
   switch (target) {
     case 'claude':
       // @ts-ignore - adapter loaded dynamically at runtime
-      return (await import('@agentplugin/adapter-claude')).createClaudeAdapter;
+      return (await import('@agentplugins/adapter-claude')).createClaudeAdapter;
     case 'codex':
       // @ts-ignore - adapter loaded dynamically at runtime
-      return (await import('@agentplugin/adapter-codex')).createCodexAdapter;
+      return (await import('@agentplugins/adapter-codex')).createCodexAdapter;
     case 'copilot':
       // @ts-ignore - adapter loaded dynamically at runtime
-      return (await import('@agentplugin/adapter-copilot')).createCopilotAdapter;
+      return (await import('@agentplugins/adapter-copilot')).createCopilotAdapter;
     case 'gemini':
       // @ts-ignore - adapter loaded dynamically at runtime
-      return (await import('@agentplugin/adapter-gemini')).createGeminiAdapter;
+      return (await import('@agentplugins/adapter-gemini')).createGeminiAdapter;
     case 'kimi':
       // @ts-ignore - adapter loaded dynamically at runtime
-      return (await import('@agentplugin/adapter-kimi')).createKimiAdapter;
+      return (await import('@agentplugins/adapter-kimi')).createKimiAdapter;
     case 'opencode':
       // @ts-ignore - adapter loaded dynamically at runtime
-      return (await import('@agentplugin/adapter-opencode')).createOpenCodeAdapter;
+      return (await import('@agentplugins/adapter-opencode')).createOpenCodeAdapter;
     case 'pimono':
       // @ts-ignore - adapter loaded dynamically at runtime
-      return (await import('@agentplugin/adapter-pimono')).createPiMonoAdapter;
+      return (await import('@agentplugins/adapter-pimono')).createPiMonoAdapter;
     default:
       throw new Error(`Unknown target: ${target}`);
   }
@@ -62,7 +62,7 @@ export async function build(options: BuildOptions): Promise<void> {
   // Determine targets
   const targetList = (options.targets || manifest.targets || ALL_TARGETS) as TargetPlatform[];
 
-  console.log(chalk.bold('\n🌉 AgentPlugin Build\n'));
+  console.log(chalk.bold('\n🌉 AgentPlugins Build\n'));
   console.log(chalk.gray(`Plugin: ${manifest.name} v${manifest.version}`));
   console.log(chalk.gray(`Targets: ${targetList.join(', ')}`));
   console.log(chalk.gray(`Output: ${resolve(outDir)}\n`));

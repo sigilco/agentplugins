@@ -1,13 +1,13 @@
-# @agentplugin/core
+# @agentplugins/core
 
-> Core types, validation, and plugin registry for [AgentPlugin](https://github.com/espetro/agentplugin).
+> Core types, validation, and plugin registry for [AgentPlugins](https://github.com/espetro/agentplugins).
 
-`@agentplugin/core` defines the universal plugin manifest (`PluginManifest`), runs schema validation, and exposes the adapter registry that platform adapters register themselves with. It is the **Port** in AgentPlugin's Ports & Adapters (Hexagonal) architecture.
+`@agentplugins/core` defines the universal plugin manifest (`PluginManifest`), runs schema validation, and exposes the adapter registry that platform adapters register themselves with. It is the **Port** in AgentPlugins's Ports & Adapters (Hexagonal) architecture.
 
 ## Installation
 
 ```bash
-npm install @agentplugin/core
+npm install @agentplugins/core
 ```
 
 Peer dependency: none. Runtime: Node 20+.
@@ -24,7 +24,7 @@ Peer dependency: none. Runtime: Node 20+.
 ## Quick start
 
 ```typescript
-import { definePlugin, validateManifest, AdapterRegistry } from '@agentplugin/core';
+import { definePlugin, validateManifest, AdapterRegistry } from '@agentplugins/core';
 
 const manifest = definePlugin({
   name: 'my-plugin',
@@ -48,9 +48,9 @@ if (issues.some(i => i.severity === 'error')) {
 
 ## Related packages
 
-- [`@agentplugin/cli`](https://www.npmjs.com/package/@agentplugin/cli) — build, validate, and scaffold plugins.
-- [`@agentplugin/adapter-claude`](https://www.npmjs.com/package/@agentplugin/adapter-claude) and the other 6 platform adapters.
-- Root repo: <https://github.com/espetro/agentplugin>
+- [`@agentplugins/cli`](https://www.npmjs.com/package/@agentplugins/cli) — build, validate, and scaffold plugins.
+- [`@agentplugins/adapter-claude`](https://www.npmjs.com/package/@agentplugins/adapter-claude) and the other 6 platform adapters.
+- Root repo: <https://github.com/espetro/agentplugins>
 
 ## License
 

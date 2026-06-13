@@ -1,5 +1,5 @@
 /**
- * AgentPlugin Core Types
+ * AgentPlugins Core Types
  *
  * The Port: Universal plugin interface abstracting across all AI agent harnesses.
  * Think of this as the "LLVM IR" of AI agent plugins — one unified representation

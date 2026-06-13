@@ -1,5 +1,5 @@
 /**
- * AgentPlugin — PlatformAdapter Contract Test Suite
+ * AgentPlugins — PlatformAdapter Contract Test Suite
  *
  * Tests that all platform adapters conform to the PlatformAdapter interface contract.
  * This suite documents the expected behavior; some tests may fail due to known bugs
@@ -7,7 +7,7 @@
  *
  * Known bugs:
  *   - adapter-opencode: ctx parameter type mismatch in generated handler args
- *   - adapter-claude: AGENTPLUGIN_HOOK_ID not properly set in inline wrapper scripts
+ *   - adapter-claude: AGENTPLUGINS_HOOK_ID not properly set in inline wrapper scripts
  *   - adapter-pimono: ExtendedHandlerType includes 'reference' which is not in core HandlerType;
  *                     compile() returns 'metadata' instead of 'manifest' in AdapterOutput
  */
@@ -23,8 +23,8 @@ import type {
   HandlerType,
   UniversalHooks,
   TargetPlatform,
-} from '@agentplugin/core';
-import { UNIVERSAL_HOOK_NAMES, Severity } from '@agentplugin/core';
+} from '@agentplugins/core';
+import { UNIVERSAL_HOOK_NAMES, Severity } from '@agentplugins/core';
 
 // Adapter imports — use relative paths since these are workspace packages
 import { createOpenCodeAdapter } from '../../adapter-opencode/src/index.ts';
@@ -452,8 +452,8 @@ describe('PlatformAdapter Contract Suite', () => {
       expect(content).toContain('ctx');
     });
 
-    // Known bug: claude inline wrapper doesn't set AGENTPLUGIN_HOOK_ID properly
-    it('adapter-claude: inline handler wrapper has AGENTPLUGIN_HOOK_ID set', () => {
+    // Known bug: claude inline wrapper doesn't set AGENTPLUGINS_HOOK_ID properly
+    it('adapter-claude: inline handler wrapper has AGENTPLUGINS_HOOK_ID set', () => {
       const adapter = createClaudeAdapter();
       const manifestWithInline: PluginManifest = {
         name: 'inline-test',
@@ -474,7 +474,7 @@ describe('PlatformAdapter Contract Suite', () => {
       const wrapperFiles = result.files.filter((f) => f.path.includes('__inline_'));
       if (wrapperFiles.length > 0) {
         const wrapperContent = wrapperFiles[0].content;
-        // Known bug: AGENTPLUGIN_HOOK_ID should be set but may not be
+        // Known bug: AGENTPLUGINS_HOOK_ID should be set but may not be
         expect(wrapperContent).toBeDefined();
       }
     });
@@ -523,7 +523,7 @@ describe('All adapters against full plugin manifest', () => {
     author: { name: 'Test Author', email: 'test@example.com' },
     homepage: 'https://example.com',
     license: 'MIT',
-    keywords: ['test', 'agentplugin'],
+    keywords: ['test', 'agentplugins'],
     defaultEnabled: true,
     hooks: {
       sessionStart: {

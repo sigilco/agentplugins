@@ -1,21 +1,21 @@
-# @agentplugin/adapter-copilot
+# @agentplugins/adapter-copilot
 
-> AgentPlugin platform adapter for [GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/plugins-finding-installing).
+> AgentPlugins platform adapter for [GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/plugins-finding-installing).
 
 Compiles a universal `PluginManifest` into the Copilot CLI plugin layout: `plugin.json` manifest, `hooks.json` hook wiring, and MCP server configuration. Inline handlers are wrapped as command scripts that the host invokes.
 
 ## Installation
 
 ```bash
-npm install @agentplugin/adapter-copilot
+npm install @agentplugins/adapter-copilot
 ```
 
-Typically installed transitively via [`@agentplugin/cli`](https://www.npmjs.com/package/@agentplugin/cli).
+Typically installed transitively via [`@agentplugins/cli`](https://www.npmjs.com/package/@agentplugins/cli).
 
 ## Usage
 
 ```typescript
-import { createCopilotAdapter } from '@agentplugin/adapter-copilot';
+import { createCopilotAdapter } from '@agentplugins/adapter-copilot';
 
 const adapter = createCopilotAdapter();
 const output = await adapter.compile(manifest);
@@ -24,7 +24,7 @@ const output = await adapter.compile(manifest);
 Or via the CLI:
 
 ```bash
-npx agentplugin build --target copilot
+npx agentplugins build --target copilot
 ```
 
 ## Output shape

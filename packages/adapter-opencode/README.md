@@ -1,21 +1,21 @@
-# @agentplugin/adapter-opencode
+# @agentplugins/adapter-opencode
 
-> AgentPlugin platform adapter for [OpenCode](https://opencode.ai/docs/plugins/).
+> AgentPlugins platform adapter for [OpenCode](https://opencode.ai/docs/plugins/).
 
 Generates OpenCode-compatible plugins from a universal `PluginManifest`: a TypeScript module with the plugin's hooks, tools, and MCP server config, plus a JSON descriptor.
 
 ## Installation
 
 ```bash
-npm install @agentplugin/adapter-opencode
+npm install @agentplugins/adapter-opencode
 ```
 
-Typically installed transitively via [`@agentplugin/cli`](https://www.npmjs.com/package/@agentplugin/cli).
+Typically installed transitively via [`@agentplugins/cli`](https://www.npmjs.com/package/@agentplugins/cli).
 
 ## Usage
 
 ```typescript
-import { createOpenCodeAdapter } from '@agentplugin/adapter-opencode';
+import { createOpenCodeAdapter } from '@agentplugins/adapter-opencode';
 
 const adapter = createOpenCodeAdapter();
 const output = await adapter.compile(manifest);
@@ -24,7 +24,7 @@ const output = await adapter.compile(manifest);
 Or via the CLI:
 
 ```bash
-npx agentplugin build --target opencode
+npx agentplugins build --target opencode
 ```
 
 ## Output shape

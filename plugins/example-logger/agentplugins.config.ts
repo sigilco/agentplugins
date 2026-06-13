@@ -1,7 +1,7 @@
-import { definePlugin } from '@agentplugin/core';
+import { definePlugin } from '@agentplugins/core';
 
 /**
- * AgentPlugin Example Logger Plugin
+ * AgentPlugins Example Logger Plugin
  *
  * A simple plugin that demonstrates cross-platform compatibility.
  * It logs session events and can block dangerous shell commands.
@@ -16,7 +16,7 @@ import { definePlugin } from '@agentplugin/core';
  * - Pi Mono (.pi/extensions/)
  */
 export default definePlugin({
-  name: 'agentplugin-example-logger',
+  name: 'agentplugins-example-logger',
   version: '0.1.0',
   description: 'Cross-platform logging and security plugin for AI agent harnesses',
 

@@ -1,7 +1,7 @@
 {
-  "name": "@agentplugin/adapter-opencode",
+  "name": "@agentplugins/adapter-opencode",
   "version": "0.1.0",
-  "description": "OpenCode platform adapter for AgentPlugin - generates OpenCode-compatible plugins from universal manifests",
+  "description": "OpenCode platform adapter for AgentPlugins - generates OpenCode-compatible plugins from universal manifests",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -20,7 +20,7 @@
     "test:run": "vitest run"
   },
   "dependencies": {
-    "@agentplugin/core": "workspace:*",
+    "@agentplugins/core": "workspace:*",
     "zod": "^3.22.0"
   },
   "devDependencies": {
@@ -34,7 +34,7 @@
   ],
   "license": "MIT",
   "keywords": [
-    "agentplugin",
+    "agentplugins",
     "opencode",
     "adapter",
     "ai",

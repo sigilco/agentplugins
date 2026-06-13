@@ -1,7 +1,7 @@
 {
-  "name": "@agentplugin/adapter-gemini",
+  "name": "@agentplugins/adapter-gemini",
   "version": "0.1.0",
-  "description": "AgentPlugin platform adapter for Google Gemini CLI extensions",
+  "description": "AgentPlugins platform adapter for Google Gemini CLI extensions",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -18,7 +18,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@agentplugin/core": "workspace:*"
+    "@agentplugins/core": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.0.0",

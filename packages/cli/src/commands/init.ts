@@ -1,7 +1,7 @@
 /**
- * AgentPlugin Init Command
+ * AgentPlugins Init Command
  *
- * Scaffolds a new AgentPlugin plugin project.
+ * Scaffolds a new AgentPlugins plugin project.
  */
 
 import { resolve } from 'node:path';
@@ -18,18 +18,18 @@ export async function init(options: InitOptions): Promise<void> {
   const cwd = process.cwd();
   const pluginDir = resolve(cwd, name);
 
-  console.log(chalk.bold(`\n🆕 Creating AgentPlugin plugin: ${name}\n`));
+  console.log(chalk.bold(`\n🆕 Creating AgentPlugins plugin: ${name}\n`));
 
   // Create directory
   await mkdir(pluginDir, { recursive: true });
 
-  // ─── agentplugin.config.ts ────────────────────────────────────────────────
-  const configContent = `import { definePlugin } from '@agentplugin/core';
+  // ─── agentplugins.config.ts ────────────────────────────────────────────────
+  const configContent = `import { definePlugin } from '@agentplugins/core';
 
 export default definePlugin({
   name: '${toKebabCase(name)}',
   version: '0.1.0',
-  description: 'My AgentPlugin plugin — works across multiple AI agent harnesses',
+  description: 'My AgentPlugins plugin — works across multiple AI agent harnesses',
 
   // Target platforms to compile for
   targets: [${targets.map(t => `'${t}'`).join(', ')}] as const,
@@ -40,7 +40,7 @@ export default definePlugin({
       handler: {
         type: 'inline',
         handler: async (ctx) => {
-          console.log('[AgentPlugin] Session started:', ctx.sessionId);
+          console.log('[AgentPlugins] Session started:', ctx.sessionId);
           return {
             additionalContext: '${name} plugin is active. Log all tool usage for audit.',
           };
@@ -51,7 +51,7 @@ export default definePlugin({
       handler: {
         type: 'inline',
         handler: async (ctx) => {
-          console.log('[AgentPlugin] Tool call:', ctx.toolName, JSON.stringify(ctx.toolInput));
+          console.log('[AgentPlugins] Tool call:', ctx.toolName, JSON.stringify(ctx.toolInput));
           // Return nothing to allow the tool call
         },
       },
@@ -74,22 +74,22 @@ When using this plugin, always log your actions for transparency.
   ],
 });
 `;
-  await writeFile(resolve(pluginDir, 'agentplugin.config.ts'), configContent);
+  await writeFile(resolve(pluginDir, 'agentplugins.config.ts'), configContent);
 
   // ─── package.json ─────────────────────────────────────────────────────────
   const packageJson = {
     name: toKebabCase(name),
     version: '0.1.0',
-    description: `AgentPlugin plugin — works across ${targets.join(', ')}`,
+    description: `AgentPlugins plugin — works across ${targets.join(', ')}`,
     type: 'module',
     private: true,
     scripts: {
-      build: 'agentplugin build',
-      validate: 'agentplugin validate',
+      build: 'agentplugins build',
+      validate: 'agentplugins validate',
     },
     devDependencies: {
-      '@agentplugin/core': '^0.1.0',
-      '@agentplugin/cli': '^0.1.0',
+      '@agentplugins/core': '^0.1.0',
+      '@agentplugins/cli': '^0.1.0',
       typescript: '^5.5.0',
     },
   };
@@ -106,7 +106,7 @@ When using this plugin, always log your actions for transparency.
       skipLibCheck: true,
       forceConsistentCasingInFileNames: true,
     },
-    include: ['agentplugin.config.ts'],
+    include: ['agentplugins.config.ts'],
   };
   await writeFile(resolve(pluginDir, 'tsconfig.json'), JSON.stringify(tsconfig, null, 2));
 
@@ -119,7 +119,7 @@ node_modules/
   // ─── README.md ────────────────────────────────────────────────────────────
   const readme = `# ${name}
 
-An [AgentPlugin](https://github.com/espetro/agentplugin) plugin that works across multiple AI agent harnesses.
+An [AgentPlugins](https://github.com/espetro/agentplugins) plugin that works across multiple AI agent harnesses.
 
 ## Supported Platforms
 
@@ -138,7 +138,7 @@ npm run validate
 npm run build
 
 # Build for specific targets
-npx agentplugin build --target claude,codex
+npx agentplugins build --target claude,codex
 \`\`\`
 
 ## Installation
