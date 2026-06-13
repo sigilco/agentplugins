@@ -1,10 +1,10 @@
 {
   "name": "@agentplugin/cli",
   "version": "0.1.0",
-  "description": "CLI for building AgentBridge plugins across multiple AI agent harnesses",
+  "description": "CLI for building AgentPlugin plugins across multiple AI agent harnesses",
   "type": "module",
   "bin": {
-    "agentbridge": "./dist/cli.js"
+    "agentplugin": "./dist/cli.js"
   },
   "main": "./dist/cli.js",
   "scripts": {
@@ -30,7 +30,7 @@
     "@types/node": "^20.0.0"
   },
   "keywords": [
-    "agentbridge",
+    "agentplugin",
     "cli",
     "ai",
     "plugin"

@@ -1,7 +1,7 @@
 {
   "name": "@agentplugin/adapter-gemini",
   "version": "0.1.0",
-  "description": "AgentBridge platform adapter for Google Gemini CLI extensions",
+  "description": "AgentPlugin platform adapter for Google Gemini CLI extensions",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

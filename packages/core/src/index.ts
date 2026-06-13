@@ -1,5 +1,5 @@
 /**
- * AgentBridge Core
+ * AgentPlugin Core
  *
  * The Port — universal plugin interface for AI agent harnesses.
  */

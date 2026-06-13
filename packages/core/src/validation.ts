@@ -1,5 +1,5 @@
 /**
- * AgentBridge Validation Layer
+ * AgentPlugin Validation Layer
  *
  * Catches cross-platform issues before compilation.
  * Provides platform-specific and universal validators.

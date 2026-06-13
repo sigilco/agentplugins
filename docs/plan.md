@@ -1,11 +1,11 @@
-# AgentBridge — Unified Plugin Library for AI Agent Harnesses
+# AgentPlugin — Unified Plugin Library for AI Agent Harnesses
 
 ## Overview
 Build a TypeScript library that uses Ports & Adapters (Hexagonal Architecture) to let developers write plugins once and compile them for multiple AI agent platforms (Claude Code, OpenCode, Codex, Gemini, Copilot CLI, Kimi, Pi Mono).
 
 ## Architecture
 - **Core Domain**: Universal plugin hooks (transform, load, validate, execute)
-- **The Port**: Abstract plugin interface (AgentBridge API)
+- **The Port**: Abstract plugin interface (AgentPlugin API)
 - **The Adapters**: Platform-specific wrappers that translate universal hooks to native plugin APIs
 - **Value**: Write plugin logic once; ship to any agent harness
 
@@ -35,6 +35,6 @@ Build a TypeScript library that uses Ports & Adapters (Hexagonal Architecture) t
 - Package for delivery
 
 ## Deliverables
-- /mnt/agents/output/agentbridge/ — the library source
-- /mnt/agents/output/agentbridge-example/ — example consumer project
+- /mnt/agents/output/agentplugin/ — the library source
+- /mnt/agents/output/agentplugin-example/ — example consumer project
 - README with setup instructions

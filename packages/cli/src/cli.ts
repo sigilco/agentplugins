@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
- * AgentBridge CLI
+ * AgentPlugin CLI
  *
  * Build AI agent plugins once, ship to any harness.
  *
  * Usage:
- *   npx agentbridge build              # Build plugin for all targets
- *   npx agentbridge build --target claude,codex  # Build for specific targets
- *   npx agentbridge validate           # Validate plugin without building
- *   npx agentbridge init               # Scaffold a new plugin
+ *   npx agentplugin build              # Build plugin for all targets
+ *   npx agentplugin build --target claude,codex  # Build for specific targets
+ *   npx agentplugin validate           # Validate plugin without building
+ *   npx agentplugin init               # Scaffold a new plugin
  */
 
 import { cac } from 'cac';
@@ -18,14 +18,14 @@ import { validate } from './commands/validate.js';
 import { init } from './commands/init.js';
 import { loadConfig } from './config.js';
 
-const cli = cac('agentbridge');
+const cli = cac('agentplugin');
 
 cli
   .command('build', 'Build plugin for target platforms')
   .option('-t, --target <targets>', 'Comma-separated target platforms (claude,codex,copilot,gemini,kimi,opencode,pimono)')
   .option('-o, --out-dir <dir>', 'Output directory', { default: 'dist' })
   .option('--strict', 'Fail on warnings', { default: false })
-  .option('--config <file>', 'Config file path', { default: 'agentbridge.config.ts' })
+  .option('--config <file>', 'Config file path', { default: 'agentplugin.config.ts' })
   .action(async (options) => {
     try {
       const config = await loadConfig(options.config);
@@ -47,7 +47,7 @@ cli
 
 cli
   .command('validate', 'Validate plugin configuration')
-  .option('--config <file>', 'Config file path', { default: 'agentbridge.config.ts' })
+  .option('--config <file>', 'Config file path', { default: 'agentplugin.config.ts' })
   .option('-t, --target <targets>', 'Validate for specific targets only')
   .action(async (options) => {
     try {
@@ -64,12 +64,12 @@ cli
   });
 
 cli
-  .command('init [name]', 'Scaffold a new AgentBridge plugin')
+  .command('init [name]', 'Scaffold a new AgentPlugin plugin')
   .option('--target <targets>', 'Initial target platforms', { default: 'claude,codex' })
   .action(async (name: string | undefined, options) => {
     try {
       await init({
-        name: name || 'my-agentbridge-plugin',
+        name: name || 'my-agentplugin-plugin',
         targets: options.target.split(',').map((t: string) => t.trim()),
       });
     } catch (err) {

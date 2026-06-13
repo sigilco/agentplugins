@@ -1,9 +1,9 @@
 /**
  * @agentplugin/adapter-copilot
  *
- * GitHub Copilot CLI platform adapter for the AgentBridge plugin system.
+ * GitHub Copilot CLI platform adapter for the AgentPlugin plugin system.
  *
- * This adapter compiles AgentBridge {@link PluginManifest} objects into the
+ * This adapter compiles AgentPlugin {@link PluginManifest} objects into the
  * multi-file layout expected by the Copilot CLI runtime:
  *
  *   - plugin.json          – top-level manifest (strict validation, metadata)
@@ -63,7 +63,7 @@ import {
 /*  CONSTANTS                                                                  */
 /* ──────────────────────────────────────────────────────────────────────────── */
 
-/** Platform identifier used throughout AgentBridge. */
+/** Platform identifier used throughout AgentPlugin. */
 const PLATFORM_NAME = "copilot" as const;
 
 /** Human-readable platform name. */
@@ -622,7 +622,7 @@ function compileHookEntry(
 /**
  * GitHub Copilot CLI platform adapter.
  *
- * Converts AgentBridge {@link PluginManifest} objects into the file layout
+ * Converts AgentPlugin {@link PluginManifest} objects into the file layout
  * expected by the Copilot CLI runtime:
  *
  * ```

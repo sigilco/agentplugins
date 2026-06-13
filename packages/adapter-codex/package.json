@@ -1,7 +1,7 @@
 {
   "name": "@agentplugin/adapter-codex",
   "version": "0.1.0",
-  "description": "AgentBridge platform adapter for OpenAI Codex CLI",
+  "description": "AgentPlugin platform adapter for OpenAI Codex CLI",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -36,11 +36,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/agentbridge.git",
+    "url": "https://github.com/your-org/agentplugin.git",
     "directory": "packages/adapter-codex"
   },
   "keywords": [
-    "agentbridge",
+    "agentplugin",
     "codex",
     "openai",
     "cli",

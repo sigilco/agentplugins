@@ -1,7 +1,7 @@
 /**
- * AgentBridge Init Command
+ * AgentPlugin Init Command
  *
- * Scaffolds a new AgentBridge plugin project.
+ * Scaffolds a new AgentPlugin plugin project.
  */
 
 import { resolve } from 'node:path';
@@ -18,18 +18,18 @@ export async function init(options: InitOptions): Promise<void> {
   const cwd = process.cwd();
   const pluginDir = resolve(cwd, name);
 
-  console.log(chalk.bold(`\n🆕 Creating AgentBridge plugin: ${name}\n`));
+  console.log(chalk.bold(`\n🆕 Creating AgentPlugin plugin: ${name}\n`));
 
   // Create directory
   await mkdir(pluginDir, { recursive: true });
 
-  // ─── agentbridge.config.ts ────────────────────────────────────────────────
+  // ─── agentplugin.config.ts ────────────────────────────────────────────────
   const configContent = `import { definePlugin } from '@agentplugin/core';
 
 export default definePlugin({
   name: '${toKebabCase(name)}',
   version: '0.1.0',
-  description: 'My AgentBridge plugin — works across multiple AI agent harnesses',
+  description: 'My AgentPlugin plugin — works across multiple AI agent harnesses',
 
   // Target platforms to compile for
   targets: [${targets.map(t => `'${t}'`).join(', ')}] as const,
@@ -40,7 +40,7 @@ export default definePlugin({
       handler: {
         type: 'inline',
         handler: async (ctx) => {
-          console.log('[AgentBridge] Session started:', ctx.sessionId);
+          console.log('[AgentPlugin] Session started:', ctx.sessionId);
           return {
             additionalContext: '${name} plugin is active. Log all tool usage for audit.',
           };
@@ -51,7 +51,7 @@ export default definePlugin({
       handler: {
         type: 'inline',
         handler: async (ctx) => {
-          console.log('[AgentBridge] Tool call:', ctx.toolName, JSON.stringify(ctx.toolInput));
+          console.log('[AgentPlugin] Tool call:', ctx.toolName, JSON.stringify(ctx.toolInput));
           // Return nothing to allow the tool call
         },
       },
@@ -74,18 +74,18 @@ When using this plugin, always log your actions for transparency.
   ],
 });
 `;
-  await writeFile(resolve(pluginDir, 'agentbridge.config.ts'), configContent);
+  await writeFile(resolve(pluginDir, 'agentplugin.config.ts'), configContent);
 
   // ─── package.json ─────────────────────────────────────────────────────────
   const packageJson = {
     name: toKebabCase(name),
     version: '0.1.0',
-    description: `AgentBridge plugin — works across ${targets.join(', ')}`,
+    description: `AgentPlugin plugin — works across ${targets.join(', ')}`,
     type: 'module',
     private: true,
     scripts: {
-      build: 'agentbridge build',
-      validate: 'agentbridge validate',
+      build: 'agentplugin build',
+      validate: 'agentplugin validate',
     },
     devDependencies: {
       '@agentplugin/core': '^0.1.0',
@@ -106,7 +106,7 @@ When using this plugin, always log your actions for transparency.
       skipLibCheck: true,
       forceConsistentCasingInFileNames: true,
     },
-    include: ['agentbridge.config.ts'],
+    include: ['agentplugin.config.ts'],
   };
   await writeFile(resolve(pluginDir, 'tsconfig.json'), JSON.stringify(tsconfig, null, 2));
 
@@ -119,7 +119,7 @@ node_modules/
   // ─── README.md ────────────────────────────────────────────────────────────
   const readme = `# ${name}
 
-An [AgentBridge](https://github.com/agentbridge/agentbridge) plugin that works across multiple AI agent harnesses.
+An [AgentPlugin](https://github.com/agentplugin/agentplugin) plugin that works across multiple AI agent harnesses.
 
 ## Supported Platforms
 
@@ -138,7 +138,7 @@ npm run validate
 npm run build
 
 # Build for specific targets
-npx agentbridge build --target claude,codex
+npx agentplugin build --target claude,codex
 \`\`\`
 
 ## Installation

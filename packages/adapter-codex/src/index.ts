@@ -259,10 +259,10 @@ function buildSkillFile(skill: Skill): string {
 // ---------------------------------------------------------------------------
 
 /**
- * AgentBridge platform adapter for OpenAI Codex CLI.
+ * AgentPlugin platform adapter for OpenAI Codex CLI.
  *
  * Implements the {@link PlatformAdapter} interface to compile
- * cross-platform AgentBridge plugins into Codex-compatible plugin
+ * cross-platform AgentPlugin plugins into Codex-compatible plugin
  * bundles with JSON stdin/stdout command handlers.
  */
 export class CodexPlatformAdapter implements PlatformAdapter {

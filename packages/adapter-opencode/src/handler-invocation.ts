@@ -1,5 +1,5 @@
 /**
- * AgentBridge — OpenCode Adapter buildHandlerInvocation()
+ * AgentPlugin — OpenCode Adapter buildHandlerInvocation()
  *
  * Generates the TypeScript code that invokes a handler inside an OpenCode
  * hook function.

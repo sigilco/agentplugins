@@ -1,7 +1,7 @@
 /**
  * Hook Mapping — OpenCode Adapter
  *
- * Maps universal AgentBridge hooks to OpenCode hook names and generates
+ * Maps universal AgentPlugin hooks to OpenCode hook names and generates
  * the TypeScript code for hook handlers.
  *
  * Bug fixes in this module:

@@ -1,7 +1,7 @@
 /**
  * @agentplugin/adapter-pimono
  *
- * Pi Mono platform adapter for AgentBridge.
+ * Pi Mono platform adapter for AgentPlugin.
  *
  * Generates TypeScript-native extensions for the Pi agent runtime (jiti-loaded).
  * Pi Mono extensions are single or multi-file TS modules that export a default
@@ -885,7 +885,7 @@ function compilePlugin(plugin: PluginManifest): AdapterOutput {
 /**
  * Pi Mono platform adapter.
  *
- * Implements the AgentBridge `PlatformAdapter` interface to compile universal
+ * Implements the AgentPlugin `PlatformAdapter` interface to compile universal
  * plugin manifests into Pi Mono native TypeScript extensions.
  *
  * Usage:

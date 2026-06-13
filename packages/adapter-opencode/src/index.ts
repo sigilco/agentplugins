@@ -1,5 +1,5 @@
 /**
- * AgentBridge — OpenCode Platform Adapter
+ * AgentPlugin — OpenCode Platform Adapter
  *
  * @module @agentplugin/adapter-opencode
  */

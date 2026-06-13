@@ -1,5 +1,5 @@
 {
-  "name": "agentbridge",
+  "name": "agentplugin",
   "version": "0.1.0",
   "description": "Write AI agent plugins once, ship to any harness. Unifying library for Claude Code, Codex, OpenCode, Gemini, Copilot CLI, Kimi, and Pi Mono.",
   "private": true,

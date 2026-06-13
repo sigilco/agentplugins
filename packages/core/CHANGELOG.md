@@ -4,9 +4,9 @@
 
 ### Minor Changes
 
-- bce92e4: Initial public release of AgentBridge
+- bce92e4: Initial public release of AgentPlugin
 
-  This is the first public release of AgentBridge, a unified plugin library for AI agent harnesses. Write your plugins once and compile them for multiple platforms:
+  This is the first public release of AgentPlugin, a unified plugin library for AI agent harnesses. Write your plugins once and compile them for multiple platforms:
 
   - **@agentplugin/core** - Core types, validation, registry, and hook-wrapper generator
   - **@agentplugin/cli** - Build/validate/init commands for compiling plugins
@@ -19,11 +19,11 @@
   npm install -g @agentplugin/cli
 
   # Initialize a new plugin
-  agentbridge init my-plugin
+  agentplugin init my-plugin
 
   # Build for all platforms
-  agentbridge build
+  agentplugin build
 
   # Build for specific platform
-  agentbridge build --platform claude
+  agentplugin build --platform claude
   ```

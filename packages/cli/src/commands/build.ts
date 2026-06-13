@@ -1,5 +1,5 @@
 /**
- * AgentBridge Build Command
+ * AgentPlugin Build Command
  *
  * Compiles a universal plugin into platform-specific packages.
  */
@@ -62,7 +62,7 @@ export async function build(options: BuildOptions): Promise<void> {
   // Determine targets
   const targetList = (options.targets || manifest.targets || ALL_TARGETS) as TargetPlatform[];
 
-  console.log(chalk.bold('\n🌉 AgentBridge Build\n'));
+  console.log(chalk.bold('\n🌉 AgentPlugin Build\n'));
   console.log(chalk.gray(`Plugin: ${manifest.name} v${manifest.version}`));
   console.log(chalk.gray(`Targets: ${targetList.join(', ')}`));
   console.log(chalk.gray(`Output: ${resolve(outDir)}\n`));

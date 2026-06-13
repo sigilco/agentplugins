@@ -1,7 +1,7 @@
 {
   "name": "@agentplugin/core",
   "version": "0.1.0",
-  "description": "Core types, validation, and plugin registry for AgentBridge",
+  "description": "Core types, validation, and plugin registry for AgentPlugin",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -19,7 +19,7 @@
     "test:run": "vitest run __tests__/placeholder.test.ts"
   },
   "keywords": [
-    "agentbridge",
+    "agentplugin",
     "ai",
     "plugin",
     "core"

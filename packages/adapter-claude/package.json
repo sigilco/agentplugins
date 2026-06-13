@@ -1,7 +1,7 @@
 {
   "name": "@agentplugin/adapter-claude",
   "version": "0.1.0",
-  "description": "AgentBridge platform adapter for Claude Code",
+  "description": "AgentPlugin platform adapter for Claude Code",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

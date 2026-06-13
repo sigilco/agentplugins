@@ -1,5 +1,5 @@
 /**
- * AgentBridge Validate Command
+ * AgentPlugin Validate Command
  *
  * Validates plugin configuration without building.
  */
@@ -22,7 +22,7 @@ export async function validate(options: ValidateOptions): Promise<void> {
   const manifest = config.manifest;
   const targets = options.targets || manifest.targets || ALL_TARGETS;
 
-  console.log(chalk.bold('\n🔍 AgentBridge Validation\n'));
+  console.log(chalk.bold('\n🔍 AgentPlugin Validation\n'));
   console.log(chalk.gray(`Plugin: ${manifest.name} v${manifest.version}`));
   console.log(chalk.gray(`Targets: ${targets.join(', ')}\n`));
 

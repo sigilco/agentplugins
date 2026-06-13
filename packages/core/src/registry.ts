@@ -1,5 +1,5 @@
 /**
- * AgentBridge Adapter Registry
+ * AgentPlugin Adapter Registry
  *
  * Central registry for all platform adapters.
  * Adapters register themselves; the CLI and build system look them up here.

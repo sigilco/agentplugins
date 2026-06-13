@@ -1,5 +1,5 @@
 /**
- * AgentBridge — OpenCode Adapter validate()
+ * AgentPlugin — OpenCode Adapter validate()
  *
  * Validates a universal plugin manifest for the OpenCode platform.
  *

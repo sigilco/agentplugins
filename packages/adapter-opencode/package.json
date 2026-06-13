@@ -1,7 +1,7 @@
 {
   "name": "@agentplugin/adapter-opencode",
   "version": "0.1.0",
-  "description": "OpenCode platform adapter for AgentBridge - generates OpenCode-compatible plugins from universal manifests",
+  "description": "OpenCode platform adapter for AgentPlugin - generates OpenCode-compatible plugins from universal manifests",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -34,7 +34,7 @@
   ],
   "license": "MIT",
   "keywords": [
-    "agentbridge",
+    "agentplugin",
     "opencode",
     "adapter",
     "ai",
