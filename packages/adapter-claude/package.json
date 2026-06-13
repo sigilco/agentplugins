@@ -29,5 +29,8 @@
     "dist",
     "README.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "license": "MIT"
 }

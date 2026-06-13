@@ -22,6 +22,9 @@
     "dist",
     "README.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "keywords": [
     "agentplugins",
     "ai",

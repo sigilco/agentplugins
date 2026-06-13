@@ -16,6 +16,9 @@
     "dist",
     "README.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@agentplugins/core": "workspace:*",
     "@agentplugins/adapter-claude": "workspace:*",
