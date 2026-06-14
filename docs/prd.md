@@ -106,6 +106,7 @@ AgentPlugins solves the fragmentation problem in AI agent plugin development. Pl
 - Skills.sh compatibility (read `SKILL.md`, scan `~/.agents/skills/`)
 - Bun-compiled native binaries for 8 targets → GitHub Releases
 - `@agentplugins/schema` package + hosted JSON Schema at `agentplugins.dev/schema/v1.json`
+- **VitePress landing page** at `https://sigilco.github.io/agentplugins`
 
 ### v0.3.0 (Spec + Conformance)
 - JSON Schema finalized for v1 (skills, mcpServers, hooks, tools, commands, agents, rules, lspServers)

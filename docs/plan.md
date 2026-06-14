@@ -87,8 +87,80 @@ The user picks the channel that fits their workflow. All five ship at v0.2.0.
 - `sigilco/mise-agentplugins` repo (post v0.2.0)
 - `spec/v1/manifest.schema.json` published to npm + hosted at `agentplugins.dev/schema/v1.json`
 - `scripts/install.sh` curl installer at `agentplugins.dev/install.sh`
+- **VitePress landing page** at `https://sigilco.github.io/agentplugins` (deployed via GitHub Pages)
 - README with 5 install methods side-by-side
 - 2 example plugins: `agentplugins-example-logger`, `agentplugins-example-profiler`
+
+## Landing Page (VitePress)
+
+The public site is the first impression. **VitePress** for:
+- Vite-powered (fast HMR, fast builds, ~10s build for 100 pages)
+- Vue 3 theming (no new framework to learn)
+- Markdown-first content (matches our existing `docs/` style)
+- Built-in: search, sidebar, nav, dark mode, prev/next, i18n
+- Static HTML output → deploys anywhere (GH Pages, Vercel, Netlify, S3)
+
+Hosted as a **GitHub Pages project page** at `https://sigilco.github.io/agentplugins`. Custom domain `agentplugins.dev` deferred to v1.0.
+
+### Site structure
+```
+docs-site/
+├── package.json
+├── .vitepress/
+│   ├── config.ts        # nav + sidebar config
+│   └── theme/           # custom theme (default is fine for v1)
+├── index.md             # hero + 5 install methods
+├── guide/
+│   ├── getting-started.md
+│   ├── install.md       # 5 install channels side-by-side
+│   ├── quick-tour.md
+│   └── faq.md
+├── reference/
+│   ├── manifest-schema.md
+│   ├── adapter-abi.md
+│   ├── agent-paths.md
+│   └── cli.md
+├── adapters/
+│   ├── claude.md
+│   ├── codex.md
+│   ├── copilot.md
+│   ├── gemini.md
+│   ├── kimi.md
+│   ├── opencode.md
+│   └── pimono.md
+├── distribution/
+│   ├── channels.md
+│   ├── universal-store.md
+│   └── skills-sh-compat.md
+└── public/
+    └── logo.svg
+```
+
+### Deployment
+- `.github/workflows/docs.yml` builds on push to `main` (when `docs-site/**` changes)
+- Uses `actions/deploy-pages@v4`
+- Repo Settings → Pages → Build from GitHub Actions
+- Custom domain `agentplugins.dev` deferred
+
+## Naming Conventions (Locked)
+
+Consistent across the whole app, no exceptions:
+
+| Surface | Value | Why |
+|---|---|---|
+| Product display name | `AgentPlugins` | PascalCase, used in titles, hero text, README |
+| npm scope | `@agentplugins/*` | matches existing 8 packages |
+| CLI binary | `agentplugins` | lowercase, used in `npx`, `brew`, `curl \| sh` |
+| CLI display | `AgentPlugins CLI` | header text, `--help` |
+| Config file | `agentplugins.config.ts` | `init` scaffolds this filename |
+| Universal store | `~/.agents/plugins/<name>/` | unchanged |
+| GitHub repo | `sigilco/agentplugins` | sigilco org |
+| GitHub Pages | `sigilco.github.io/agentplugins` | project page |
+| Homebrew tap | `sigilco/homebrew-tap` → `agentplugins.rb` | formula name |
+| Mise plugin | `sigilco/mise-agentplugins` | post v0.2.0 |
+| Domain (future) | `agentplugins.dev` | matches binary name |
+| JSON Schema | `https://agentplugins.dev/schema/v1.json` | matches domain |
+| Codegen output | `agentplugins.config.json` (future) | if we ever drop TS configs |
 
 ## Why This Beats the v0.1.0 Direction
 
