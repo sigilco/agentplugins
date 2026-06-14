@@ -94,22 +94,40 @@ AgentPlugins solves the fragmentation problem in AI agent plugin development. Pl
 
 ## Roadmap
 
-### v0.1.0 (June 2026)
-- Ship core + 7 adapters + example plugin
-- Public npm release
-- Baseline documentation
+### v0.1.0 (June 2026) — shipped
+- Core types + CLI + 7 platform adapters
+- example-logger plugin compiling to all 7 platforms
+- Public npm release under `@agentplugins/*`
 
-### v0.2.0 (Q3 2026)
-- 2+ additional adapters (emerging platforms)
-- Interactive `agentplugins init` scaffolding
-- Enhanced CLI: `agentplugins lint`, `agentplugins preview`
-- Video tutorials and blog posts
+### v0.2.0 (Distribution MVP) — current focus
+- **Distribution-first pivot**: `agentplugins add <github-url>` → universal store + symlink fanout to every detected agent
+- 5 install channels: native binary, npm, Homebrew, curl, **Mise** (UBI backend day one)
+- `~/.agents/plugins/<name>/` is the source of truth; per-agent dirs are symlinks
+- Skills.sh compatibility (read `SKILL.md`, scan `~/.agents/skills/`)
+- Bun-compiled native binaries for 8 targets → GitHub Releases
+- `@agentplugins/schema` package + hosted JSON Schema at `agentplugins.dev/schema/v1.json`
 
-### v0.3.0 (Q4 2026)
-- Plugin registry prototype
-- Web-based plugin submission UI
-- Advanced hook matchers and conditional compilation
-- Multi-language support (JavaScript, Go, etc.)
+### v0.3.0 (Spec + Conformance)
+- JSON Schema finalized for v1 (skills, mcpServers, hooks, tools, commands, agents, rules, lspServers)
+- Ajv validation in CLI (offline-capable)
+- `agentplugins init` scaffolds a plugin
+- Conformance test suite (fixture → expected output per adapter)
+- Mise core plugin in `espetro/mise-agentplugins`
+
+### v0.4.0 (Adapter SDK + Codegen)
+- JSON process ABI spec (`spec/v1/adapter.schema.json`)
+- Adapter SDK in TS (helper library, not a hard requirement)
+- Refactor 7 canonical adapters to use the SDK
+- Hooks codegen per target (lifecycle event mapping)
+- MCP codegen per target
+
+### v1.0.0 (Public Launch)
+- All 7 canonical adapters fully tested
+- Public launch (registry, docs site, examples)
+- Security warning at install time (Gen/Socket/Snyk scoring)
+- Deprecation of v0.1.0 monolithic `agentplugins build` in favor of v0.4.0 per-component pipeline
+
+See `docs/plan.md` for the full strategic context and `.agents/plans/2026-06-14-v0.2.0-distribution-pivot.md` for the implementation plan.
 
 ## Technical Architecture
 
