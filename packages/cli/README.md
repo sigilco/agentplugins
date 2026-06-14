@@ -1,6 +1,6 @@
 # @agentplugins/cli
 
-> Build, validate, and scaffold [AgentPlugins](https://github.com/espetro/agentplugins) plugins.
+> Build, validate, and scaffold [AgentPlugins](https://github.com/sigilco/agentplugins) plugins.
 
 `@agentplugins/cli` is the `agentplugins` command-line tool. It compiles a universal `PluginManifest` into platform-native outputs for all 7 supported agent harnesses.
 

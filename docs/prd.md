@@ -112,7 +112,7 @@ AgentPlugins solves the fragmentation problem in AI agent plugin development. Pl
 - Ajv validation in CLI (offline-capable)
 - `agentplugins init` scaffolds a plugin
 - Conformance test suite (fixture → expected output per adapter)
-- Mise core plugin in `espetro/mise-agentplugins`
+- Mise core plugin in `sigilco/mise-agentplugins`
 
 ### v0.4.0 (Adapter SDK + Codegen)
 - JSON process ABI spec (`spec/v1/adapter.schema.json`)

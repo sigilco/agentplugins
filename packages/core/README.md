@@ -1,6 +1,6 @@
 # @agentplugins/core
 
-> Core types, validation, and plugin registry for [AgentPlugins](https://github.com/espetro/agentplugins).
+> Core types, validation, and plugin registry for [AgentPlugins](https://github.com/sigilco/agentplugins).
 
 `@agentplugins/core` defines the universal plugin manifest (`PluginManifest`), runs schema validation, and exposes the adapter registry that platform adapters register themselves with. It is the **Port** in AgentPlugins's Ports & Adapters (Hexagonal) architecture.
 
@@ -50,7 +50,7 @@ if (issues.some(i => i.severity === 'error')) {
 
 - [`@agentplugins/cli`](https://www.npmjs.com/package/@agentplugins/cli) — build, validate, and scaffold plugins.
 - [`@agentplugins/adapter-claude`](https://www.npmjs.com/package/@agentplugins/adapter-claude) and the other 6 platform adapters.
-- Root repo: <https://github.com/espetro/agentplugins>
+- Root repo: <https://github.com/sigilco/agentplugins>
 
 ## License
 

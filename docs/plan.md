@@ -35,9 +35,9 @@ Codegen (`agentplugins build`) remains a power-user feature, not the headline. T
 |---|---|---|---|
 | 1 | **Native binary** | GitHub Releases (8 targets via Bun compile) | `agentplugins add <url>` |
 | 2 | **npm** | `@agentplugins/cli` with 200-byte `bin` wrapper | `npx @agentplugins/cli add <url>` |
-| 3 | **Homebrew** | `espetro/tap` repo, `agentplugins.rb` formula | `brew install espetro/tap/agentplugins` |
+| 3 | **Homebrew** | `sigilco/tap` repo, `agentplugins.rb` formula | `brew install sigilco/tap/agentplugins` |
 | 4 | **Curl** | `install.sh` with SHA256 + OS/arch detection | `curl -fsSL https://agentplugins.dev/install.sh \| sh` |
-| 5 | **Mise** | UBI backend (day one) + core plugin (post v0.2.0) | `agentplugins = "ubi:espetro/agentplugins"` in `mise.toml` |
+| 5 | **Mise** | UBI backend (day one) + core plugin (post v0.2.0) | `agentplugins = "ubi:sigilco/agentplugins"` in `mise.toml` |
 
 The user picks the channel that fits their workflow. All five ship at v0.2.0.
 
@@ -52,7 +52,7 @@ The user picks the channel that fits their workflow. All five ship at v0.2.0.
 - Skills.sh compatibility (read `SKILL.md`, scan `~/.agents/skills/`)
 - Bun compile → 8 target binaries → GitHub Releases
 - `@agentplugins/cli` npm package
-- Homebrew tap `espetro/tap`
+- Homebrew tap `sigilco/tap`
 - `install.sh` curl script
 - Mise UBI channel
 - `@agentplugins/schema` package + hosted JSON Schema
@@ -62,7 +62,7 @@ The user picks the channel that fits their workflow. All five ship at v0.2.0.
 - Ajv validation in CLI (offline-capable)
 - `agentplugins init` scaffolds a plugin
 - Conformance test suite (fixture → expected output per adapter)
-- Mise core plugin in `espetro/mise-agentplugins`
+- Mise core plugin in `sigilco/mise-agentplugins`
 - Schema docs site (`spec/v1/README.md`)
 
 #### Stage 3 — Adapter SDK + Codegen (v0.4.0, ~3 weeks)
@@ -83,8 +83,8 @@ The user picks the channel that fits their workflow. All five ship at v0.2.0.
 - `agentplugins` Bun-compiled CLI binary (8 targets)
 - `@agentplugins/cli`, `@agentplugins/core`, `@agentplugins/schema` on npm
 - `@agentplugins/adapter-{claude,codex,copilot,gemini,kimi,opencode,pimono,mcp}` on npm
-- `espetro/homebrew-tap` repo with `agentplugins.rb` formula
-- `espetro/mise-agentplugins` repo (post v0.2.0)
+- `sigilco/homebrew-tap` repo with `agentplugins.rb` formula
+- `sigilco/mise-agentplugins` repo (post v0.2.0)
 - `spec/v1/manifest.schema.json` published to npm + hosted at `agentplugins.dev/schema/v1.json`
 - `scripts/install.sh` curl installer at `agentplugins.dev/install.sh`
 - README with 5 install methods side-by-side
