@@ -1,0 +1,3 @@
+[tools]
+pnpm = "11.x"
+node = "24"
