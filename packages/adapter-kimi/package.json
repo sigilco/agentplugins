@@ -1,6 +1,6 @@
 {
   "name": "@agentplugins/adapter-kimi",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "AgentPlugins platform adapter for Kimi (Moonshot AI)",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -32,7 +32,7 @@
     "typescript": "^5.3.0"
   },
   "peerDependencies": {
-    "@agentplugins/core": "^0.1.0"
+    "@agentplugins/core": "^0.2.0"
   },
   "keywords": [
     "agentplugins",

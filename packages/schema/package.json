@@ -1,6 +1,6 @@
 {
   "name": "@agentplugins/schema",
-  "version": "1.0.0",
+  "version": "0.2.0",
   "description": "JSON Schema + TypeScript types + Ajv validators for the AgentPlugins manifest. The public contract for the ecosystem.",
   "type": "module",
   "main": "./dist/index.js",
