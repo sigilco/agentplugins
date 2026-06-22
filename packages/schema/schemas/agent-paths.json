@@ -1,0 +1,64 @@
+{
+  "$schema": "https://agentplugins.dev/schema/v1/agent-paths.json",
+  "version": 1,
+  "description": "Community-maintained registry of well-known agent skill/plugin paths. AgentPlugins scans these to detect installed agents and fan out symlinks from the universal store (~/.agents/plugins/<name>).",
+  "store": {
+    "path": "~/.agents/plugins",
+    "description": "Universal plugin store — source of truth for all installed plugins"
+  },
+  "skillsCompat": {
+    "path": "~/.agents/skills",
+    "description": "Skills.sh compatibility directory — scanned alongside the universal store"
+  },
+  "agents": [
+    {
+      "name": "claude",
+      "displayName": "Claude Code",
+      "skillPath": "~/.claude/skills",
+      "binary": "claude",
+      "manifestPath": "~/.claude.json"
+    },
+    {
+      "name": "codex",
+      "displayName": "Codex CLI",
+      "skillPath": "~/.codex/skills",
+      "binary": "codex",
+      "manifestPath": "~/.codex/config.json"
+    },
+    {
+      "name": "opencode",
+      "displayName": "OpenCode",
+      "skillPath": "~/.config/opencode/skills",
+      "binary": "opencode",
+      "manifestPath": "~/.config/opencode/config.json"
+    },
+    {
+      "name": "kimi",
+      "displayName": "Kimi",
+      "skillPath": "~/.kimi/skills",
+      "binary": "kimi",
+      "manifestPath": "~/.kimi/config.json"
+    },
+    {
+      "name": "gemini",
+      "displayName": "Gemini CLI",
+      "skillPath": "~/.gemini/skills",
+      "binary": "gemini",
+      "manifestPath": "~/.gemini/settings.json"
+    },
+    {
+      "name": "copilot",
+      "displayName": "GitHub Copilot CLI",
+      "skillPath": "~/.copilot/skills",
+      "binary": "copilot",
+      "manifestPath": "~/.copilot/config.json"
+    },
+    {
+      "name": "pimono",
+      "displayName": "Pi Mono",
+      "skillPath": "~/.pi/extensions",
+      "binary": "pi",
+      "manifestPath": "~/.pi/config.json"
+    }
+  ]
+}

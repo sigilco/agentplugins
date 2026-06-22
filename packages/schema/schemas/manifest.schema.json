@@ -1,0 +1,316 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://agentplugins.dev/schema/v1.json",
+  "title": "AgentPlugins Manifest v1",
+  "description": "The public contract for an AgentPlugins plugin. One manifest compiles to any supported agent harness. Include \"$schema\": \"https://agentplugins.dev/schema/v1.json\" in your manifest for editor autocomplete.",
+  "type": "object",
+  "required": ["name", "version", "description"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema URL for editor autocomplete"
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "maxLength": 64,
+      "description": "Plugin identifier — kebab-case, lowercase, max 64 chars. MUST NOT be prefixed with 'agentplugin'."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$",
+      "description": "Semantic version (semver)"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10,
+      "description": "Short human-readable description (at least 10 chars)"
+    },
+    "displayName": {
+      "type": "string",
+      "description": "Human-readable display name"
+    },
+    "author": {
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "email": { "type": "string" },
+            "url": { "type": "string" }
+          },
+          "required": ["name"]
+        }
+      ]
+    },
+    "homepage": { "type": "string" },
+    "repository": { "type": "string" },
+    "license": { "type": "string" },
+    "keywords": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "defaultEnabled": {
+      "type": "boolean",
+      "description": "Whether plugin is enabled by default (Claude, Kimi)"
+    },
+    "emitLanguage": {
+      "type": "string",
+      "enum": ["typescript", "javascript", "go"],
+      "default": "typescript",
+      "description": "Output language for code-emitting adapters (opencode, pimono)"
+    },
+    "skills": {
+      "type": "array",
+      "description": "Skills (SKILL.md-compatible) provided by this plugin",
+      "items": { "$ref": "#/$defs/skill" }
+    },
+    "hooks": {
+      "$ref": "#/$defs/hooks",
+      "description": "Universal hook definitions"
+    },
+    "mcpServers": {
+      "type": "object",
+      "description": "MCP servers to start (keyed by name)",
+      "additionalProperties": { "$ref": "#/$defs/mcpServer" }
+    },
+    "tools": {
+      "type": "array",
+      "description": "Tools provided by this plugin",
+      "items": { "$ref": "#/$defs/tool" }
+    },
+    "commands": {
+      "type": "array",
+      "description": "Slash commands provided by this plugin",
+      "items": { "$ref": "#/$defs/command" }
+    },
+    "agents": {
+      "type": "array",
+      "description": "Subagent definitions",
+      "items": { "$ref": "#/$defs/agent" }
+    },
+    "rules": {
+      "type": "array",
+      "description": "Behavioral rules",
+      "items": { "$ref": "#/$defs/rule" }
+    },
+    "lspServers": {
+      "type": "array",
+      "description": "LSP server configurations",
+      "items": { "$ref": "#/$defs/lspServer" }
+    },
+    "userConfig": {
+      "type": "object",
+      "description": "User-configurable options (keyed by name)",
+      "additionalProperties": { "$ref": "#/$defs/userConfigOption" }
+    },
+    "settings": {
+      "type": "array",
+      "description": "User-configurable settings",
+      "items": { "$ref": "#/$defs/userConfigOption" }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Arbitrary metadata",
+      "additionalProperties": true
+    },
+    "targets": {
+      "type": "array",
+      "description": "Target platforms to compile for (if omitted, compiles for all)",
+      "items": {
+        "type": "string",
+        "enum": ["claude", "codex", "copilot", "gemini", "kimi", "opencode", "pimono"]
+      }
+    }
+  },
+  "$defs": {
+    "skill": {
+      "type": "object",
+      "required": ["name", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "content": { "type": "string", "description": "Markdown content or SKILL.md body" },
+        "filePath": { "type": "string", "description": "Relative path to SKILL.md" }
+      }
+    },
+    "mcpServer": {
+      "type": "object",
+      "required": ["command"],
+      "additionalProperties": false,
+      "properties": {
+        "command": { "type": "string" },
+        "args": { "type": "array", "items": { "type": "string" } },
+        "env": { "type": "object", "additionalProperties": { "type": "string" } },
+        "transport": { "type": "string", "enum": ["stdio", "http"] }
+      }
+    },
+    "tool": {
+      "type": "object",
+      "required": ["name", "description", "parameters"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "parameters": { "$ref": "#/$defs/toolParameters" }
+      }
+    },
+    "toolParameters": {
+      "type": "object",
+      "required": ["type", "properties"],
+      "properties": {
+        "type": { "type": "string", "const": "object" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/toolParameter" }
+        },
+        "required": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "toolParameter": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["string", "number", "boolean", "array", "object"] },
+        "description": { "type": "string" },
+        "enum": { "type": "array", "items": { "type": "string" } },
+        "items": { "$ref": "#/$defs/toolParameter" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/toolParameter" }
+        },
+        "required": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "command": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "description": "Slash command name (without /)" },
+        "description": { "type": "string" },
+        "prompt": { "type": "string", "description": "Prompt template" }
+      }
+    },
+    "agent": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "prompt": { "type": "string" },
+        "tools": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "rule": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "pattern": { "type": "string" },
+        "action": { "type": "string", "enum": ["allow", "deny", "warn"] }
+      }
+    },
+    "lspServer": {
+      "type": "object",
+      "required": ["name", "command"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "command": { "type": "string" },
+        "args": { "type": "array", "items": { "type": "string" } },
+        "languages": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "userConfigOption": {
+      "type": "object",
+      "required": ["type", "title", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "enum": ["string", "number", "boolean", "directory", "file"] },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "sensitive": { "type": "boolean" },
+        "required": { "type": "boolean" },
+        "default": {},
+        "multiple": { "type": "boolean" }
+      }
+    },
+    "hooks": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sessionStart": { "$ref": "#/$defs/hookDefinition" },
+        "sessionEnd": { "$ref": "#/$defs/hookDefinition" },
+        "userPromptSubmit": { "$ref": "#/$defs/hookDefinition" },
+        "userPromptExpansion": { "$ref": "#/$defs/hookDefinition" },
+        "preToolUse": { "$ref": "#/$defs/hookDefinition" },
+        "postToolUse": { "$ref": "#/$defs/hookDefinition" },
+        "postToolUseFailure": { "$ref": "#/$defs/hookDefinition" },
+        "permissionRequest": { "$ref": "#/$defs/hookDefinition" },
+        "permissionDenied": { "$ref": "#/$defs/hookDefinition" },
+        "subagentStart": { "$ref": "#/$defs/hookDefinition" },
+        "subagentStop": { "$ref": "#/$defs/hookDefinition" },
+        "preCompact": { "$ref": "#/$defs/hookDefinition" },
+        "postCompact": { "$ref": "#/$defs/hookDefinition" },
+        "stop": { "$ref": "#/$defs/hookDefinition" },
+        "stopFailure": { "$ref": "#/$defs/hookDefinition" },
+        "notification": { "$ref": "#/$defs/hookDefinition" },
+        "fileChanged": { "$ref": "#/$defs/hookDefinition" },
+        "cwdChanged": { "$ref": "#/$defs/hookDefinition" },
+        "setup": { "$ref": "#/$defs/hookDefinition" }
+      }
+    },
+    "hookDefinition": {
+      "type": "object",
+      "required": ["handler"],
+      "properties": {
+        "matcher": { "type": "string", "description": "Filter to narrow when the hook fires (e.g. tool name pattern)" },
+        "handler": { "$ref": "#/$defs/hookHandler" }
+      }
+    },
+    "hookHandler": {
+      "oneOf": [
+        { "$ref": "#/$defs/commandHandler" },
+        { "$ref": "#/$defs/httpHandler" },
+        { "$ref": "#/$defs/referenceHandler" }
+      ]
+    },
+    "commandHandler": {
+      "type": "object",
+      "required": ["type", "command"],
+      "properties": {
+        "type": { "type": "string", "const": "command" },
+        "command": {
+          "type": "string",
+          "description": "Shell command to execute. Paths are ./-prefixed. Placeholders: ${PLUGIN_ROOT}, ${PLUGIN_DATA}, ${HOME}"
+        },
+        "statusMessage": { "type": "string" },
+        "shell": { "type": "string", "enum": ["bash", "powershell", "cmd"] }
+      }
+    },
+    "httpHandler": {
+      "type": "object",
+      "required": ["type", "url"],
+      "properties": {
+        "type": { "type": "string", "const": "http" },
+        "url": { "type": "string" },
+        "headers": { "type": "object", "additionalProperties": { "type": "string" } }
+      }
+    },
+    "referenceHandler": {
+      "type": "object",
+      "required": ["type", "reference"],
+      "description": "Reference to a named handler in the plugin's handler module",
+      "properties": {
+        "type": { "type": "string", "const": "reference" },
+        "reference": { "type": "string", "description": "Namespaced as {plugin}:{component}" }
+      }
+    }
+  }
+}

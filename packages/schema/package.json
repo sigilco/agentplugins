@@ -1,0 +1,45 @@
+{
+  "name": "@agentplugins/schema",
+  "version": "1.0.0",
+  "description": "JSON Schema + TypeScript types + Ajv validators for the AgentPlugins manifest. The public contract for the ecosystem.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "test": "vitest run"
+  },
+  "files": [
+    "dist",
+    "schemas",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "agentplugins",
+    "schema",
+    "json-schema",
+    "manifest",
+    "ai",
+    "plugin"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "ajv": "^8.17.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.1.4"
+  }
+}
