@@ -37,7 +37,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build packages
-        run: pnpm build
+        run: pnpm --filter './packages/**' build
 
       - name: Create release PR or publish to npm
         id: changesets
