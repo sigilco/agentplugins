@@ -88,7 +88,7 @@ export default definePlugin({
         handler: async (ctx) => {
           const timestamp = new Date().toISOString();
           console.log(`[Logger] [${timestamp}] Tool completed: ${ctx.toolName}`);
-          // No need to return anything
+          return {};
         },
       },
     },
@@ -100,6 +100,7 @@ export default definePlugin({
         handler: async (ctx) => {
           const timestamp = new Date().toISOString();
           console.log(`[Logger] Session ${ctx.sessionId} ended at ${timestamp}`);
+          return {};
         },
       },
     },
@@ -114,6 +115,7 @@ export default definePlugin({
           // Truncate very long prompts
           const truncated = prompt.length > 200 ? prompt.slice(0, 200) + '...' : prompt;
           console.log(`[Logger] [${timestamp}] User prompt: ${truncated}`);
+          return {};
         },
       },
     },
