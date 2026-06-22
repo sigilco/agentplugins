@@ -9,6 +9,10 @@
     ".": {
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
+    },
+    "./adapter": {
+      "import": "./dist/adapter.js",
+      "types": "./dist/adapter.d.ts"
     }
   },
   "scripts": {
@@ -36,6 +40,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "typescript": "^5.9.3",
     "vitest": "^3.1.4"
   }

@@ -4,36 +4,26 @@
  * The Port — universal plugin interface for AI agent harnesses.
  */
 
-// Types
+// Types — plugin author surface
 export type {
   PluginManifest,
   TargetPlatform,
   Skill,
   MCPServerConfig,
   ToolDefinition,
-  ToolParameterSchema,
   ToolParameter,
   ToolContext,
   ToolResult,
   UserConfigOption,
   UniversalHooks,
-  UniversalHookName,
-  HookDefinition,
   HookHandler,
   CommandHookHandler,
   HttpHookHandler,
   InlineHookHandler,
   HookContext,
   HookResult,
-  PlatformAdapter,
-  HandlerType,
-  ValidationIssue,
-  AdapterOutput,
-  FileOutput,
-  BuildConfig,
 } from './types.js';
 
-export type { FileOutput as AdapterFile } from './types.js';
 export { Severity } from './types.js';
 
 // Import PluginManifest for the definePlugin function (value-level usage)
@@ -42,31 +32,55 @@ import type { PluginManifest } from './types.js';
 // Constants
 export { ALL_TARGETS, UNIVERSAL_HOOK_NAMES } from './types.js';
 
-// Validation
-export {
-  validateUniversal,
-  validateForPlatform,
-  getPlatformConstraints,
-} from './validation.js';
-export type { PlatformConstraints } from './validation.js';
+// Validation — plugin CI
+export { validateUniversal, validateForPlatform } from './validation.js';
 
-// Registry
-export {
-  registerAdapter,
-  hasAdapter,
-  loadAdapter,
-  loadAllAdapters,
-  getRegisteredPlatforms,
-  registerBuiltinAdapters,
-} from './registry.js';
+// Lint — plugin CI
+export { lint, lintManifest } from './lint.js';
+export type { LintIssue, LintRule } from './lint.js';
 
-// Hook Wrapper Generation
+// Store — re-exported for CLI use (internal only)
 export {
-  generateHookWrapper,
-  generateHandlersModule,
-  serializeHandler,
-} from './hook-wrapper.js';
-export type { WrapperOptions } from './hook-wrapper.js';
+  AGENT_PATHS,
+  expandHome,
+  getStorePath,
+  getSkillsCompatPath,
+  getPluginStorePath,
+  getMetaPath,
+  getAgentPaths,
+  detectAgents,
+  getDetectedAgents,
+  normalizeSource,
+  extractRepoName,
+  initStore,
+  cloneRepo,
+  pullRepo,
+  findManifestInDir,
+  readMeta,
+  writeMeta,
+  installPlugin,
+  addPluginFromSource,
+  removePlugin,
+  listPlugins,
+  getPluginInfo,
+  updatePlugin,
+  symlinkPlugin,
+  unlinkPluginSymlink,
+  getSymlinks,
+  runDoctor,
+} from './store.js';
+export type {
+  AgentPathEntry,
+  PluginMeta,
+  DetectedAgent,
+  SymlinkInfo,
+  InstalledPlugin,
+  ManifestFindResult,
+  InstallOptions,
+  InstallResult,
+  DoctorResult,
+  DoctorIssue,
+} from './store.js';
 
 /**
  * Convenience function to define a plugin with TypeScript intellisense.
