@@ -6,7 +6,8 @@
  * 2. `opencode.json` - The plugin manifest configuration
  */
 
-import type { FileOutput, PluginManifest } from "@agentplugins/core";
+import type { PluginManifest } from "@agentplugins/core";
+import type { FileOutput } from "@agentplugins/core/adapter";
 
 // ─── Plugin File Generator ────────────────────────────────────────────────────
 

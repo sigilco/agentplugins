@@ -9,15 +9,18 @@
  */
 
 import {
-  type PlatformAdapter,
   type PluginManifest,
+  type TargetPlatform,
+} from "@agentplugins/core";
+
+import {
+  type PlatformAdapter,
   type ValidationIssue,
   type AdapterOutput,
   type UniversalHookName,
   type HandlerType,
-  type TargetPlatform,
   type HookDefinition,
-} from "@agentplugins/core";
+} from "@agentplugins/core/adapter";
 
 import { createValidate } from "./validate";
 import {

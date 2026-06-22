@@ -17,8 +17,10 @@ import type {
   InlineHookHandler,
   CommandHookHandler,
   HttpHookHandler,
-  UniversalHookName,
 } from "@agentplugins/core";
+import type {
+  UniversalHookName,
+} from "@agentplugins/core/adapter";
 
 /**
  * The standard indentation used for code inside hook functions.

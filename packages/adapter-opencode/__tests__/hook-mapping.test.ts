@@ -14,7 +14,7 @@ import {
   buildHookArgs,
   buildHandlerInvocation,
 } from '../src/hook-mapping';
-import type { HookDefinition, UniversalHookName } from '@agentplugins/core';
+import type { HookDefinition, UniversalHookName } from '@agentplugins/core/adapter';
 
 // ─── HOOK_MAPPING Tests ────────────────────────────────────────────────────────
 

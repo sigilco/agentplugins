@@ -11,11 +11,13 @@
 
 import type {
   HookDefinition,
+  UniversalHookName,
+} from '@agentplugins/core/adapter';
+import type {
   HookHandler,
   InlineHookHandler,
   CommandHookHandler,
   HttpHookHandler,
-  UniversalHookName,
 } from '@agentplugins/core';
 
 // ─── Public Exports ────────────────────────────────────────────────────────────

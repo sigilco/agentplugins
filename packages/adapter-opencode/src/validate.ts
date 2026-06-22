@@ -12,14 +12,17 @@
 
 import {
   type PluginManifest,
-  type ValidationIssue,
-  type UniversalHookName,
   type HookHandler,
   type InlineHookHandler,
   type CommandHookHandler,
   type HttpHookHandler,
   Severity,
 } from "@agentplugins/core";
+
+import {
+  type ValidationIssue,
+  type UniversalHookName,
+} from "@agentplugins/core/adapter";
 
 /**
  * The 8 hooks supported by OpenCode.

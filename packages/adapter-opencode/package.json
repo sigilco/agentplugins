@@ -16,7 +16,7 @@
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
     "clean": "rm -rf dist",
-    "test": "vitest",
+    "test": "vitest run --passWithNoTests",
     "test:run": "vitest run"
   },
   "dependencies": {
