@@ -1,7 +1,7 @@
 {
-  "name": "@agentbridge/adapter-claude",
-  "version": "0.1.0",
-  "description": "AgentBridge platform adapter for Claude Code",
+  "name": "@agentplugins/adapter-claude",
+  "version": "0.2.0",
+  "description": "AgentPlugins platform adapter for Claude Code",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -18,7 +18,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@agentbridge/core": "workspace:*"
+    "@agentplugins/core": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
@@ -26,7 +26,11 @@
     "typescript": "^5.5.0"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "license": "MIT"
 }

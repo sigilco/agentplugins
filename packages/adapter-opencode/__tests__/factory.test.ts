@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import type { PluginManifest, AdapterOutput } from "@agentbridge/core";
+import type { PluginManifest, AdapterOutput } from "@agentplugins/core";
 import { createOpenCodeAdapter, default as adapterInstance } from "../src/factory";
 
 const EXPECTED_SUPPORTED_HOOKS = [

@@ -1,7 +1,7 @@
 /**
- * AgentBridge Config Loader
+ * AgentPlugins Config Loader
  *
- * Loads plugin configuration from agentbridge.config.ts/js/mjs/json files.
+ * Loads plugin configuration from agentplugins.config.ts/js/mjs/json files.
  * Uses jiti for TypeScript support without pre-compilation.
  */
 
@@ -13,7 +13,7 @@ import jiti from 'jiti';
 const createJITI = jiti as unknown as (filename: string, opts?: Record<string, unknown>) => {
   import: (id: string, opts?: Record<string, unknown>) => Promise<unknown>;
 };
-import type { PluginManifest } from '@agentbridge/core';
+import type { PluginManifest } from '@agentplugins/core';
 
 export interface LoadedConfig {
   /** Resolved manifest */
@@ -79,14 +79,14 @@ export async function loadConfig(configPath: string): Promise<LoadedConfig> {
 
 /**
  * Find config file in the current directory.
- * Searches for: agentbridge.config.ts, .js, .mjs, .json
+ * Searches for: agentplugins.config.ts, .js, .mjs, .json
  */
 export async function findConfig(cwd: string = process.cwd()): Promise<string | null> {
   const candidates = [
-    'agentbridge.config.ts',
-    'agentbridge.config.js',
-    'agentbridge.config.mjs',
-    'agentbridge.config.json',
+    'agentplugins.config.ts',
+    'agentplugins.config.js',
+    'agentplugins.config.mjs',
+    'agentplugins.config.json',
   ];
 
   for (const name of candidates) {

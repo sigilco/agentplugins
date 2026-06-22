@@ -1,7 +1,7 @@
-import { definePlugin } from '@agentbridge/core';
+import { definePlugin } from '@agentplugins/core';
 
 /**
- * AgentBridge Example Logger Plugin
+ * AgentPlugins Example Logger Plugin
  *
  * A simple plugin that demonstrates cross-platform compatibility.
  * It logs session events and can block dangerous shell commands.
@@ -16,7 +16,7 @@ import { definePlugin } from '@agentbridge/core';
  * - Pi Mono (.pi/extensions/)
  */
 export default definePlugin({
-  name: 'agentbridge-example-logger',
+  name: 'agentplugins-example-logger',
   version: '0.1.0',
   description: 'Cross-platform logging and security plugin for AI agent harnesses',
 
@@ -88,7 +88,7 @@ export default definePlugin({
         handler: async (ctx) => {
           const timestamp = new Date().toISOString();
           console.log(`[Logger] [${timestamp}] Tool completed: ${ctx.toolName}`);
-          // No need to return anything
+          return {};
         },
       },
     },
@@ -100,6 +100,7 @@ export default definePlugin({
         handler: async (ctx) => {
           const timestamp = new Date().toISOString();
           console.log(`[Logger] Session ${ctx.sessionId} ended at ${timestamp}`);
+          return {};
         },
       },
     },
@@ -114,6 +115,7 @@ export default definePlugin({
           // Truncate very long prompts
           const truncated = prompt.length > 200 ? prompt.slice(0, 200) + '...' : prompt;
           console.log(`[Logger] [${timestamp}] User prompt: ${truncated}`);
+          return {};
         },
       },
     },

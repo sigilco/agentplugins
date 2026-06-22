@@ -1,8 +1,8 @@
-# AgentBridge Product Requirements Document
+# AgentPlugins Product Requirements Document
 
 ## Executive Summary
 
-AgentBridge solves the fragmentation problem in AI agent plugin development. Plugin developers currently must maintain separate codebases for each platform (Claude Code, OpenCode, Codex, Copilot, Gemini, Kimi, Pi Mono). AgentBridge provides a **universal plugin format** and **platform-specific adapters** (inspired by the unplugin pattern), enabling developers to write once and compile to multiple agent platforms.
+AgentPlugins solves the fragmentation problem in AI agent plugin development. Plugin developers currently must maintain separate codebases for each platform (Claude Code, OpenCode, Codex, Copilot, Gemini, Kimi, Pi Mono). AgentPlugins provides a **universal plugin format** and **platform-specific adapters** (inspired by the unplugin pattern), enabling developers to write once and compile to multiple agent platforms.
 
 ## Problem Statement
 
@@ -26,7 +26,7 @@ AgentBridge solves the fragmentation problem in AI agent plugin development. Plu
 ### Core Concept
 1. **Universal Plugin Format** — single YAML/JSON config declaring hooks, tools, commands, shortcuts, flags, and MCP servers
 2. **Platform Adapters** — per-platform compilers that transform universal config into native formats
-3. **CLI Tool** — single `agentbridge build` command to generate all platform outputs
+3. **CLI Tool** — single `agentplugins build` command to generate all platform outputs
 4. **Framework-agnostic** — adapters handle all implementation details; plugins declare intent, not mechanics
 
 ### Design Principles
@@ -47,13 +47,13 @@ AgentBridge solves the fragmentation problem in AI agent plugin development. Plu
 **Agent Platform Maintainers** — building ecosystems around Claude Code, OpenCode, Codex, etc.
 - Want high-quality, community-driven plugins
 - Benefit from easy onboarding of cross-platform plugins
-- Can integrate AgentBridge adapter support into platform documentation
+- Can integrate AgentPlugins adapter support into platform documentation
 
 ## v0.1.0 Scope
 
 ### Core Components
-1. **@agentbridge/core** — Universal plugin manifest types and validation
-2. **CLI** (`agentbridge` binary) — build, validate, and test plugins
+1. **@agentplugins/core** — Universal plugin manifest types and validation
+2. **CLI** (`agentplugins` binary) — build, validate, and test plugins
 3. **7 Platform Adapters** — compile universal format to:
    - Claude Code (9 files: plugin.json, hooks.json, skills, MCP configs)
    - OpenCode (2 files: TypeScript plugin + config)
@@ -67,7 +67,7 @@ AgentBridge solves the fragmentation problem in AI agent plugin development. Plu
 
 ### Out of Scope for v0.1.0
 - Plugin registry / marketplace
-- Interactive plugin scaffolding (`agentbridge init`)
+- Interactive plugin scaffolding (`agentplugins init`)
 - Multi-language support (TypeScript only)
 - Runtime plugin loading / hot-reload
 - Browser-based plugin editor
@@ -76,7 +76,7 @@ AgentBridge solves the fragmentation problem in AI agent plugin development. Plu
 ## Success Criteria
 
 ### Functional
-- [ ] `agentbridge build` successfully compiles example-logger to all 7 platforms
+- [ ] `agentplugins build` successfully compiles example-logger to all 7 platforms
 - [ ] Generated outputs match each platform's native plugin format exactly
 - [ ] Plugin runs without modification on Claude Code and OpenCode in real harnesses
 - [ ] All hooks supported by at least one adapter; explicit errors for unsupported hooks
@@ -88,28 +88,47 @@ AgentBridge solves the fragmentation problem in AI agent plugin development. Plu
 - [ ] Zero runtime errors in example-logger across all platforms
 
 ### Ecosystem
-- [ ] Public npm release: @agentbridge/core, @agentbridge/cli, @agentbridge/adapter-*
+- [ ] Public npm release: @agentplugins/core, @agentplugins/cli, @agentplugins/adapter-*
 - [ ] GitHub repo public; open for community contributions
 - [ ] Examples and tutorials for 2 common use cases (custom tools, lifecycle hooks)
 
 ## Roadmap
 
-### v0.1.0 (June 2026)
-- Ship core + 7 adapters + example plugin
-- Public npm release
-- Baseline documentation
+### v0.1.0 (June 2026) — shipped
+- Core types + CLI + 7 platform adapters
+- example-logger plugin compiling to all 7 platforms
+- Public npm release under `@agentplugins/*`
 
-### v0.2.0 (Q3 2026)
-- 2+ additional adapters (emerging platforms)
-- Interactive `agentbridge init` scaffolding
-- Enhanced CLI: `agentbridge lint`, `agentbridge preview`
-- Video tutorials and blog posts
+### v0.2.0 (Distribution MVP) — current focus
+- **Distribution-first pivot**: `agentplugins add <github-url>` → universal store + symlink fanout to every detected agent
+- 5 install channels: native binary, npm, Homebrew, curl, **Mise** (UBI backend day one)
+- `~/.agents/plugins/<name>/` is the source of truth; per-agent dirs are symlinks
+- Skills.sh compatibility (read `SKILL.md`, scan `~/.agents/skills/`)
+- Bun-compiled native binaries for 8 targets → GitHub Releases
+- `@agentplugins/schema` package + hosted JSON Schema at `agentplugins.dev/schema/v1.json`
+- **VitePress landing page** at `https://sigilco.github.io/agentplugins`
 
-### v0.3.0 (Q4 2026)
-- Plugin registry prototype
-- Web-based plugin submission UI
-- Advanced hook matchers and conditional compilation
-- Multi-language support (JavaScript, Go, etc.)
+### v0.3.0 (Spec + Conformance)
+- JSON Schema finalized for v1 (skills, mcpServers, hooks, tools, commands, agents, rules, lspServers)
+- Ajv validation in CLI (offline-capable)
+- `agentplugins init` scaffolds a plugin
+- Conformance test suite (fixture → expected output per adapter)
+- Mise core plugin in `sigilco/mise-agentplugins`
+
+### v0.4.0 (Adapter SDK + Codegen)
+- JSON process ABI spec (`spec/v1/adapter.schema.json`)
+- Adapter SDK in TS (helper library, not a hard requirement)
+- Refactor 7 canonical adapters to use the SDK
+- Hooks codegen per target (lifecycle event mapping)
+- MCP codegen per target
+
+### v1.0.0 (Public Launch)
+- All 7 canonical adapters fully tested
+- Public launch (registry, docs site, examples)
+- Security warning at install time (Gen/Socket/Snyk scoring)
+- Deprecation of v0.1.0 monolithic `agentplugins build` in favor of v0.4.0 per-component pipeline
+
+See `docs/plan.md` for the full strategic context and `.agents/plans/2026-06-14-v0.2.0-distribution-pivot.md` for the implementation plan.
 
 ## Technical Architecture
 
@@ -181,8 +200,8 @@ interface PlatformAdapter {
 ## Metrics & Success Indicators
 
 ### Adoption
-- Number of plugins using AgentBridge (target: 5+ by end of Q3 2026)
-- npm download rate for @agentbridge/* packages
+- Number of plugins using AgentPlugins (target: 5+ by end of Q3 2026)
+- npm download rate for @agentplugins/* packages
 - GitHub stars and community contributions
 
 ### Quality
@@ -197,4 +216,4 @@ interface PlatformAdapter {
 
 ## Conclusion
 
-AgentBridge removes the primary friction point in cross-platform plugin development. By providing a universal format + adapters pattern, we enable a thriving ecosystem of high-quality plugins that work seamlessly across AI agent platforms.
+AgentPlugins removes the primary friction point in cross-platform plugin development. By providing a universal format + adapters pattern, we enable a thriving ecosystem of high-quality plugins that work seamlessly across AI agent platforms.

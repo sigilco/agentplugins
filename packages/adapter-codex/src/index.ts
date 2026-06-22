@@ -1,5 +1,5 @@
 /**
- * @agentbridge/adapter-codex
+ * @agentplugins/adapter-codex
  *
  * Platform adapter for OpenAI Codex CLI.
  *
@@ -32,19 +32,22 @@
  */
 
 import type {
+  PluginManifest,
+  TargetPlatform,
+  Skill,
+} from "@agentplugins/core";
+
+import { Severity } from "@agentplugins/core";
+
+import type {
   PlatformAdapter,
   AdapterOutput,
   FileOutput,
-  PluginManifest,
   ValidationIssue,
   UniversalHookName,
   HandlerType,
-  TargetPlatform,
   HookDefinition,
-  Skill,
-} from "@agentbridge/core";
-
-import { Severity } from "@agentbridge/core";
+} from "@agentplugins/core/adapter";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -259,10 +262,10 @@ function buildSkillFile(skill: Skill): string {
 // ---------------------------------------------------------------------------
 
 /**
- * AgentBridge platform adapter for OpenAI Codex CLI.
+ * AgentPlugins platform adapter for OpenAI Codex CLI.
  *
  * Implements the {@link PlatformAdapter} interface to compile
- * cross-platform AgentBridge plugins into Codex-compatible plugin
+ * cross-platform AgentPlugins plugins into Codex-compatible plugin
  * bundles with JSON stdin/stdout command handlers.
  */
 export class CodexPlatformAdapter implements PlatformAdapter {
@@ -425,7 +428,7 @@ export class CodexPlatformAdapter implements PlatformAdapter {
  *
  * @example
  * ```ts
- * import { createCodexAdapter } from "@agentbridge/adapter-codex";
+ * import { createCodexAdapter } from "@agentplugins/adapter-codex";
  *
  * const adapter = createCodexAdapter();
  * const issues = adapter.validate(manifest);

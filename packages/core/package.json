@@ -1,7 +1,7 @@
 {
-  "name": "@agentbridge/core",
-  "version": "0.1.0",
-  "description": "Core types, validation, and plugin registry for AgentBridge",
+  "name": "@agentplugins/core",
+  "version": "0.2.0",
+  "description": "Core types, validation, and plugin registry for AgentPlugins",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -9,6 +9,10 @@
     ".": {
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
+    },
+    "./adapter": {
+      "import": "./dist/adapter.js",
+      "types": "./dist/adapter.d.ts"
     }
   },
   "scripts": {
@@ -18,8 +22,15 @@
     "test": "vitest",
     "test:run": "vitest run __tests__/placeholder.test.ts"
   },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "keywords": [
-    "agentbridge",
+    "agentplugins",
     "ai",
     "plugin",
     "core"
@@ -29,6 +40,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "typescript": "^5.9.3",
     "vitest": "^3.1.4"
   }

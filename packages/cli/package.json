@@ -1,10 +1,10 @@
 {
-  "name": "@agentbridge/cli",
-  "version": "0.1.0",
-  "description": "CLI for building AgentBridge plugins across multiple AI agent harnesses",
+  "name": "@agentplugins/cli",
+  "version": "0.2.0",
+  "description": "CLI for building AgentPlugins plugins across multiple AI agent harnesses",
   "type": "module",
   "bin": {
-    "agentbridge": "./dist/cli.js"
+    "agentplugins": "./dist/cli.js"
   },
   "main": "./dist/cli.js",
   "scripts": {
@@ -12,15 +12,23 @@
     "dev": "tsc --watch",
     "clean": "rm -rf dist"
   },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
-    "@agentbridge/core": "workspace:*",
-    "@agentbridge/adapter-claude": "workspace:*",
-    "@agentbridge/adapter-codex": "workspace:*",
-    "@agentbridge/adapter-copilot": "workspace:*",
-    "@agentbridge/adapter-gemini": "workspace:*",
-    "@agentbridge/adapter-kimi": "workspace:*",
-    "@agentbridge/adapter-opencode": "workspace:*",
-    "@agentbridge/adapter-pimono": "workspace:*",
+    "@agentplugins/core": "workspace:*",
+    "@agentplugins/adapter-claude": "workspace:*",
+    "@agentplugins/adapter-codex": "workspace:*",
+    "@agentplugins/adapter-copilot": "workspace:*",
+    "@agentplugins/adapter-gemini": "workspace:*",
+    "@agentplugins/adapter-kimi": "workspace:*",
+    "@agentplugins/adapter-opencode": "workspace:*",
+    "@agentplugins/adapter-pimono": "workspace:*",
+    "@clack/prompts": "^0.7.0",
     "cac": "^6.7.14",
     "chalk": "^5.3.0",
     "jiti": "^1.21.6"
@@ -29,6 +37,11 @@
     "typescript": "^5.5.0",
     "@types/node": "^20.0.0"
   },
-  "keywords": ["agentbridge", "cli", "ai", "plugin"],
+  "keywords": [
+    "agentplugins",
+    "cli",
+    "ai",
+    "plugin"
+  ],
   "license": "MIT"
 }

@@ -1,0 +1,96 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://agentplugins.dev/schema/v1/adapter.json",
+  "title": "AgentPlugins Adapter ABI v1",
+  "description": "Contract for the JSON process ABI. An adapter is any executable (binary, script) that reads a JSON manifest on stdin (or via --manifest <file>), compiles platform-specific output, writes files, and exits 0 (success) or non-zero (failure). Enables any-language adapters without SDK lock-in.",
+  "type": "object",
+  "required": ["adapterName", "targetPlatform", "input", "output"],
+  "additionalProperties": false,
+  "properties": {
+    "adapterName": {
+      "type": "string",
+      "description": "Adapter identifier (e.g. 'claude', 'opencode')"
+    },
+    "targetPlatform": {
+      "type": "string",
+      "enum": ["claude", "codex", "copilot", "gemini", "kimi", "opencode", "pimono"],
+      "description": "Target agent harness"
+    },
+    "version": {
+      "type": "string",
+      "description": "Adapter ABI version"
+    },
+    "input": {
+      "type": "object",
+      "description": "Input contract — how the adapter receives the manifest",
+      "properties": {
+        "transport": {
+          "type": "string",
+          "enum": ["stdin", "file"],
+          "description": "stdin: manifest JSON piped on stdin. file: manifest path via --manifest <path>"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["json"],
+          "description": "Input format (JSON per v1 spec)"
+        }
+      }
+    },
+    "output": {
+      "type": "object",
+      "description": "Output contract — what the adapter produces",
+      "properties": {
+        "transport": {
+          "type": "string",
+          "enum": ["stdout", "files"],
+          "description": "stdout: result JSON on stdout. files: writes directly to output directory"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["json"],
+          "description": "Output envelope format"
+        },
+        "files": {
+          "type": "array",
+          "description": "When transport='stdout', declares files that will be emitted",
+          "items": {
+            "type": "object",
+            "required": ["path"],
+            "properties": {
+              "path": { "type": "string", "description": "Relative path (./-prefixed, no .. traversal)" },
+              "type": { "type": "string", "enum": ["json", "typescript", "javascript", "markdown", "text"] }
+            }
+          }
+        }
+      }
+    },
+    "exit": {
+      "type": "object",
+      "description": "Exit code contract",
+      "properties": {
+        "success": { "type": "integer", "const": 0 },
+        "failure": { "type": "string", "const": "non-zero" }
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "description": "Declared adapter capabilities",
+      "properties": {
+        "emitsCode": {
+          "type": "boolean",
+          "description": "True if adapter emits source code (opencode, pimono). False if JSON-only."
+        },
+        "supportedHooks": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Universal hook names this adapter supports"
+        },
+        "supportedHandlers": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["command", "http", "reference"] },
+          "description": "Handler types this adapter supports"
+        }
+      }
+    }
+  }
+}

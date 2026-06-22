@@ -1,7 +1,7 @@
 /**
- * AgentBridge Claude Code Adapter
+ * AgentPlugins Claude Code Adapter
  *
- * Compiles universal AgentBridge plugins into Claude Code's native plugin format.
+ * Compiles universal AgentPlugins plugins into Claude Code's native plugin format.
  *
  * Claude Code uses:
  *   - `.claude-plugin/plugin.json` — manifest
@@ -22,23 +22,25 @@
  */
 
 import {
-  type PlatformAdapter,
   type PluginManifest,
+  type InlineHookHandler,
+  type HookContext,
+  type HookResult,
+  type TargetPlatform,
+  Severity,
+} from '@agentplugins/core';
+import {
+  type PlatformAdapter,
   type AdapterOutput,
   type FileOutput,
   type ValidationIssue,
   type UniversalHookName,
   type HandlerType,
   type HookDefinition,
-  type InlineHookHandler,
-  type HookContext,
-  type HookResult,
   generateHookWrapper,
   generateHandlersModule,
   validateForPlatform,
-  type TargetPlatform,
-  Severity,
-} from '@agentbridge/core';
+} from '@agentplugins/core/adapter';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -186,7 +188,7 @@ interface ClaudeHandlerConfig {
  *
  * Usage:
  * ```ts
- * import { createAdapter } from '@agentbridge/adapter-claude';
+ * import { createAdapter } from '@agentplugins/adapter-claude';
  * const adapter = createAdapter();
  * const output = adapter.compile(manifest);
  * ```
@@ -342,13 +344,13 @@ class ClaudePlatformAdapter implements PlatformAdapter {
       // Generate the shared handlers module
       const handlersModule = generateHandlersModule(inlineHandlers);
       files.push({
-        path: 'hooks/__agentbridge_handlers__.js',
+        path: 'hooks/__agentplugins_handlers__.js',
         content: handlersModule,
       });
 
       // Generate individual wrapper scripts for each inline handler
       for (const [wrapperId, { hookName }] of this.inlineWrappers.entries()) {
-        const wrapperScript = generateHookWrapper('./__agentbridge_handlers__.js', {
+        const wrapperScript = generateHookWrapper('./__agentplugins_handlers__.js', {
           platform: 'claude',
           hookName,
           wrapperId,
@@ -701,7 +703,7 @@ class ClaudePlatformAdapter implements PlatformAdapter {
     if (!hasCommandHandlers) return null;
 
     return `#!/usr/bin/env bash
-# AgentBridge Auto-Generated Environment Setup for Claude Code
+# AgentPlugins Auto-Generated Environment Setup for Claude Code
 # Plugin: ${plugin.name}
 # DO NOT EDIT — This file is regenerated on each build.
 

@@ -1,5 +1,5 @@
 /**
- * AgentBridge Validate Command
+ * AgentPlugins Validate Command
  *
  * Validates plugin configuration without building.
  */
@@ -9,7 +9,7 @@ import {
   validateUniversal,
   validateForPlatform,
   ALL_TARGETS,
-} from '@agentbridge/core';
+} from '@agentplugins/core';
 import type { LoadedConfig } from '../config.js';
 
 export interface ValidateOptions {
@@ -22,7 +22,7 @@ export async function validate(options: ValidateOptions): Promise<void> {
   const manifest = config.manifest;
   const targets = options.targets || manifest.targets || ALL_TARGETS;
 
-  console.log(chalk.bold('\n🔍 AgentBridge Validation\n'));
+  console.log(chalk.bold('\n🔍 AgentPlugins Validation\n'));
   console.log(chalk.gray(`Plugin: ${manifest.name} v${manifest.version}`));
   console.log(chalk.gray(`Targets: ${targets.join(', ')}\n`));
 

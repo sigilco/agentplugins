@@ -1,7 +1,7 @@
 {
-  "name": "@agentbridge/adapter-opencode",
-  "version": "0.1.0",
-  "description": "OpenCode platform adapter for AgentBridge - generates OpenCode-compatible plugins from universal manifests",
+  "name": "@agentplugins/adapter-opencode",
+  "version": "0.2.0",
+  "description": "OpenCode platform adapter for AgentPlugins - generates OpenCode-compatible plugins from universal manifests",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -16,11 +16,11 @@
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
     "clean": "rm -rf dist",
-    "test": "vitest",
+    "test": "vitest run --passWithNoTests",
     "test:run": "vitest run"
   },
   "dependencies": {
-    "@agentbridge/core": "workspace:*",
+    "@agentplugins/core": "workspace:*",
     "zod": "^3.22.0"
   },
   "devDependencies": {
@@ -32,9 +32,12 @@
     "dist",
     "README.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "license": "MIT",
   "keywords": [
-    "agentbridge",
+    "agentplugins",
     "opencode",
     "adapter",
     "ai",

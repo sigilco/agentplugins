@@ -1,5 +1,5 @@
 /**
- * AgentBridge Build Command
+ * AgentPlugins Build Command
  *
  * Compiles a universal plugin into platform-specific packages.
  */
@@ -12,10 +12,136 @@ import {
   validateForPlatform,
   ALL_TARGETS,
   type TargetPlatform,
-} from '@agentbridge/core';
+  type PluginManifest,
+} from '@agentplugins/core';
 import type { LoadedConfig } from '../config.js';
 
+// ─── Compile (extracted for reuse by preview) ──────────────────────────────
 
+export interface CompileFile {
+  path: string;
+  content: string;
+}
+
+export interface CompileResult {
+  target: TargetPlatform;
+  files: CompileFile[];
+  warnings: string[];
+  postInstall?: string[];
+  skipped: boolean;
+  error?: string;
+}
+
+export interface CompileOptions {
+  manifest: PluginManifest;
+  targets?: TargetPlatform[];
+  write?: boolean;
+  outDir?: string;
+  silent?: boolean;
+}
+
+type AdapterFactory = () => { compile: (manifest: any) => any };
+
+async function getAdapterFactory(target: TargetPlatform): Promise<AdapterFactory> {
+  switch (target) {
+    case 'claude':
+      // @ts-ignore - adapter loaded dynamically at runtime
+      return (await import('@agentplugins/adapter-claude')).createClaudeAdapter;
+    case 'codex':
+      // @ts-ignore - adapter loaded dynamically at runtime
+      return (await import('@agentplugins/adapter-codex')).createCodexAdapter;
+    case 'copilot':
+      // @ts-ignore - adapter loaded dynamically at runtime
+      return (await import('@agentplugins/adapter-copilot')).createCopilotAdapter;
+    case 'gemini':
+      // @ts-ignore - adapter loaded dynamically at runtime
+      return (await import('@agentplugins/adapter-gemini')).createGeminiAdapter;
+    case 'kimi':
+      // @ts-ignore - adapter loaded dynamically at runtime
+      return (await import('@agentplugins/adapter-kimi')).createKimiAdapter;
+    case 'opencode':
+      // @ts-ignore - adapter loaded dynamically at runtime
+      return (await import('@agentplugins/adapter-opencode')).createOpenCodeAdapter;
+    case 'pimono':
+      // @ts-ignore - adapter loaded dynamically at runtime
+      return (await import('@agentplugins/adapter-pimono')).createPiMonoAdapter;
+    default:
+      throw new Error(`Unknown target: ${target}`);
+  }
+}
+
+/**
+ * Run the compilation pipeline for one or more targets.
+ * If `write` is true, files are written to `outDir/<target>/`.
+ * Returns per-target results.
+ */
+export async function compile(options: CompileOptions): Promise<CompileResult[]> {
+  const { manifest, write = false, outDir, silent = false } = options;
+  const targetList = (options.targets || manifest.targets || ALL_TARGETS) as TargetPlatform[];
+  const results: CompileResult[] = [];
+
+  for (const target of targetList) {
+    let factory: AdapterFactory;
+    try {
+      factory = await getAdapterFactory(target);
+    } catch {
+      results.push({ target, files: [], warnings: [], skipped: true });
+      continue;
+    }
+
+    if (!silent) console.log(chalk.blue(`\n📦 Building for ${target}...`));
+
+    const platformIssues = validateForPlatform(manifest, target);
+    const platformErrors = platformIssues.filter(i => i.severity === 'error');
+    if (platformErrors.length > 0) {
+      const msg = `${platformErrors.length} validation error${platformErrors.length > 1 ? 's' : ''}`;
+      if (!silent) console.log(chalk.red(`   ✗ Build failed for ${target} (${msg})`));
+      results.push({ target, files: [], warnings: [], skipped: true, error: msg });
+      continue;
+    }
+
+    try {
+      const adapter = factory();
+      const output = adapter.compile(manifest);
+
+      if (write && outDir) {
+        const targetDir = join(resolve(outDir), target);
+        await mkdir(targetDir, { recursive: true });
+        for (const file of output.files) {
+          const filePath = join(targetDir, file.path);
+          await mkdir(resolve(filePath, '..'), { recursive: true });
+          await writeFile(filePath, file.content, 'utf-8');
+        }
+      }
+
+      if (!silent) {
+        console.log(chalk.green(`   ✓ Built ${output.files.length} file${output.files.length > 1 ? 's' : ''}`));
+        if (output.warnings.length > 0) {
+          for (const w of output.warnings) console.log(chalk.yellow(`   ⚠ ${w}`));
+        }
+        if (output.postInstall) {
+          console.log(chalk.cyan(`   ⓘ ${output.postInstall.join('\n   ⓘ ')}`));
+        }
+      }
+
+      results.push({
+        target,
+        files: output.files,
+        warnings: output.warnings || [],
+        postInstall: output.postInstall,
+        skipped: false,
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (!silent) console.log(chalk.red(`   ✗ Build failed for ${target}: ${msg}`));
+      results.push({ target, files: [], warnings: [], skipped: true, error: msg });
+    }
+  }
+
+  return results;
+}
+
+// ─── Build Command ──────────────────────────────────────────────────────────
 
 export interface BuildOptions {
   config: LoadedConfig;
@@ -24,119 +150,48 @@ export interface BuildOptions {
   strict: boolean;
 }
 
-/** Lazy-loaded adapter factories */
-type AdapterFactory = () => { compile: (manifest: any) => any };
-
-async function getAdapterFactory(target: TargetPlatform): Promise<AdapterFactory> {
-  switch (target) {
-    case 'claude':
-      // @ts-ignore - adapter loaded dynamically at runtime
-      return (await import('@agentbridge/adapter-claude')).createClaudeAdapter;
-    case 'codex':
-      // @ts-ignore - adapter loaded dynamically at runtime
-      return (await import('@agentbridge/adapter-codex')).createCodexAdapter;
-    case 'copilot':
-      // @ts-ignore - adapter loaded dynamically at runtime
-      return (await import('@agentbridge/adapter-copilot')).createCopilotAdapter;
-    case 'gemini':
-      // @ts-ignore - adapter loaded dynamically at runtime
-      return (await import('@agentbridge/adapter-gemini')).createGeminiAdapter;
-    case 'kimi':
-      // @ts-ignore - adapter loaded dynamically at runtime
-      return (await import('@agentbridge/adapter-kimi')).createKimiAdapter;
-    case 'opencode':
-      // @ts-ignore - adapter loaded dynamically at runtime
-      return (await import('@agentbridge/adapter-opencode')).createOpenCodeAdapter;
-    case 'pimono':
-      // @ts-ignore - adapter loaded dynamically at runtime
-      return (await import('@agentbridge/adapter-pimono')).createPiMonoAdapter;
-    default:
-      throw new Error(`Unknown target: ${target}`);
-  }
-}
-
 export async function build(options: BuildOptions): Promise<void> {
   const { config, outDir } = options;
   const manifest = config.manifest;
-
-  // Determine targets
   const targetList = (options.targets || manifest.targets || ALL_TARGETS) as TargetPlatform[];
 
-  console.log(chalk.bold('\n🌉 AgentBridge Build\n'));
+  console.log(chalk.bold('\n🌉 AgentPlugins Build\n'));
   console.log(chalk.gray(`Plugin: ${manifest.name} v${manifest.version}`));
   console.log(chalk.gray(`Targets: ${targetList.join(', ')}`));
   console.log(chalk.gray(`Output: ${resolve(outDir)}\n`));
 
-  // ─── Universal Validation ─────────────────────────────────────────────────
+  // Universal validation
   console.log(chalk.blue('🔍 Running universal validation...'));
   const universalIssues = validateUniversal(manifest);
   printIssues(universalIssues);
-
   const hasErrors = universalIssues.some(i => i.severity === 'error');
   if (hasErrors) {
     throw new Error('Universal validation failed. Fix errors before building.');
   }
 
-  // ─── Platform-Specific Compilation ────────────────────────────────────────
-  const outRoot = resolve(outDir);
+  // Compile + write
+  const results = await compile({
+    manifest,
+    targets: targetList,
+    write: true,
+    outDir,
+  });
 
-  for (const target of targetList) {
-    let factory: AdapterFactory;
-    try {
-      factory = await getAdapterFactory(target);
-    } catch (err) {
-      console.log(chalk.yellow(`⚠️  No adapter for "${target}" — skipping`));
-      continue;
-    }
-
-    console.log(chalk.blue(`\n📦 Building for ${target}...`));
-
-    // Platform-specific validation
-    const platformIssues = validateForPlatform(manifest, target);
-    printIssues(platformIssues);
-
-    const platformErrors = platformIssues.filter(i => i.severity === 'error');
-    if (platformErrors.length > 0) {
-      console.log(chalk.red(`   ✗ Build failed for ${target} (${platformErrors.length} error${platformErrors.length > 1 ? 's' : ''})`));
-      continue;
-    }
-
-    // Compile
-    try {
-      const adapter = factory();
-      const output = adapter.compile(manifest);
-
-      // Write files
-      const targetDir = join(outRoot, target);
-      await mkdir(targetDir, { recursive: true });
-
-      for (const file of output.files) {
-        const filePath = join(targetDir, file.path);
-        await mkdir(resolve(filePath, '..'), { recursive: true });
-        await writeFile(filePath, file.content, 'utf-8');
-      }
-
-      // Print results
-      console.log(chalk.green(`   ✓ Built ${output.files.length} file${output.files.length > 1 ? 's' : ''}`));
-      if (output.warnings.length > 0) {
-        for (const w of output.warnings) {
-          console.log(chalk.yellow(`   ⚠ ${w}`));
-        }
-      }
-      if (output.postInstall) {
-        console.log(chalk.cyan(`   ⓘ ${output.postInstall.join('\n   ⓘ ')}`));
-      }
-    } catch (err) {
-      console.log(chalk.red(`   ✗ Build failed for ${target}: ${err instanceof Error ? err.message : String(err)}`));
+  // Strict mode: fail on warnings
+  if (options.strict) {
+    const allWarnings = results.flatMap(r => r.warnings);
+    if (allWarnings.length > 0) {
+      throw new Error(`Strict mode: ${allWarnings.length} warning(s) found.`);
     }
   }
 
-  // ─── Summary ──────────────────────────────────────────────────────────────
+  // Summary
   console.log(chalk.bold('\n✅ Build complete!\n'));
   console.log(chalk.gray('Install your plugins:'));
-  for (const target of targetList) {
-    const installCmd = getInstallCommand(target, manifest.name);
-    console.log(chalk.gray(`  ${target}: ${installCmd}`));
+  for (const r of results) {
+    if (r.skipped) continue;
+    const cmd = getInstallCommand(r.target, manifest.name);
+    console.log(chalk.gray(`  ${r.target}: ${cmd}`));
   }
   console.log();
 }

@@ -1,5 +1,5 @@
 /**
- * AgentBridge — OpenCode Adapter validate()
+ * AgentPlugins — OpenCode Adapter validate()
  *
  * Validates a universal plugin manifest for the OpenCode platform.
  *
@@ -12,14 +12,17 @@
 
 import {
   type PluginManifest,
-  type ValidationIssue,
-  type UniversalHookName,
   type HookHandler,
   type InlineHookHandler,
   type CommandHookHandler,
   type HttpHookHandler,
   Severity,
-} from "@agentbridge/core";
+} from "@agentplugins/core";
+
+import {
+  type ValidationIssue,
+  type UniversalHookName,
+} from "@agentplugins/core/adapter";
 
 /**
  * The 8 hooks supported by OpenCode.
@@ -40,7 +43,7 @@ const SUPPORTED_HOOKS: readonly UniversalHookName[] = [
  *
  * @example
  * ```ts
- * import { createValidate } from "@agentbridge/adapter-opencode";
+ * import { createValidate } from "@agentplugins/adapter-opencode";
  * const validate = createValidate();
  * const issues = validate(manifest);
  * ```

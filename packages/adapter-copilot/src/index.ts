@@ -1,9 +1,9 @@
 /**
- * @agentbridge/adapter-copilot
+ * @agentplugins/adapter-copilot
  *
- * GitHub Copilot CLI platform adapter for the AgentBridge plugin system.
+ * GitHub Copilot CLI platform adapter for the AgentPlugins plugin system.
  *
- * This adapter compiles AgentBridge {@link PluginManifest} objects into the
+ * This adapter compiles AgentPlugins {@link PluginManifest} objects into the
  * multi-file layout expected by the Copilot CLI runtime:
  *
  *   - plugin.json          – top-level manifest (strict validation, metadata)
@@ -46,24 +46,27 @@
  */
 
 import {
-  type PlatformAdapter,
   type PluginManifest,
+  type TargetPlatform,
+  type Skill,
+  Severity,
+} from "@agentplugins/core";
+
+import {
+  type PlatformAdapter,
   type ValidationIssue,
   type AdapterOutput,
   type AdapterFile,
-  type TargetPlatform,
   type UniversalHookName,
   type HandlerType,
   type HookDefinition,
-  type Skill,
-  Severity,
-} from "@agentbridge/core";
+} from "@agentplugins/core/adapter";
 
 /* ──────────────────────────────────────────────────────────────────────────── */
 /*  CONSTANTS                                                                  */
 /* ──────────────────────────────────────────────────────────────────────────── */
 
-/** Platform identifier used throughout AgentBridge. */
+/** Platform identifier used throughout AgentPlugins. */
 const PLATFORM_NAME = "copilot" as const;
 
 /** Human-readable platform name. */
@@ -622,7 +625,7 @@ function compileHookEntry(
 /**
  * GitHub Copilot CLI platform adapter.
  *
- * Converts AgentBridge {@link PluginManifest} objects into the file layout
+ * Converts AgentPlugins {@link PluginManifest} objects into the file layout
  * expected by the Copilot CLI runtime:
  *
  * ```
@@ -1053,7 +1056,7 @@ ${scriptBody}
  * GitHub Copilot CLI platform:
  *
  * ```ts
- * import { copilotAdapter } from "@agentbridge/adapter-copilot";
+ * import { copilotAdapter } from "@agentplugins/adapter-copilot";
  *
  * const issues = copilotAdapter.validate(myPlugin);
  * if (issues.length === 0) {

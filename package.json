@@ -1,6 +1,6 @@
 {
-  "name": "agentbridge",
-  "version": "0.1.0",
+  "name": "agentplugins",
+  "version": "0.2.0",
   "description": "Write AI agent plugins once, ship to any harness. Unifying library for Claude Code, Codex, OpenCode, Gemini, Copilot CLI, Kimi, and Pi Mono.",
   "private": true,
   "type": "module",
@@ -10,8 +10,10 @@
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
     "clean": "pnpm -r clean",
+    "typecheck": "pnpm -r exec tsc --noEmit",
     "release": "pnpm build && changeset publish",
-    "version": "changeset version"
+    "version": "changeset version",
+    "build:binaries": "bash scripts/build-binaries.sh"
   },
   "keywords": [
     "ai",
@@ -30,7 +32,7 @@
   "engines": {
     "node": ">=20.0.0"
   },
-  "packageManager": "pnpm@9.0.0",
+  "packageManager": "pnpm@11.0.0",
   "devDependencies": {
     "@changesets/cli": "^2.31.0"
   }

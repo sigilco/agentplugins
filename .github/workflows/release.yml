@@ -4,20 +4,19 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
-  release:
-    name: Release
+  # ─── Job 1: Changesets — npm publish + create release PR ────────────────────
+  release-npm:
+    name: Publish to npm (Changesets)
     runs-on: ubuntu-latest
-    # Only run on main branch, not on PRs
     if: github.ref == 'refs/heads/main'
+    outputs:
+      published: ${{ steps.changesets.outputs.published }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -34,6 +33,7 @@ jobs:
         with:
           node-version: 20
           cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -42,10 +42,152 @@ jobs:
         run: pnpm build
 
       - name: Create release PR or publish to npm
+        id: changesets
         uses: changesets/action@v1
         with:
-          # This expects NPM_TOKEN to be set in repository secrets
           publish-command: pnpm release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Output published status
+        run: echo "published=${{ steps.changesets.outputs.published }}"
+
+  # ─── Job 2: Build native binaries via Bun ───────────────────────────────────
+  build-binaries:
+    name: Build Binaries (${{ matrix.target }})
+    needs: release-npm
+    if: needs.release-npm.outputs.published == 'true'
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: aarch64-apple-darwin
+            runner: macos-latest
+            bun_target: bun-darwin-arm64
+            artifact: agentplugins-darwin-arm64
+          - target: x86_64-apple-darwin
+            runner: macos-latest
+            bun_target: bun-darwin-x64
+            artifact: agentplugins-darwin-x64
+          - target: x86_64-unknown-linux-gnu
+            runner: ubuntu-latest
+            bun_target: bun-linux-x64
+            artifact: agentplugins-linux-x64
+          - target: aarch64-unknown-linux-gnu
+            runner: ubuntu-latest
+            bun_target: bun-linux-arm64
+            artifact: agentplugins-linux-arm64
+          - target: x86_64-pc-windows-msvc
+            runner: ubuntu-latest
+            bun_target: bun-windows-x64
+            artifact: agentplugins-windows-x64.exe
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          version: latest
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build CLI (tsc)
+        run: pnpm --filter @agentplugins/cli build
+
+      - name: Compile native binary
+        run: |
+          bun build packages/cli/dist/cli.js \
+            --compile \
+            --target=${{ matrix.bun_target }} \
+            --outfile=agentplugins-${{ matrix.target }}
+
+      - name: Create archive
+        run: |
+          if [[ "${{ matrix.target }}" == *"windows"* ]]; then
+            zip agentplugins-${{ matrix.target }}.zip agentplugins-${{ matrix.target }}
+          else
+            tar -czf agentplugins-${{ matrix.target }}.tar.gz agentplugins-${{ matrix.target }}
+          fi
+
+      - name: Generate checksum
+        run: |
+          if command -v shasum &>/dev/null; then
+            shasum -a 256 agentplugins-${{ matrix.target }} | awk '{print $1}' > agentplugins-${{ matrix.target }}.sha256
+          else
+            sha256sum agentplugins-${{ matrix.target }} | awk '{print $1}' > agentplugins-${{ matrix.target }}.sha256
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: binary-${{ matrix.target }}
+          path: |
+            agentplugins-${{ matrix.target }}.tar.gz
+            agentplugins-${{ matrix.target }}.zip
+            agentplugins-${{ matrix.target }}.sha256
+          retention-days: 5
+
+  # ─── Job 3: Create GitHub Release with all binaries ─────────────────────────
+  github-release:
+    name: Create GitHub Release
+    needs: [release-npm, build-binaries]
+    if: needs.release-npm.outputs.published == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./packages/cli/package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Download all binary artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          pattern: binary-*
+          merge-multiple: true
+
+      - name: Generate combined checksums
+        working-directory: release-assets
+        run: |
+          # Collect all .sha256 files into one checksums file
+          cat agentplugins-*.sha256 | sort > checksums-sha256.txt
+          rm -f agentplugins-*.sha256
+          ls -la
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.tag }}
+          generate_release_notes: true
+          files: |
+            release-assets/*
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.version, '-') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

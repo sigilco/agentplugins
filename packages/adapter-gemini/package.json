@@ -1,7 +1,7 @@
 {
-  "name": "@agentbridge/adapter-gemini",
-  "version": "0.1.0",
-  "description": "AgentBridge platform adapter for Google Gemini CLI extensions",
+  "name": "@agentplugins/adapter-gemini",
+  "version": "0.2.0",
+  "description": "AgentPlugins platform adapter for Google Gemini CLI extensions",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -18,14 +18,18 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@agentbridge/core": "workspace:*"
+    "@agentplugins/core": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.0.0",
     "typescript": "^5.3.0"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "license": "MIT"
 }

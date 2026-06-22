@@ -1,23 +1,26 @@
 /**
- * AgentBridge — OpenCode Adapter Factory
+ * AgentPlugins — OpenCode Adapter Factory
  *
  * Factory function for creating OpenCode adapter instances.
  * This module provides the createOpenCodeAdapter() factory and the
  * default adapter instance.
  *
- * @module @agentbridge/adapter-opencode
+ * @module @agentplugins/adapter-opencode
  */
 
 import {
-  type PlatformAdapter,
   type PluginManifest,
+  type TargetPlatform,
+} from "@agentplugins/core";
+
+import {
+  type PlatformAdapter,
   type ValidationIssue,
   type AdapterOutput,
   type UniversalHookName,
   type HandlerType,
-  type TargetPlatform,
   type HookDefinition,
-} from "@agentbridge/core";
+} from "@agentplugins/core/adapter";
 
 import { createValidate } from "./validate";
 import {
@@ -44,13 +47,13 @@ const SUPPORTED_HOOKS: readonly UniversalHookName[] = [
 ];
 
 /**
- * OpenCode platform adapter for AgentBridge.
+ * OpenCode platform adapter for AgentPlugins.
  *
  * Converts universal plugin manifests into OpenCode-compatible plugin files
  * that can be dropped into `.opencode/plugins/` or `~/.config/opencode/plugins/`.
  */
 class OpenCodeAdapter implements PlatformAdapter {
-  /** Platform identifier used by AgentBridge core. */
+  /** Platform identifier used by AgentPlugins core. */
   readonly name: TargetPlatform = "opencode";
 
   /** Human-readable platform name. */

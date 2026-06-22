@@ -1,7 +1,7 @@
 {
-  "name": "@agentbridge/adapter-kimi",
-  "version": "0.1.0",
-  "description": "AgentBridge platform adapter for Kimi (Moonshot AI)",
+  "name": "@agentplugins/adapter-kimi",
+  "version": "0.2.0",
+  "description": "AgentPlugins platform adapter for Kimi (Moonshot AI)",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -12,8 +12,12 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts --clean",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
@@ -21,17 +25,17 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@agentbridge/core": "workspace:*"
+    "@agentplugins/core": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.0.0",
     "typescript": "^5.3.0"
   },
   "peerDependencies": {
-    "@agentbridge/core": "^0.1.0"
+    "@agentplugins/core": "^0.2.0"
   },
   "keywords": [
-    "agentbridge",
+    "agentplugins",
     "kimi",
     "moonshot",
     "plugin",
@@ -40,7 +44,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/agentbridge",
+    "url": "https://github.com/sigilco/agentplugins.git",
     "directory": "packages/adapter-kimi"
   }
 }

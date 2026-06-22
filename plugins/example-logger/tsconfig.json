@@ -8,5 +8,5 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["agentbridge.config.ts"]
+  "include": ["agentplugins.config.ts"]
 }

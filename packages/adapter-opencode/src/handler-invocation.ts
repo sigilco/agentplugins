@@ -1,5 +1,5 @@
 /**
- * AgentBridge — OpenCode Adapter buildHandlerInvocation()
+ * AgentPlugins — OpenCode Adapter buildHandlerInvocation()
  *
  * Generates the TypeScript code that invokes a handler inside an OpenCode
  * hook function.
@@ -17,8 +17,10 @@ import type {
   InlineHookHandler,
   CommandHookHandler,
   HttpHookHandler,
+} from "@agentplugins/core";
+import type {
   UniversalHookName,
-} from "@agentbridge/core";
+} from "@agentplugins/core/adapter";
 
 /**
  * The standard indentation used for code inside hook functions.

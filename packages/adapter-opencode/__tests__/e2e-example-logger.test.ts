@@ -10,10 +10,10 @@ import { createOpenCodeAdapter } from "../src/factory";
 
 /**
  * Mock manifest matching the example-logger plugin structure.
- * This mirrors plugins/example-logger/agentbridge.config.ts.
+ * This mirrors plugins/example-logger/agentplugins.config.ts.
  */
 const EXAMPLE_LOGGER_MANIFEST = {
-  name: "agentbridge-example-logger",
+  name: "agentplugins-example-logger",
   version: "0.1.0",
   description: "Cross-platform logging and security plugin for AI agent harnesses",
   hooks: {
@@ -67,7 +67,7 @@ describe("E2E: example-logger manifest compilation", () => {
     expect(output.files).toBeInstanceOf(Array);
     expect(output.files.length).toBe(2);
     expect(output.manifest).toBeDefined();
-    expect(output.manifest.name).toBe("agentbridge-example-logger");
+    expect(output.manifest.name).toBe("agentplugins-example-logger");
     expect(output.manifest.version).toBe("0.1.0");
     expect(output.issues).toBeInstanceOf(Array);
   });
@@ -77,7 +77,7 @@ describe("E2E: example-logger manifest compilation", () => {
     const tsFile = output.files.find((f) => f.path.endsWith(".ts"));
 
     expect(tsFile).toBeDefined();
-    expect(tsFile?.path).toBe("agentbridge-example-logger.ts");
+    expect(tsFile?.path).toBe("agentplugins-example-logger.ts");
     expect(tsFile?.content).toContain("export default");
     expect(tsFile?.content).toContain("async function");
 
@@ -94,7 +94,7 @@ describe("E2E: example-logger manifest compilation", () => {
 
     // Should parse as valid JSON
     const json = JSON.parse(jsonFile!.content);
-    expect(json.name).toBe("agentbridge-example-logger");
+    expect(json.name).toBe("agentplugins-example-logger");
     expect(json.version).toBe("0.1.0");
     expect(json.description).toBe("Cross-platform logging and security plugin for AI agent harnesses");
     expect(json.hooks).toBeDefined();
@@ -175,7 +175,7 @@ describe("E2E: example-logger manifest compilation", () => {
 
     expect(output.postInstall).toBeDefined();
     expect(output.postInstall.length).toBe(2);
-    expect(output.postInstall[0]).toContain("agentbridge-example-logger.ts");
+    expect(output.postInstall[0]).toContain("agentplugins-example-logger.ts");
     expect(output.postInstall[1]).toContain("opencode.json");
   });
 

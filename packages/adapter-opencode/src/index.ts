@@ -1,7 +1,7 @@
 /**
- * AgentBridge — OpenCode Platform Adapter
+ * AgentPlugins — OpenCode Platform Adapter
  *
- * @module @agentbridge/adapter-opencode
+ * @module @agentplugins/adapter-opencode
  */
 
 // Re-export factory (main adapter creation)

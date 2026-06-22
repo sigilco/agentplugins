@@ -1,17 +1,17 @@
 {
-  "name": "agentbridge-example-logger",
+  "name": "agentplugins-example-logger",
   "version": "0.1.0",
-  "description": "Example AgentBridge plugin — simple logger that works across all AI agent harnesses",
+  "description": "Example AgentPlugins plugin — simple logger that works across all AI agent harnesses",
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "agentbridge build",
-    "validate": "agentbridge validate",
+    "build": "agentplugins build",
+    "validate": "agentplugins validate",
     "build:core": "cd ../../packages/core && pnpm build"
   },
   "devDependencies": {
-    "@agentbridge/core": "workspace:*",
-    "@agentbridge/cli": "workspace:*",
+    "@agentplugins/core": "workspace:*",
+    "@agentplugins/cli": "workspace:*",
     "typescript": "^5.5.0"
   }
 }

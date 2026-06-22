@@ -1,4 +1,4 @@
-# AgentBridge Thesis & Proof of Concept
+# AgentPlugins Thesis & Proof of Concept
 
 ## Thesis Statement
 
@@ -57,7 +57,7 @@ A single **example-logger** plugin config can be compiled to **Claude Code + Ope
 ## Implementation & Results
 
 ### Phase 1: Universal Manifest (Completed)
-Created `PluginManifest` TypeScript interface in `@agentbridge/core`:
+Created `PluginManifest` TypeScript interface in `@agentplugins/core`:
 - Supports hooks, tools, commands, shortcuts, flags, MCP servers
 - Platform-agnostic: no adapter-specific fields
 - Validation schema catches missing required fields
@@ -79,7 +79,7 @@ Each adapter:
 **Result:** Core hook mapping is 20 lines; adapters are 300-800 LOC each.
 
 ### Phase 3: CLI & Build System (Completed)
-Built `@agentbridge/cli` with `agentbridge build` command:
+Built `@agentplugins/cli` with `agentplugins build` command:
 - Discovers plugin manifest in project root
 - Validates universal manifest
 - Compiles to all target platforms in parallel
@@ -141,7 +141,7 @@ All outputs are valid TypeScript/JSON matching platform specs.
 
 ### Does the Thesis Hold?
 
-**✓ YES.** AgentBridge successfully demonstrates that:
+**✓ YES.** AgentPlugins successfully demonstrates that:
 
 1. **Universal Interface is Sufficient** — single manifest format expresses plugin intent across 7 platforms
 2. **Adapters Reliably Bridge Platforms** — compile-time transformation handles all semantic differences
@@ -168,8 +168,8 @@ All outputs are valid TypeScript/JSON matching platform specs.
 
 ### For v0.2.0 (Q3 2026)
 1. Add 2+ adapters for emerging platforms
-2. Implement interactive `agentbridge init` scaffolding
-3. Add `agentbridge lint` / `agentbridge preview` commands
+2. Implement interactive `agentplugins init` scaffolding
+3. Add `agentplugins lint` / `agentplugins preview` commands
 4. Publish video tutorials for common use cases
 5. Community outreach: plugin developer interviews, blog posts
 
@@ -177,10 +177,10 @@ All outputs are valid TypeScript/JSON matching platform specs.
 1. Plugin registry / marketplace
 2. Advanced hook matchers and conditional compilation
 3. Multi-language support (JavaScript → Go, Rust, etc.)
-4. Ecosystem integration: Claude Code, OpenCode, etc. officially adopt AgentBridge
+4. Ecosystem integration: Claude Code, OpenCode, etc. officially adopt AgentPlugins
 
 ## Conclusion
 
-The thesis that **"a compile-once-for-many approach prevents vendor lock-in in fragmented agent plugin ecosystems"** is **validated by the AgentBridge POC**. A single plugin manifest can be reliably compiled to 7 distinct platforms with correct, readable outputs. The implementation is tractable, the ecosystem benefit is clear, and the path to production is straightforward.
+The thesis that **"a compile-once-for-many approach prevents vendor lock-in in fragmented agent plugin ecosystems"** is **validated by the AgentPlugins POC**. A single plugin manifest can be reliably compiled to 7 distinct platforms with correct, readable outputs. The implementation is tractable, the ecosystem benefit is clear, and the path to production is straightforward.
 
 **Next step:** Deploy to real harnesses and measure developer adoption.

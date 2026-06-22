@@ -1,7 +1,7 @@
 {
-  "name": "@agentbridge/adapter-pimono",
-  "version": "1.0.0",
-  "description": "Pi Mono platform adapter for AgentBridge — generates TypeScript-native extensions for the Pi agent runtime",
+  "name": "@agentplugins/adapter-pimono",
+  "version": "0.2.0",
+  "description": "Pi Mono platform adapter for AgentPlugins — generates TypeScript-native extensions for the Pi agent runtime",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -18,7 +18,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@agentbridge/core": "workspace:*"
+    "@agentplugins/core": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.0.0",
@@ -26,10 +26,14 @@
   },
   "files": [
     "dist",
-    "src"
+    "src",
+    "README.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "keywords": [
-    "agentbridge",
+    "agentplugins",
     "pi",
     "pimono",
     "agent",
