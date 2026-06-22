@@ -2,7 +2,7 @@
 
 > AgentPlugins platform adapter for [GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/plugins-finding-installing).
 
-Compiles a universal `PluginManifest` into the Copilot CLI plugin layout: `plugin.json` manifest, `hooks.json` hook wiring, and MCP server configuration. Inline handlers are wrapped as command scripts that the host invokes.
+Compiles a universal `PluginManifest` into the Copilot CLI plugin layout: `plugin.json` manifest, `hooks.json` hook wiring, `skills/<name>/SKILL.md` declarative skill docs, and `.mcp.json` MCP server configuration. This adapter takes an MCP-first approach — when `mcpServers` are defined in the manifest they are wired as the primary integration point. Inline handlers are wrapped as command scripts that the host invokes.
 
 ## Installation
 
@@ -34,8 +34,10 @@ A successful build writes to `dist/copilot/`:
 ```
 dist/copilot/
 ├── plugin.json
-├── hooks/
-│   └── hooks.json
+├── hooks.json
+├── skills/
+│   └── <name>/
+│       └── SKILL.md
 └── .mcp.json
 ```
 

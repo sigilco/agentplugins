@@ -1,270 +1,200 @@
 # AgentPlugins
 
-> **Write AI agent plugins once, ship to any harness.**
+> **Install any plugin into every AI agent with one command.**
 
-AgentPlugins is a unifying library for AI agent plugin development — inspired by [unplugin](https://unplugin.unjs.io/) (unified build plugins) and [LLVM](https://llvm.org/) (unified compiler IR). It uses **Ports & Adapters** (Hexagonal Architecture) to let you define a plugin once and compile it for Claude Code, OpenAI Codex, GitHub Copilot CLI, Google Gemini CLI, Kimi, OpenCode, and Pi Mono.
+AgentPlugins is a distribution-first plugin manager for AI agent harnesses. Install a plugin once — it's symlinked into Claude, Codex, Copilot, Gemini, Kimi, OpenCode, and Pi Mono automatically. Includes a codegen toolkit for authors who want to write once and compile to all platforms.
 
+```bash
+agentplugins add user/awesome-plugin
+# → Clones, parses manifest, symlinks to every detected agent
 ```
-Your Plugin → AgentPlugins Core (Universal IR) → Platform Adapters → 7 Agent Harnesses
+
+## Install
+
+**5 ways to install AgentPlugins:**
+
+```bash
+# 1. npm / npx / bunx
+npx @agentplugins/cli add user/awesome-plugin
+bunx @agentplugins/cli add user/awesome-plugin
+
+# 2. Homebrew
+brew install sigilco/tap/agentplugins
+
+# 3. curl (macOS + Linux)
+curl -fsSL https://raw.githubusercontent.com/sigilco/agentplugins/main/scripts/install.sh | bash
+
+# 4. mise (via UBI)
+mise use -g ubi:sigilco/agentplugins
+
+# 5. GitHub Releases (prebuilt binaries)
+# → https://github.com/sigilco/agentplugins/releases
 ```
 
-## Supported Platforms
+Verify installation:
 
-| Platform | Status | Manifest | Inline Handlers |
-|----------|--------|----------|-----------------|
-| [Claude Code](https://code.claude.com/docs/en/plugins-reference) | Ready | `.claude-plugin/plugin.json` | Wrapped as scripts |
-| [OpenAI Codex](https://developers.openai.com/codex/plugins) | Ready | `.codex-plugin/plugin.json` | Wrapped as scripts |
-| [GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/plugins-finding-installing) | Ready | `plugin.json` | Wrapped as scripts |
-| [Google Gemini CLI](https://ai.google.dev/gemini-cli/docs) | Ready | `gemini-extension.json` | Wrapped as scripts |
-| [Kimi (Moonshot)](https://www.moonshot.cn/) | Ready | `kimi.plugin.json` | Wrapped as scripts |
-| [OpenCode](https://opencode.ai/docs/plugins/) | Ready | `opencode.json` | Native support |
-| [Pi Mono](https://pi.mono/) | Ready | `package.json` (`pi` key) | Native support |
+```bash
+agentplugins doctor
+```
 
 ## Quick Start
 
-### 1. Create a Plugin
+### Install a Plugin
 
 ```bash
-npx @agentplugins/cli init my-plugin
+# From a GitHub URL or user/repo shorthand
+agentplugins add user/my-plugin
+
+# List installed plugins
+agentplugins list
+
+# Show details
+agentplugins info my-plugin
+
+# Update to latest
+agentplugins update my-plugin
+# or update all
+agentplugins update --all
+
+# Remove
+agentplugins remove my-plugin
 ```
 
-This scaffolds a new plugin with `agentplugins.config.ts`:
+Plugins are stored in a universal store (`~/.agents/plugins/<name>/`) and symlinked into each agent's plugin directory. Skills.sh-compatible plugins are symlinked to `~/.agents/skills/` as well.
 
-```typescript
-import { definePlugin } from '@agentplugins/core';
+### Create a Plugin (Authors)
 
-export default definePlugin({
-  name: 'my-security-guard',
-  version: '1.0.0',
-  description: 'Blocks dangerous commands across all agents',
+```bash
+# Interactive scaffold
+agentplugins init
 
-  targets: ['claude', 'codex', 'copilot', 'gemini', 'kimi', 'opencode', 'pimono'],
+# With defaults
+agentplugins init --yes
 
-  hooks: {
-    preToolUse: {
-      handler: {
-        type: 'inline',
-        handler: async (ctx) => {
-          if (ctx.toolName === 'bash' && JSON.stringify(ctx.toolInput).includes('rm -rf /')) {
-            return { block: true, reason: 'Root deletion blocked' };
-          }
-        },
-      },
-    },
-    sessionStart: {
-      handler: {
-        type: 'inline',
-        handler: async () => ({
-          additionalContext: 'Security guard plugin active.',
-        }),
-      },
-    },
+# From a template
+agentplugins init --template security-guard
+```
+
+Templates: `minimal`, `logger` (default), `security-guard`, `formatter`.
+
+### Build for All Platforms
+
+```bash
+# Validate manifest
+agentplugins validate
+
+# Lint for common issues
+agentplugins lint
+
+# Preview compiled output without writing
+agentplugins preview
+agentplugins preview --diff
+
+# Build to dist/
+agentplugins build
+```
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `add <source>` | Install a plugin from GitHub URL or `user/repo` |
+| `remove <name>` | Remove a plugin and unlink from all agents |
+| `list` | List installed plugins (`--json` for machine output) |
+| `info <name>` | Show plugin metadata, manifest, and symlink status |
+| `update [name]` | Update plugin(s) from source (`--all` for all) |
+| `doctor` | Diagnose store, symlinks, and agent detection |
+| `init` | Scaffold a new plugin interactively (`--yes`, `--template`) |
+| `build` | Compile plugin for all target platforms |
+| `validate` | Validate manifest against schema |
+| `lint` | Static analysis for common issues (`--json`) |
+| `preview` | Preview compiled output (`--diff`, `--target`) |
+
+## Supported Platforms
+
+| Platform | Store Path | Handler Types |
+|----------|-----------|---------------|
+| Claude Code | `~/.claude/skills/` | command, http |
+| OpenAI Codex | `~/.codex/plugins/` | command |
+| GitHub Copilot | `~/.config/github-copilot/` | command, http |
+| Google Gemini | `~/.gemini/extensions/` | command |
+| Kimi | `~/.kimi/plugins/` | command |
+| OpenCode | `~/.config/opencode/plugins/` | inline (TS) |
+| Pi Mono | `~/.pi/agent/extensions/` | inline (TS) |
+
+## Packages
+
+| Package | Description |
+|---------|-------------|
+| [`@agentplugins/core`](packages/core/) | Universal types, validation, lint, codegen, store |
+| [`@agentplugins/cli`](packages/cli/) | CLI binary (`agentplugins`) |
+| [`@agentplugins/schema`](packages/schema/) | JSON Schema + TS types + Ajv validator |
+| [`@agentplugins/adapter-*`](packages/) | 7 platform adapters (claude, codex, copilot, gemini, kimi, opencode, pimono) |
+
+## Manifest
+
+Plugins declare a manifest in `agentplugins.config.json`, `manifest.json`, or the `agentplugins` field of `package.json`:
+
+```json
+{
+  "name": "my-plugin",
+  "version": "1.0.0",
+  "description": "Does something useful across agents",
+  "hooks": {
+    "preToolUse": {
+      "matcher": "bash",
+      "handler": {
+        "type": "command",
+        "command": "${PLUGIN_ROOT}/check.sh"
+      }
+    }
   },
-
-  skills: [{
-    name: 'security-guard',
-    description: 'Security policy enforcement',
-    content: 'When executing commands, always validate against security policies.',
-  }],
-});
+  "skills": [{
+    "name": "my-skill",
+    "description": "A skill description",
+    "path": "./skills/my-skill.md"
+  }]
+}
 ```
 
-### 2. Validate
+Full manifest spec: [`spec/v1/manifest.schema.json`](spec/v1/manifest.schema.json) · Docs: [agentplugins.dev](https://sigilco.github.io/agentplugins/)
+
+## Development
 
 ```bash
-npx agentplugins validate
-```
+pnpm install
+pnpm build          # Build all packages
+pnpm test           # Run tests
+pnpm typecheck      # Type-check all packages
 
-### 3. Build
+# Build native binaries (requires Bun)
+pnpm build:binaries
 
-```bash
-npx agentplugins build
-```
-
-Output:
-```
-dist/
-  claude/       → .claude-plugin/plugin.json + hooks + skills
-  codex/        → .codex-plugin/plugin.json + hooks + skills
-  copilot/      → plugin.json + hooks.json + skills
-  gemini/       → gemini-extension.json + hooks + skills
-  kimi/         → kimi.plugin.json + hooks + skills
-  opencode/     → TypeScript plugin file + opencode.json
-  pimono/       → TypeScript extension + package.json
-```
-
-### 4. Install
-
-Copy the generated files into your agent harness's plugin directory:
-
-```bash
-# Claude Code
-cp -r dist/claude/.claude-plugin ~/.claude/skills/my-security-guard/
-
-# Codex
-cp -r dist/codex/.codex-plugin ~/.codex/plugins/
-
-# Copilot CLI
-copilot plugin install ./dist/copilot
-
-# Gemini CLI
-gemini extensions install ./dist/gemini
-
-# Kimi
-cp -r dist/kimi ~/.kimi/plugins/
-
-# OpenCode
-cp dist/opencode/*.ts .opencode/plugins/
-
-# Pi Mono
-cp -r dist/pimono ~/.pi/agent/extensions/
+# Docs site
+cd docs-site && pnpm install && pnpm docs:dev
 ```
 
 ## Architecture
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                     AgentPlugins Core                         │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  │
-│  │ PluginManifest │  │  Validators  │  │  Hook Registry   │  │
-│  │  (The Port)    │  │              │  │                  │  │
-│  └──────────────┘  └──────────────┘  └──────────────────┘  │
-└────────────────────┬─────────────────────────────────────────┘
-                     │ compile(target)
-        ┌────────────┼────────────┬────────────┐
-        ▼            ▼            ▼            ▼
-  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐
-  │  Claude  │ │   Codex  │ │  Copilot │ │  Gemini  │ │ ...
-  │  Adapter │ │  Adapter │ │  Adapter │ │  Adapter │ │
-  └──────────┘ └──────────┘ └──────────┘ └──────────┘
+Plugin Source (GitHub)
+    │
+    ▼
+┌─────────────────────────────────┐
+│       AgentPlugins Store         │
+│    ~/.agents/plugins/<name>/     │
+└───────────┬─────────────────────┘
+            │ symlinks
+   ┌────────┼────────┬────────┐
+   ▼        ▼        ▼        ▼
+ Claude   Codex   Copilot   Gemini  ...
 ```
 
-### The Port (Universal Interface)
-
-AgentPlugins defines a maximal common subset of capabilities across all platforms:
-
-**Hooks** — 19 universal lifecycle events:
-- Session: `sessionStart`, `sessionEnd`
-- Prompt: `userPromptSubmit`, `userPromptExpansion`
-- Tool: `preToolUse`, `postToolUse`, `postToolUseFailure`
-- Permission: `permissionRequest`, `permissionDenied`
-- Subagent: `subagentStart`, `subagentStop`
-- Context: `preCompact`, `postCompact`
-- Turn: `stop`, `stopFailure`
-- System: `notification`, `fileChanged`, `cwdChanged`, `setup`
-
-**Handlers** — 3 handler types:
-- `command` — Shell script (supported by all)
-- `http` — POST endpoint (Claude, Copilot)
-- `inline` — TypeScript function (OpenCode, Pi Mono; auto-wrapped for others)
-
-### The Adapters
-
-Each adapter transforms the universal representation into the platform-native format:
-
-| Platform | Hooks Supported | Handler Types | Key Constraints |
-|----------|----------------|---------------|-----------------|
-| Claude | 19/19 | command, http, prompt, mcp_tool, agent | Max 2KB keychain |
-| Codex | 10/19 | command only | Exit 2 to block |
-| Copilot | 11/19 | command, http, prompt | Fail-closed preToolUse |
-| Gemini | 10/19 | command only | Exit 2 to block |
-| Kimi | 5/19 | command only | Fail-open hooks |
-| OpenCode | 8/19 | inline only | Bun runtime |
-| Pi Mono | 12/19 | inline only | jiti loading |
-
-## Validation
-
-AgentPlugins catches cross-platform issues at build time:
-
-```bash
-$ npx agentplugins validate
-
-🔍 AgentPlugins Validation
-
-claude:
-  ✓ No issues found
-
-codex:
-  ⚠ hooks.sessionEnd is not supported by codex — this hook will be ignored
-    → Use "sessionStart" instead
-  ⚠ hooks.userPromptSubmit is not supported by codex — this hook will be ignored
-
-gemini:
-  ⚠ hooks.postToolUse is not supported by gemini — this hook will be ignored
-  ℹ Inline handlers on gemini will be auto-wrapped as command scripts
-
-✅ All checks passed!
-```
-
-## Monorepo Structure
+For codegen (power users):
 
 ```
-agentplugins/
-├── packages/
-│   ├── core/              # Universal types, validation, registry
-│   ├── cli/               # Build and validate commands
-│   ├── adapter-claude/    # Claude Code adapter
-│   ├── adapter-codex/     # OpenAI Codex adapter
-│   ├── adapter-copilot/   # GitHub Copilot CLI adapter
-│   ├── adapter-gemini/    # Google Gemini CLI adapter
-│   ├── adapter-kimi/      # Kimi (Moonshot) adapter
-│   ├── adapter-opencode/  # OpenCode adapter
-│   └── adapter-pimono/    # Pi Mono adapter
-├── plugins/
-│   └── example-logger/    # Example cross-platform plugin
-└── pnpm-workspace.yaml
+Manifest → Core (validate + compile) → Adapters → Platform-native output
 ```
-
-## Development
-
-```bash
-# Install dependencies
-pnpm install
-
-# Build all packages
-pnpm build
-
-# Run the example
-cd plugins/example-logger
-pnpm build
-# → Check dist/ for generated platform outputs
-```
-
-## Why AgentPlugins?
-
-### The Problem
-
-Every AI agent framework has its own plugin system:
-
-| Framework | Manifest | Hooks Format | Handler Types |
-|-----------|----------|--------------|---------------|
-| Claude Code | `.claude-plugin/plugin.json` | `hooks/hooks.json` | command, http, mcp_tool, prompt, agent |
-| Codex | `.codex-plugin/plugin.json` | `hooks/hooks.json` | command only |
-| Copilot CLI | `plugin.json` | `hooks.json` | command, http, prompt |
-| Gemini CLI | `gemini-extension.json` | `hooks/` | command only |
-| Kimi | `kimi.plugin.json` | `kimi-hooks.json` | command only |
-| OpenCode | `package.json` | TypeScript hooks | inline only |
-| Pi Mono | `package.json` | TypeScript events | inline only |
-
-**7 frameworks, 7 different APIs.** Writing a plugin for all of them means maintaining 7 separate codebases.
-
-### The Solution: Ports & Adapters
-
-Like unplugin unified build tools and LLVM unified compilers, AgentPlugins unifies AI agent plugins:
-
-1. **You write** a plugin using the universal AgentPlugins interface (the Port)
-2. **AgentPlugins validates** your plugin against each target's constraints
-3. **Adapters compile** your plugin into each platform's native format
-4. **You ship** one codebase to 7 platforms
-
-## Future Vision
-
-AgentPlugins aims to become the **standardschema.dev** of AI agent plugins — a common foundation that:
-
-1. Enables plugin authors to reach all agent harnesses with one implementation
-2. Lets new agent frameworks join the ecosystem by implementing one adapter
-3. Provides validation tooling that catches issues before runtime
-4. Documents capabilities across platforms for informed plugin design
 
 ## License
 
