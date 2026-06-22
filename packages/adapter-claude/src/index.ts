@@ -22,23 +22,25 @@
  */
 
 import {
-  type PlatformAdapter,
   type PluginManifest,
+  type InlineHookHandler,
+  type HookContext,
+  type HookResult,
+  type TargetPlatform,
+  Severity,
+} from '@agentplugins/core';
+import {
+  type PlatformAdapter,
   type AdapterOutput,
   type FileOutput,
   type ValidationIssue,
   type UniversalHookName,
   type HandlerType,
   type HookDefinition,
-  type InlineHookHandler,
-  type HookContext,
-  type HookResult,
   generateHookWrapper,
   generateHandlersModule,
   validateForPlatform,
-  type TargetPlatform,
-  Severity,
-} from '@agentplugins/core';
+} from '@agentplugins/core/adapter';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 

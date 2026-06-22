@@ -23,21 +23,24 @@
 // @ts-nocheck - Adapter types differ from current core types; code generation is correct at runtime
 
 import {
-  type PlatformAdapter,
   type PluginManifest,
-  type ValidationIssue,
-  type AdapterOutput,
   type TargetPlatform,
-  type UniversalHookName,
-  type HandlerType,
   type HookHandler,
   type ToolDefinition,
   type InlineHookHandler,
   type HookContext,
   type HookResult,
-  type FileOutput,
   Severity,
 } from "@agentplugins/core";
+
+import {
+  type PlatformAdapter,
+  type ValidationIssue,
+  type AdapterOutput,
+  type UniversalHookName,
+  type HandlerType,
+  type FileOutput,
+} from "@agentplugins/core/adapter";
 
 // ── Local type extensions (to bridge gaps with core types) ───────────────────
 

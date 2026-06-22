@@ -34,19 +34,22 @@
  */
 
 import type {
-  PlatformAdapter,
   PluginManifest,
-  ValidationIssue,
-  AdapterOutput,
   TargetPlatform,
-  UniversalHookName,
-  HandlerType,
-  HookDefinition,
   Skill,
-  FileOutput,
   UniversalHooks,
 } from "@agentplugins/core";
 import { Severity } from "@agentplugins/core";
+
+import type {
+  PlatformAdapter,
+  ValidationIssue,
+  AdapterOutput,
+  UniversalHookName,
+  HandlerType,
+  HookDefinition,
+  FileOutput,
+} from "@agentplugins/core/adapter";
 
 /* -------------------------------------------------------------------------- */
 /*                               CONSTANTS                                    */

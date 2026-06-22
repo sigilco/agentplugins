@@ -46,18 +46,21 @@
  */
 
 import {
-  type PlatformAdapter,
   type PluginManifest,
-  type ValidationIssue,
-  type AdapterOutput,
-  type AdapterFile,
   type TargetPlatform,
-  type UniversalHookName,
-  type HandlerType,
-  type HookDefinition,
   type Skill,
   Severity,
 } from "@agentplugins/core";
+
+import {
+  type PlatformAdapter,
+  type ValidationIssue,
+  type AdapterOutput,
+  type AdapterFile,
+  type UniversalHookName,
+  type HandlerType,
+  type HookDefinition,
+} from "@agentplugins/core/adapter";
 
 /* ──────────────────────────────────────────────────────────────────────────── */
 /*  CONSTANTS                                                                  */

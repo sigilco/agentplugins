@@ -21,16 +21,19 @@
  */
 
 import {
-  type PlatformAdapter,
   type PluginManifest,
+  type TargetPlatform,
+  Severity,
+} from "@agentplugins/core";
+
+import {
+  type PlatformAdapter,
   type ValidationIssue,
   type AdapterOutput,
   type AdapterFile,
-  type TargetPlatform,
   type UniversalHookName,
   type HandlerType,
-  Severity,
-} from "@agentplugins/core";
+} from "@agentplugins/core/adapter";
 
 /* ───────────────────── Gemini-specific types ───────────────────── */
 
