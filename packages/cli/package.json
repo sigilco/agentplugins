@@ -1,6 +1,6 @@
 {
   "name": "@agentplugins/cli",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "CLI for building AgentPlugins plugins across multiple AI agent harnesses",
   "type": "module",
   "bin": {
@@ -28,6 +28,7 @@
     "@agentplugins/adapter-kimi": "workspace:*",
     "@agentplugins/adapter-opencode": "workspace:*",
     "@agentplugins/adapter-pimono": "workspace:*",
+    "@clack/prompts": "^0.7.0",
     "cac": "^6.7.14",
     "chalk": "^5.3.0",
     "jiti": "^1.21.6"
