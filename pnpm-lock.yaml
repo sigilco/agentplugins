@@ -14,6 +14,24 @@ importers:
 
   docs-site:
     devDependencies:
+      '@braintree/sanitize-url':
+        specifier: ^7.1.2
+        version: 7.1.2
+      cytoscape:
+        specifier: ^3.34.0
+        version: 3.34.0
+      cytoscape-cose-bilkent:
+        specifier: ^4.1.0
+        version: 4.1.0(cytoscape@3.34.0)
+      dayjs:
+        specifier: ^1.11.21
+        version: 1.11.21
+      debug:
+        specifier: ^4.4.3
+        version: 4.4.3
+      mermaid:
+        specifier: ^11.15.0
+        version: 11.15.0
       vitepress:
         specifier: ^1.5.0
         version: 1.6.4(@algolia/client-search@5.55.0)(@types/node@20.19.41)(postcss@8.5.15)(search-insights@2.17.3)(typescript@5.9.3)
