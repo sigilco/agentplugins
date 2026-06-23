@@ -180,7 +180,7 @@ This means inline handlers work everywhere — at the cost of a Bun startup on p
 
 ## Adding a new adapter
 
-An adapter is any executable that implements the **JSON process ABI**: read a manifest (stdin or `--manifest <file>`), compile platform-specific output, write files, and exit `0` (success) or non-zero (failure). This enables any-language adapters without SDK lock-in. See [`adapter.schema.json`](https://agentplugins.dev/schema/v1/adapter.schema.json) for the contract.
+An adapter is any executable that implements the **JSON process ABI**: read a manifest (stdin or `--manifest <file>`), compile platform-specific output, write files, and exit `0` (success) or non-zero (failure). This enables any-language adapters without SDK lock-in. See [`adapter.schema.json`](__DOCS_SITE__/schema/v1/adapter.schema.json) for the contract.
 
 ## Next steps
 

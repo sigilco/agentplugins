@@ -1,10 +1,10 @@
 ---
-description: Add reusable capabilities via Skills.sh-compatible markdown
+description: Reusable agent capabilities via SKILL.md
 ---
 
 # Skills
 
-A **skill** is a markdown document with YAML frontmatter that teaches an agent a reusable capability. AgentPlugins is [Skills.sh](https://skills.sh)-compatible: existing `SKILL.md` files work without modification.
+A **skill** is a markdown document with YAML frontmatter that teaches an agent a reusable capability. Existing `SKILL.md` files work without modification.
 
 ## SKILL.md format
 
@@ -82,7 +82,7 @@ Installed skills live in the universal store and are symlinked into each agent's
 ```
 
 ::: tip
-AgentPlugins also scans the **Skills.sh compatibility directory** at `~/.agents/skills/`. Skills placed there (the legacy Skills.sh layout) are picked up and fanned out exactly like plugins in the universal store.
+AgentPlugins also picks up skills placed in `~/.agents/skills/`, so existing setups require no migration.
 :::
 
 ## Declaring skills in a manifest

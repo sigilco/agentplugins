@@ -9,12 +9,12 @@ Every installed plugin lives in one place:
 | Path | Purpose |
 |---|---|
 | `~/.agents/plugins/` | Universal plugin store — the source of truth. |
-| `~/.agents/skills/` | Skills.sh compatibility directory (also scanned). |
+| `~/.agents/skills/` | Skills compatibility directory (also scanned). |
 
 `~/.agents/plugins/<name>/` is canonical. Removing a plugin from the store removes every symlink. Updating a plugin in the store updates every agent that links to it.
 
 ::: tip
-The skills compatibility directory exists for legacy [Skills.sh](https://skills.sh) installs. New plugins should target the universal store.
+Skills placed in `~/.agents/skills/` are picked up and fanned out exactly like plugins in the universal store. Existing setups require no migration.
 :::
 
 ## Detected agents
@@ -38,7 +38,7 @@ Seven agent harnesses are supported:
 ```text
 AgentPlugins doctor
 ────────────────────────────────────────
-CLI version      1.0.0
+CLI version      0.2.0
 Store path       ~/.agents/plugins       ✓
 Skills path      ~/.agents/skills        ✓
 
@@ -96,7 +96,7 @@ The path registry is published as a machine-readable JSON document:
 
 | Source | URL |
 |---|---|
-| Hosted | `https://agentplugins.dev/schema/v1/agent-paths.json` |
+| Hosted | `__DOCS_SITE__/schema/v1/agent-paths.json` |
 | Raw (GitHub) | `https://raw.githubusercontent.com/sigilco/agentplugins/main/spec/v1/agent-paths.json` |
 
 ```json

@@ -6,10 +6,10 @@ The AgentPlugins manifest is defined by a published JSON Schema. Use it for edit
 
 | Source | URL / package |
 |---|---|
-| Hosted | `https://agentplugins.dev/schema/v1.json` |
+| Hosted | `__DOCS_SITE__/schema/v1.json` |
 | Raw (GitHub) | `https://raw.githubusercontent.com/sigilco/agentplugins/main/spec/v1/manifest.schema.json` |
 | npm | `@agentplugins/schema` |
-| Agent paths schema | `https://agentplugins.dev/schema/v1/agent-paths.json` |
+| Agent paths schema | `__DOCS_SITE__/schema/v1/agent-paths.json` |
 
 ## Editor autocomplete
 
@@ -17,7 +17,7 @@ Add `$schema` to any JSON manifest to get autocomplete, hover docs, and inline v
 
 ```json
 {
-  "$schema": "https://agentplugins.dev/schema/v1.json",
+  "$schema": "__DOCS_SITE__/schema/v1.json",
   "name": "my-plugin",
   "version": "1.0.0",
   "description": "Does awesome things across every agent"
@@ -143,7 +143,7 @@ if (!ok) {
 The schema follows SemVer. The `v1` series is backwards-compatible — fields may be added but never removed or renamed in a backwards-incompatible way. Breaking changes ship as `v2`.
 
 ::: tip
-Pin to `https://agentplugins.dev/schema/v1.json` (not a specific commit) to pick up non-breaking additions automatically. Pin to the raw GitHub URL at a specific commit SHA if you need absolute reproducibility.
+Pin to `__DOCS_SITE__/schema/v1.json` (not a specific commit) to pick up non-breaking additions automatically. Pin to the raw GitHub URL at a specific commit SHA if you need absolute reproducibility.
 :::
 
 ## Next steps

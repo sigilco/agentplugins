@@ -15,12 +15,12 @@ hero:
       link: https://github.com/sigilco/agentplugins
 
 features:
-  - title: "Distribution-First"
+  - title: "Manage any AI harness plugin"
     details: "Install any GitHub plugin with `agentplugins add`. Symlinks to all detected agents automatically."
   - title: "Universal Manifest"
     details: "Define hooks, skills, tools, MCP servers, and commands once. We compile to each platform's native format."
-  - title: "Skills.sh Compatible"
-    details: "Reads `SKILL.md` frontmatter. Your existing skills work out of the box."
-  - title: "Native Binary"
-    details: "Ships as a single Bun-compiled binary. No Node required. Install via npm, Homebrew, curl, or mise."
+  - title: "Works with existing skills"
+    details: "Reads `SKILL.md` frontmatter. Skills already on your machine work out of the box."
+  - title: "Zero config"
+    details: "Install via npm, Homebrew, curl, or mise. No setup required."
 ---

@@ -1,8 +1,12 @@
 import { defineConfig } from 'vitepress'
 import llmstxt from 'vitepress-plugin-llms'
 import { groupIconMdPlugin, groupIconVitePlugin } from 'vitepress-plugin-group-icons'
+import { withMermaid } from 'vitepress-plugin-mermaid'
 
-export default defineConfig({
+const DOCS_SITE = process.env.DOCS_SITE ?? 'https://agentplugins.pages.dev'
+const GITHUB_SITE = 'https://github.com/sigilco/agentplugins'
+
+export default withMermaid(defineConfig({
   title: 'AgentPlugins',
   description: 'Write AI agent plugins once, ship to any harness',
   base: '/',
@@ -16,6 +20,9 @@ export default defineConfig({
   markdown: {
     config(md) {
       md.use(groupIconMdPlugin)
+      const orig = md.render.bind(md)
+      md.render = (src, env) =>
+        orig(src.replace(/__DOCS_SITE__/g, DOCS_SITE).replace(/__GITHUB_SITE__/g, GITHUB_SITE), env)
     },
   },
 
@@ -23,12 +30,14 @@ export default defineConfig({
     plugins: [llmstxt(), groupIconVitePlugin()],
   },
 
+  mermaid: { theme: 'default' },
+
   themeConfig: {
     nav: [
       { text: 'Guide', link: '/guide/introduction' },
       { text: 'Commands', link: '/reference/commands' },
       { text: 'Schema', link: '/reference/schema' },
-      { text: 'GitHub', link: 'https://github.com/sigilco/agentplugins' },
+      { text: 'GitHub', link: GITHUB_SITE },
     ],
 
     sidebar: {
@@ -68,7 +77,7 @@ export default defineConfig({
     },
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/sigilco/agentplugins' },
+      { icon: 'github', link: GITHUB_SITE },
     ],
 
     search: {
@@ -89,4 +98,4 @@ export default defineConfig({
       next: 'Next',
     },
   },
-})
+}))
