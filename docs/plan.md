@@ -1,4 +1,4 @@
-# AgentPlugins — Distribution-First Plugin Manager for AI Agent Harnesses
+# AgentPlugins: Plugin Manager for AI Agent Harnesses
 
 ## Overview
 
@@ -15,29 +15,33 @@ plugin source  ──→  agentplugins CLI  ──→  ~/.agents/plugins/<name>/
                                             └─→ ~/.pi/extensions/<name>     (symlink)
 ```
 
-Codegen (`agentplugins build`) remains a power-user feature, not the headline. The headline is **`agentplugins add <github-url>`**.
+Codegen (`agentplugins build`) remains a power-user feature, not the headline. The headline is `**agentplugins add <github-url>**`.
 
 ## Strategic Decisions (Locked)
 
-| Decision | Choice | Rationale |
-|---|---|---|
-| Build target | **Bun compile only** | Drop Node SEA (too experimental). Bun is 50MB, 30ms startup, 8 cross-compile targets, used in prod by Sentry/Discord/Anthropic/Shopify. |
-| Rewrite target | **Drop Rust** | Distribution problem is fetch/symlink/parse JSON — doesn't need Rust. Saves 7-9 weeks. Defer to v2+ if demanded. |
-| Adapter ABI | **JSON process ABI** | Any-language adapter = a binary that reads JSON, writes files, exits 0/non-0. No SDK lock-in. |
-| Manifest format | **JSON + JSON Schema from day one** | `@agentplugins/schema` npm package + hosted URL. Editor autocomplete + self-documenting. |
-| Primary platform | **macOS + Linux (glibc + musl)** | Bun compile supports both natively. Windows best-effort. |
-| Skills.sh compat | **Adopt as a subset** | Our `SKILL.md` is a valid Skills.sh skill. Their repos install in our CLI. |
-| Universal store | `~/.agents/plugins/<name>/` | Symlinks fan out to per-agent paths. Mirrors Skills.sh layout. |
+
+| Decision         | Choice                              | Rationale                                                                                                                               |
+| ---------------- | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Build target     | **Bun compile only**                | Drop Node SEA (too experimental). Bun is 50MB, 30ms startup, 8 cross-compile targets, used in prod by Sentry/Discord/Anthropic/Shopify. |
+| Rewrite target   | **Drop Rust**                       | Distribution problem is fetch/symlink/parse JSON — doesn't need Rust. Saves 7-9 weeks. Defer to v2+ if demanded.                        |
+| Adapter ABI      | **JSON process ABI**                | Any-language adapter = a binary that reads JSON, writes files, exits 0/non-0. No SDK lock-in.                                           |
+| Manifest format  | **JSON + JSON Schema from day one** | `@agentplugins/schema` npm package + hosted URL. Editor autocomplete + self-documenting.                                                |
+| Primary platform | **macOS + Linux (glibc + musl)**    | Bun compile supports both natively. Windows best-effort.                                                                                |
+| Skills.sh compat | **Adopt as a subset**               | Our `SKILL.md` is a valid Skills.sh skill. Their repos install in our CLI.                                                              |
+| Universal store  | `~/.agents/plugins/<name>/`         | Symlinks fan out to per-agent paths. Mirrors Skills.sh layout.                                                                          |
+
 
 ## Distribution Channels (Day Zero)
 
-| # | Channel | Artifact | Command |
-|---|---|---|---|
-| 1 | **Native binary** | GitHub Releases (8 targets via Bun compile) | `agentplugins add <url>` |
-| 2 | **npm** | `@agentplugins/cli` with 200-byte `bin` wrapper | `npx @agentplugins/cli add <url>` |
-| 3 | **Homebrew** | `sigilco/tap` repo, `agentplugins.rb` formula | `brew install sigilco/tap/agentplugins` |
-| 4 | **Curl** | `install.sh` with SHA256 + OS/arch detection | `curl -fsSL https://agentplugins.dev/install.sh \| sh` |
-| 5 | **Mise** | UBI backend (day one) + core plugin (post v0.2.0) | `agentplugins = "ubi:sigilco/agentplugins"` in `mise.toml` |
+
+| #   | Channel           | Artifact                                          | Command                                                    |
+| --- | ----------------- | ------------------------------------------------- | ---------------------------------------------------------- |
+| 1   | **Native binary** | GitHub Releases (8 targets via Bun compile)       | `agentplugins add <url>`                                   |
+| 2   | **npm**           | `@agentplugins/cli` with 200-byte `bin` wrapper   | `npx @agentplugins/cli add <url>`                          |
+| 3   | **Homebrew**      | `sigilco/tap` repo, `agentplugins.rb` formula     | `brew install sigilco/tap/agentplugins`                    |
+| 4   | **Curl**          | `install.sh` with SHA256 + OS/arch detection      | `curl -fsSL https://agentplugins.dev/install.sh | sh`      |
+| 5   | **Mise**          | UBI backend (day one) + core plugin (post v0.2.0) | `agentplugins = "ubi:sigilco/agentplugins"` in `mise.toml` |
+
 
 The user picks the channel that fits their workflow. All five ship at v0.2.0.
 
@@ -46,6 +50,7 @@ The user picks the channel that fits their workflow. All five ship at v0.2.0.
 ### Stages
 
 #### Stage 1 — Distribution MVP (v0.2.0, ~1-2 weeks)
+
 - `add/remove/list/update/info/doctor` subcommands
 - `~/.agents/plugins/` universal store + symlink fanout
 - Agent path registry (`spec/v1/agent-paths.json`)
@@ -58,6 +63,7 @@ The user picks the channel that fits their workflow. All five ship at v0.2.0.
 - `@agentplugins/schema` package + hosted JSON Schema
 
 #### Stage 2 — Spec + Conformance (v0.3.0, ~2 weeks)
+
 - JSON Schema finalized for v1 (skills, mcpServers, hooks, tools, commands, agents, rules, lspServers)
 - Ajv validation in CLI (offline-capable)
 - `agentplugins init` scaffolds a plugin
@@ -66,6 +72,7 @@ The user picks the channel that fits their workflow. All five ship at v0.2.0.
 - Schema docs site (`spec/v1/README.md`)
 
 #### Stage 3 — Adapter SDK + Codegen (v0.4.0, ~3 weeks)
+
 - JSON process ABI spec (`spec/v1/adapter.schema.json`)
 - Adapter SDK in TS (helper library, not a hard requirement)
 - Refactor 7 canonical adapters to use the SDK
@@ -74,12 +81,14 @@ The user picks the channel that fits their workflow. All five ship at v0.2.0.
 - Codegen v2: replaced the v0.1.0 monolithic build with a per-component pipeline
 
 #### Stage 4 — Full Coverage + Public Launch (v1.0.0, ~4 weeks)
+
 - All 7 canonical adapters fully tested
 - Public launch (registry, docs site, examples)
 - Security warning at install time (deferred to v1: Gen/Socket/Snyk scoring)
 - Deprecation of v0.1.0 monolithic `agentplugins build` in favor of v0.4.0 per-component pipeline
 
 ## Deliverables
+
 - `agentplugins` Bun-compiled CLI binary (8 targets)
 - `@agentplugins/cli`, `@agentplugins/core`, `@agentplugins/schema` on npm
 - `@agentplugins/adapter-{claude,codex,copilot,gemini,kimi,opencode,pimono,mcp}` on npm
@@ -94,6 +103,7 @@ The user picks the channel that fits their workflow. All five ship at v0.2.0.
 ## Landing Page (VitePress)
 
 The public site is the first impression. **VitePress** for:
+
 - Vite-powered (fast HMR, fast builds, ~10s build for 100 pages)
 - Vue 3 theming (no new framework to learn)
 - Markdown-first content (matches our existing `docs/` style)
@@ -103,6 +113,7 @@ The public site is the first impression. **VitePress** for:
 Hosted as a **GitHub Pages project page** at `https://sigilco.github.io/agentplugins`. Custom domain `agentplugins.dev` deferred to v1.0.
 
 ### Site structure
+
 ```
 docs-site/
 ├── package.json
@@ -137,6 +148,7 @@ docs-site/
 ```
 
 ### Deployment
+
 - `.github/workflows/docs.yml` builds on push to `main` (when `docs-site/**` changes)
 - Uses `actions/deploy-pages@v4`
 - Repo Settings → Pages → Build from GitHub Actions
@@ -146,34 +158,38 @@ docs-site/
 
 Consistent across the whole app, no exceptions:
 
-| Surface | Value | Why |
-|---|---|---|
-| Product display name | `AgentPlugins` | PascalCase, used in titles, hero text, README |
-| npm scope | `@agentplugins/*` | matches existing 8 packages |
-| CLI binary | `agentplugins` | lowercase, used in `npx`, `brew`, `curl \| sh` |
-| CLI display | `AgentPlugins CLI` | header text, `--help` |
-| Config file | `agentplugins.config.ts` | `init` scaffolds this filename |
-| Universal store | `~/.agents/plugins/<name>/` | unchanged |
-| GitHub repo | `sigilco/agentplugins` | sigilco org |
-| GitHub Pages | `sigilco.github.io/agentplugins` | project page |
-| Homebrew tap | `sigilco/homebrew-tap` → `agentplugins.rb` | formula name |
-| Mise plugin | `sigilco/mise-agentplugins` | post v0.2.0 |
-| Domain (future) | `agentplugins.dev` | matches binary name |
-| JSON Schema | `https://agentplugins.dev/schema/v1.json` | matches domain |
-| Codegen output | `agentplugins.config.json` (future) | if we ever drop TS configs |
+
+| Surface              | Value                                                    | Why                                           |
+| -------------------- | -------------------------------------------------------- | --------------------------------------------- |
+| Product display name | `AgentPlugins`                                           | PascalCase, used in titles, hero text, README |
+| npm scope            | `@agentplugins/*`                                        | matches existing 8 packages                   |
+| CLI binary           | `agentplugins`                                           | lowercase, used in `npx`, `brew`, `curl | sh` |
+| CLI display          | `AgentPlugins CLI`                                       | header text, `--help`                         |
+| Config file          | `agentplugins.config.ts`                                 | `init` scaffolds this filename                |
+| Universal store      | `~/.agents/plugins/[[ORCA_RAW_HTML_INLINE:%3Cname%3E]]/` | unchanged                                     |
+| GitHub repo          | `sigilco/agentplugins`                                   | sigilco org                                   |
+| GitHub Pages         | `sigilco.github.io/agentplugins`                         | project page                                  |
+| Homebrew tap         | `sigilco/homebrew-tap` → `agentplugins.rb`               | formula name                                  |
+| Mise plugin          | `sigilco/mise-agentplugins`                              | post v0.2.0                                   |
+| Domain (future)      | `agentplugins.dev`                                       | matches binary name                           |
+| JSON Schema          | `https://agentplugins.dev/schema/v1.json`                | matches domain                                |
+| Codegen output       | `agentplugins.config.json` (future)                      | if we ever drop TS configs                    |
+
 
 ## Why This Beats the v0.1.0 Direction
 
 The v0.1.0 plan (monorepo + 7 TS adapters + codegen) is still the **right back-end architecture**. What changed is the **front-door value proposition**:
 
-| v0.1.0 framing | v0.2.0 framing |
-|---|---|
-| "Write once, compile to 7 platforms" | "Install once, works in every agent" |
-| Power user (plugin author) | Daily user (plugin consumer) |
-| `agentplugins build` is the hero | `agentplugins add <url>` is the hero |
-| 7 adapter repos + codegen = the surface | 1 universal store + symlinks = the surface |
-| Distribution is an afterthought | Distribution is the product |
-| TS-only | Skills.sh-compatible (TS/JSON/Markdown) |
+
+| v0.1.0 framing                          | v0.2.0 framing                                                    |
+| --------------------------------------- | ----------------------------------------------------------------- |
+| "Write once, compile to 7 platforms"    | "Install once, works in every agent"                              |
+| Power user (plugin author)              | Daily user (plugin consumer)                                      |
+| `agentplugins build` is the hero        | `agentplugins add [[ORCA_RAW_HTML_INLINE:%3Curl%3E]]` is the hero |
+| 7 adapter repos + codegen = the surface | 1 universal store + symlinks = the surface                        |
+| Distribution is an afterthought         | Distribution is the product                                       |
+| TS-only                                 | Skills.sh-compatible (TS/JSON/Markdown)                           |
+
 
 Codegen is still useful for plugin authors who want to maintain one source-of-truth manifest. But the v0.1.0 codegen is a single-output back-end. The v0.2.0 distribution layer is the front-end. They're complementary, not replacements.
 

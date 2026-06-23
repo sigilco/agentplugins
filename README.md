@@ -2,7 +2,7 @@
 
 > **Install any plugin into every AI agent with one command.**
 
-AgentPlugins is a distribution-first plugin manager for AI agent harnesses. Install a plugin once — it's symlinked into Claude, Codex, Copilot, Gemini, Kimi, OpenCode, and Pi Mono automatically. Includes a codegen toolkit for authors who want to write once and compile to all platforms.
+AgentPlugins is a plugin manager for AI agent harnesses. Install a plugin once — it's symlinked into Claude, Codex, Copilot, Gemini, Kimi, OpenCode, and Pi Mono automatically. Includes a codegen toolkit for authors who want to write once and compile to all platforms.
 
 ```bash
 agentplugins add user/awesome-plugin
@@ -96,40 +96,46 @@ agentplugins build
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `add <source>` | Install a plugin from GitHub URL or `user/repo` |
-| `remove <name>` | Remove a plugin and unlink from all agents |
-| `list` | List installed plugins (`--json` for machine output) |
-| `info <name>` | Show plugin metadata, manifest, and symlink status |
-| `update [name]` | Update plugin(s) from source (`--all` for all) |
-| `doctor` | Diagnose store, symlinks, and agent detection |
-| `init` | Scaffold a new plugin interactively (`--yes`, `--template`) |
-| `build` | Compile plugin for all target platforms |
-| `validate` | Validate manifest against schema |
-| `lint` | Static analysis for common issues (`--json`) |
-| `preview` | Preview compiled output (`--diff`, `--target`) |
+
+| Command         | Description                                                 |
+| --------------- | ----------------------------------------------------------- |
+| `add <source>`  | Install a plugin from GitHub URL or `user/repo`             |
+| `remove <name>` | Remove a plugin and unlink from all agents                  |
+| `list`          | List installed plugins (`--json` for machine output)        |
+| `info <name>`   | Show plugin metadata, manifest, and symlink status          |
+| `update [name]` | Update plugin(s) from source (`--all` for all)              |
+| `doctor`        | Diagnose store, symlinks, and agent detection               |
+| `init`          | Scaffold a new plugin interactively (`--yes`, `--template`) |
+| `build`         | Compile plugin for all target platforms                     |
+| `validate`      | Validate manifest against schema                            |
+| `lint`          | Static analysis for common issues (`--json`)                |
+| `preview`       | Preview compiled output (`--diff`, `--target`)              |
+
 
 ## Supported Platforms
 
-| Platform | Store Path | Handler Types |
-|----------|-----------|---------------|
-| Claude Code | `~/.claude/skills/` | command, http |
-| OpenAI Codex | `~/.codex/plugins/` | command |
-| GitHub Copilot | `~/.config/github-copilot/` | command, http |
-| Google Gemini | `~/.gemini/extensions/` | command |
-| Kimi | `~/.kimi/plugins/` | command |
-| OpenCode | `~/.config/opencode/plugins/` | inline (TS) |
-| Pi Mono | `~/.pi/agent/extensions/` | inline (TS) |
+
+| Platform       | Store Path                    | Handler Types |
+| -------------- | ----------------------------- | ------------- |
+| Claude Code    | `~/.claude/skills/`           | command, http |
+| OpenAI Codex   | `~/.codex/plugins/`           | command       |
+| GitHub Copilot | `~/.config/github-copilot/`   | command, http |
+| Google Gemini  | `~/.gemini/extensions/`       | command       |
+| Kimi           | `~/.kimi/plugins/`            | command       |
+| OpenCode       | `~/.config/opencode/plugins/` | inline (TS)   |
+| Pi Mono        | `~/.pi/agent/extensions/`     | inline (TS)   |
+
 
 ## Packages
 
-| Package | Description |
-|---------|-------------|
-| [`@agentplugins/core`](packages/core/) | Universal types, validation, lint, codegen, store |
-| [`@agentplugins/cli`](packages/cli/) | CLI binary (`agentplugins`) |
-| [`@agentplugins/schema`](packages/schema/) | JSON Schema + TS types + Ajv validator |
-| [`@agentplugins/adapter-*`](packages/) | 7 platform adapters (claude, codex, copilot, gemini, kimi, opencode, pimono) |
+
+| Package                                    | Description                                                                  |
+| ------------------------------------------ | ---------------------------------------------------------------------------- |
+| `[@agentplugins/core](packages/core/)`     | Universal types, validation, lint, codegen, store                            |
+| `[@agentplugins/cli](packages/cli/)`       | CLI binary (`agentplugins`)                                                  |
+| `[@agentplugins/schema](packages/schema/)` | JSON Schema + TS types + Ajv validator                                       |
+| `[@agentplugins/adapter-*](packages/)`     | 7 platform adapters (claude, codex, copilot, gemini, kimi, opencode, pimono) |
+
 
 ## Manifest
 
@@ -157,7 +163,7 @@ Plugins declare a manifest in `agentplugins.config.json`, `manifest.json`, or th
 }
 ```
 
-Full manifest spec: [`spec/v1/manifest.schema.json`](spec/v1/manifest.schema.json) · Docs: [agentplugins.pages.dev](https://agentplugins.pages.dev)
+Full manifest spec: `[spec/v1/manifest.schema.json](spec/v1/manifest.schema.json)` · Docs: [agentplugins.pages.dev](https://agentplugins.pages.dev)
 
 ## Development
 

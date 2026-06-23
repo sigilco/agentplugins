@@ -12,7 +12,7 @@ The **public contract** for the AgentPlugins ecosystem. A single plugin manifest
 
 ## Distribution Model
 
-AgentPlugins is **distribution-first**. The primary user action is `agentplugins add <source>`, which clones/parses a plugin and symlinks it into every detected agent harness from the universal store:
+AgentPlugins is **distribution-first**; the primary user action is `agentplugins add <source>`, which clones/parses a plugin and symlinks it into every detected agent harness from the universal store:
 
 ```
 ~/.agents/plugins/<name>/              # source of truth (universal store)
