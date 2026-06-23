@@ -102,10 +102,13 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          version: latest
+          bun-version: latest
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Build workspace dependencies
+        run: pnpm --filter @agentplugins/core --filter @agentplugins/schema build
 
       - name: Build CLI (tsc)
         run: pnpm --filter @agentplugins/cli build
