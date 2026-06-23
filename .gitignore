@@ -6,6 +6,8 @@ dist/
 *.tsbuildinfo
 *.map
 *.js
+*.d.ts
+*.d.ts.map
 
 # pnpm
 .pnpm-store/
