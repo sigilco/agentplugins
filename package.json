@@ -11,6 +11,8 @@
     "test": "pnpm -r test",
     "clean": "pnpm -r clean",
     "typecheck": "pnpm -r exec tsc --noEmit",
+    "build:docs": "pnpm --filter docs-site build",
+    "dev:docs": "pnpm --filter docs-site dev",
     "release": "pnpm --filter './packages/**' build && changeset publish",
     "version": "changeset version",
     "build:binaries": "bash scripts/build-binaries.sh"
