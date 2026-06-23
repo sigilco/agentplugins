@@ -15,7 +15,7 @@ export const adapterSchema = loadJson<Record<string, unknown>>('adapter.schema.j
 export const agentPaths = loadJson<AgentPathsRegistry>('agent-paths.json');
 
 export const SCHEMA_VERSION = 1;
-export const HOSTED_SCHEMA_URL = 'https://agentplugins.dev/schema/v1.json';
+export const HOSTED_SCHEMA_URL = 'https://agentplugins.pages.dev/schema/v1.json';
 export const RAW_SCHEMA_URL = 'https://raw.githubusercontent.com/sigilco/agentplugins/main/spec/v1/manifest.schema.json';
 
 let _ajv: Ajv | null = null;

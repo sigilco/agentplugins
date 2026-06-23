@@ -157,7 +157,7 @@ Plugins declare a manifest in `agentplugins.config.json`, `manifest.json`, or th
 }
 ```
 
-Full manifest spec: [`spec/v1/manifest.schema.json`](spec/v1/manifest.schema.json) · Docs: [agentplugins.dev](https://sigilco.github.io/agentplugins/)
+Full manifest spec: [`spec/v1/manifest.schema.json`](spec/v1/manifest.schema.json) · Docs: [agentplugins.pages.dev](https://agentplugins.pages.dev)
 
 ## Development
 
@@ -171,7 +171,7 @@ pnpm typecheck      # Type-check all packages
 pnpm build:binaries
 
 # Docs site
-cd docs-site && pnpm install && pnpm docs:dev
+cd docs-site && pnpm install && pnpm dev
 ```
 
 ## Architecture

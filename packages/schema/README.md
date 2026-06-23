@@ -53,7 +53,7 @@ Add `"$schema"` to your manifest file for autocomplete in VS Code, JetBrains, an
 
 ```json
 {
-  "$schema": "https://agentplugins.dev/schema/v1.json",
+  "$schema": "https://agentplugins.pages.dev/schema/v1.json",
   "name": "my-plugin",
   "version": "1.0.0",
   "description": "Does something useful"
@@ -70,7 +70,7 @@ Add `"$schema"` to your manifest file for autocomplete in VS Code, JetBrains, an
 | `validateManifest(data)` | Returns `{ valid, errors }` |
 | `isValidManifest(data)` | Type guard — `data is ManifestSchema` |
 | `getValidator()` | Returns a cached Ajv instance |
-| `HOSTED_SCHEMA_URL` | `https://agentplugins.dev/schema/v1.json` |
+| `HOSTED_SCHEMA_URL` | `https://agentplugins.pages.dev/schema/v1.json` |
 | `SCHEMA_VERSION` | `1` |
 
 ## Schemas

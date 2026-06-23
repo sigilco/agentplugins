@@ -5,7 +5,7 @@ import { groupIconMdPlugin, groupIconVitePlugin } from 'vitepress-plugin-group-i
 export default defineConfig({
   title: 'AgentPlugins',
   description: 'Write AI agent plugins once, ship to any harness',
-  base: '/agentplugins/',
+  base: '/',
   cleanUrls: true,
   lastUpdated: true,
 
