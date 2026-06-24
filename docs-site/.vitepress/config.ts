@@ -2,7 +2,11 @@ import { defineConfig } from 'vitepress'
 import llmstxt from 'vitepress-plugin-llms'
 import { groupIconMdPlugin, groupIconVitePlugin } from 'vitepress-plugin-group-icons'
 import { withMermaid } from 'vitepress-plugin-mermaid'
+import { readFileSync, existsSync } from 'fs'
+import { resolve, dirname } from 'path'
+import { fileURLToPath } from 'url'
 
+const __dirname = dirname(fileURLToPath(import.meta.url))
 const DOCS_SITE = process.env.DOCS_SITE ?? 'https://agentplugins.pages.dev'
 const GITHUB_SITE = 'https://github.com/sigilco/agentplugins'
 
@@ -27,7 +31,29 @@ export default withMermaid(defineConfig({
   },
 
   vite: {
-    plugins: [llmstxt(), groupIconVitePlugin()],
+    plugins: [
+      llmstxt(),
+      groupIconVitePlugin(),
+      // Serve llms.txt / llms-full.txt from .vitepress/dist/ during dev
+      {
+        name: 'vitepress-dev-llms-txt',
+        configureServer(server) {
+          server.middlewares.use((req, res) => {
+            const url = req.url.split('?')[0]
+            if (url === '/llms.txt' || url === '/llms-full.txt') {
+              const distPath = resolve(__dirname, '.vitepress/dist' + url)
+              if (existsSync(distPath)) {
+                res.setHeader('Content-Type', 'text/plain; charset=utf-8')
+                res.end(readFileSync(distPath, 'utf8'))
+              } else {
+                res.statusCode = 404
+                res.end(`Not found: ${url} — run \`npm run build\` first to generate it`)
+              }
+            }
+          })
+        },
+      },
+    ],
   },
 
   mermaid: { theme: 'default' },
@@ -38,6 +64,13 @@ export default withMermaid(defineConfig({
       { text: 'Commands', link: '/reference/commands' },
       { text: 'Schema', link: '/reference/schema' },
       { text: 'GitHub', link: GITHUB_SITE },
+      {
+        text: 'LLMs',
+        items: [
+          { text: 'llms.txt', link: '/llms.txt' },
+          { text: 'llms-full.txt', link: '/llms-full.txt' },
+        ],
+      },
     ],
 
     sidebar: {
