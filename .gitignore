@@ -51,3 +51,6 @@ storybook-static/
 # Misc
 *.local
 *.backup
+
+# Deepwork session state (ephemeral)
+.slim/
