@@ -29,6 +29,8 @@ export interface PluginManifest {
   // Features
   skills?: Skill[];
   hooks?: UniversalHooks;
+  commands?: Command[];
+  agents?: AgentDefinition[];
   mcpServers?: Record<string, MCPServerConfig>;
   tools?: ToolDefinition[];
   /** Named user-configurable options (displayed in UI, stored per-harness). */
@@ -68,6 +70,31 @@ export interface Skill {
   /** Markdown content or path to SKILL.md */
   content?: string;
   /** File path (relative) to SKILL.md */
+  filePath?: string;
+}
+
+// ─── Commands ─────────────────────────────────────────────────────────────────
+
+export interface Command {
+  /** Slash command name (without /) */
+  name: string;
+  description?: string;
+  /** Prompt template injected when the command is invoked */
+  prompt?: string;
+  /** Hint shown in the command picker for expected argument(s) */
+  argumentHint?: string;
+}
+
+// ─── Agents ───────────────────────────────────────────────────────────────────
+
+export interface AgentDefinition {
+  name: string;
+  description?: string;
+  /** System prompt / behaviour spec for this subagent */
+  prompt?: string;
+  /** Explicit tool allow-list (harness-specific names) */
+  tools?: string[];
+  /** Path to a SKILL.md that defines this agent (alternative to prompt) */
   filePath?: string;
 }
 
