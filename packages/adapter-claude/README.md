@@ -52,4 +52,4 @@ Install with: `cp -r dist/claude ~/.claude/skills/<plugin-name>`
 
 ## License
 
-MIT
+Apache-2.0

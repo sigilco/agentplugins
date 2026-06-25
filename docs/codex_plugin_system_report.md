@@ -45,7 +45,7 @@
   },
   "homepage": "https://example.com/plugins/my-plugin",
   "repository": "https://github.com/example/my-plugin",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "keywords": ["research", "crm"],
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",

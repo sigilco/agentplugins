@@ -78,7 +78,7 @@ These tell the CLI where to find plugin components. All are optional; the CLI us
     "name": "Jane Doe",
     "email": "jane@example.com"
   },
-  "license": "MIT",
+  "license": "Apache-2.0",
   "keywords": ["react", "frontend"],
   "agents": "agents/",
   "skills": ["skills/", "extra-skills/"],
@@ -418,7 +418,7 @@ SKILL.md files are **Markdown with YAML frontmatter**:
 ---
 name: my-skill           # Required: lowercase, hyphenated unique ID
 description: What this skill does and when Copilot should use it
-license: MIT             # Optional
+license: Apache-2.0             # Optional
 ---
 
 # Instructions

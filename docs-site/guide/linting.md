@@ -16,7 +16,7 @@ Linting my-plugin@1.0.0
   naming          ✓ name is kebab-case
   versioning      ✓ version is valid semver
   description     ✓ description is descriptive (42 chars)
-  license         ✓ license declared: MIT
+  license         ✓ license declared: Apache-2.0
   target-hygiene  ✓ 7 targets, all recognized
   hook-coverage   ⚠ 2 hooks unsupported on kimi (sessionEnd, userPromptSubmit)
   handler-safety  ✓ all command handlers use ./-prefixed paths

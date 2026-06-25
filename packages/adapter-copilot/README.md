@@ -45,4 +45,4 @@ Install with: `copilot plugin install ./dist/copilot`
 
 ## License
 
-MIT
+Apache-2.0

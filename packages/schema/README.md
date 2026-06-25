@@ -79,4 +79,4 @@ Published copies live in `schemas/`. Canonical source: [`spec/v1/`](../../spec/v
 
 ## License
 
-MIT
+Apache-2.0

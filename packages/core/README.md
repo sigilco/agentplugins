@@ -54,4 +54,4 @@ if (issues.some(i => i.severity === 'error')) {
 
 ## License
 
-MIT
+Apache-2.0

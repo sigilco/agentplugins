@@ -511,7 +511,7 @@ describe('All adapters against full plugin manifest', () => {
     displayName: 'Comprehensive Test Plugin',
     author: { name: 'Test Author', email: 'test@example.com' },
     homepage: 'https://example.com',
-    license: 'MIT',
+    license: 'Apache-2.0',
     keywords: ['test', 'agentplugins'],
     defaultEnabled: true,
     hooks: {

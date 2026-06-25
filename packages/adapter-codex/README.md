@@ -47,4 +47,4 @@ Codex invokes hooks with a JSON event on **stdin** and expects a JSON response o
 
 ## License
 
-MIT
+Apache-2.0

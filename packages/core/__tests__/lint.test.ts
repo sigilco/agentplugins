@@ -14,7 +14,7 @@ function makeManifest(overrides: Partial<PluginManifest> = {}): PluginManifest {
     name: 'my-plugin',
     version: '1.0.0',
     description: 'A perfectly valid plugin description.',
-    license: 'MIT',
+    license: 'Apache-2.0',
     ...overrides,
   } as PluginManifest;
 }
