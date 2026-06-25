@@ -427,18 +427,39 @@ function generateEventRegistration(
 ): string[] {
   const lines: string[] = [];
   lines.push(`// ${event}`);
-  lines.push(`pi.on(${tsStringLiteral(event)}, async (ctx) => {`);
 
-  if ((handler as HandlerReference).type === "reference") {
-    lines.push(`  ${generateReferenceHandler(handler as HandlerReference).replace(/\n/g, "\n  ")}`);
+  const isStopEvent = event === "agent.AgentEnd";
+
+  if (isStopEvent) {
+    // stop hook: capture result so we can handle continueWith
+    lines.push(`pi.on(${tsStringLiteral(event)}, async (ctx) => {`);
+    lines.push(`  let __result;`);
+    if ((handler as HandlerReference).type === "reference") {
+      lines.push(`  __result = await (async (ctx) => {`);
+      lines.push(`    ${generateReferenceHandler(handler as HandlerReference).replace(/\n/g, "\n    ")}`);
+      lines.push(`  })(ctx);`);
+    } else {
+      lines.push(`  __result = await (async (ctx) => {`);
+      lines.push(`    ${generateInlineHandlerBody(handler as InlineHookHandlerExt, event).replace(/\n/g, "\n    ")}`);
+      lines.push(`  })(ctx);`);
+    }
+    lines.push(`  if (__result?.continueWith) {`);
+    lines.push(`    await pi.sendUserMessage(__result.continueWith);`);
+    lines.push(`  }`);
+    lines.push(`  return __result;`);
+    lines.push(`});`);
   } else {
-    // Default to inline (including cases where type is omitted).
-    lines.push(
-      `  ${generateInlineHandlerBody(handler as InlineHookHandlerExt, event).replace(/\n/g, "\n  ")}`
-    );
+    lines.push(`pi.on(${tsStringLiteral(event)}, async (ctx) => {`);
+    if ((handler as HandlerReference).type === "reference") {
+      lines.push(`  ${generateReferenceHandler(handler as HandlerReference).replace(/\n/g, "\n  ")}`);
+    } else {
+      lines.push(
+        `  ${generateInlineHandlerBody(handler as InlineHookHandlerExt, event).replace(/\n/g, "\n  ")}`
+      );
+    }
+    lines.push(`});`);
   }
 
-  lines.push(`});`);
   return lines;
 }
 
