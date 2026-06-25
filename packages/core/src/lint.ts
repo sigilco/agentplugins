@@ -262,6 +262,30 @@ const secretsRule: LintRule = {
   },
 };
 
+const continueWithSafetyRule: LintRule = {
+  id: 'continuewith-safety',
+  description: 'Plugins using continueWith on the stop hook should declare an exit-condition tool',
+  run: ({ manifest }) => {
+    const hasStopHook = !!manifest.hooks?.stop;
+    if (!hasStopHook) return [];
+    const handler = manifest.hooks?.stop?.handler;
+    // Only check command handlers whose command text references continueWith
+    if (!handler || handler.type !== 'command') return [];
+    if (!handler.command.includes('continueWith')) return [];
+    const hasTools = !!manifest.tools && manifest.tools.length > 0;
+    if (!hasTools) {
+      return [{
+        rule: 'continuewith-safety',
+        severity: 'warning',
+        field: 'hooks.stop',
+        message: 'stop hook appears to use continueWith but no exit-condition tools are declared — this can cause runaway loops',
+        suggestion: 'Add a tool (e.g. goal_complete) that the agent calls to halt the loop',
+      }];
+    }
+    return [];
+  },
+};
+
 export const BUILTIN_LINT_RULES: LintRule[] = [
   namingRule,
   versioningRule,
@@ -271,6 +295,7 @@ export const BUILTIN_LINT_RULES: LintRule[] = [
   hookCoverageRule,
   handlerSafetyRule,
   secretsRule,
+  continueWithSafetyRule,
 ];
 
 let registry: LintRule[] = [...BUILTIN_LINT_RULES];
