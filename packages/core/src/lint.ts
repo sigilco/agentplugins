@@ -30,12 +30,22 @@ const KEBAB_CASE_RE = /^[a-z][a-z0-9-]*$/;
 const SEMVER_RE =
   /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
 
-const SAFETY_PATTERNS: RegExp[] = [
+/** Patterns always blocked — no capability unlocks these. */
+const ALWAYS_BLOCKED_PATTERNS: RegExp[] = [
   /\beval\s*\(/,
-  /require\s*\(\s*['"]child_process['"]\s*\)/,
-  /\bchild_process\b/,
   /fs\.unlink(Sync)?\s*\(/,
   /\bprocess\.exit\s*\(/,
+];
+
+/** Patterns blocked unless `capabilities: ['subprocess']` is declared. */
+const SUBPROCESS_PATTERNS: RegExp[] = [
+  /require\s*\(\s*['"]child_process['"]\s*\)/,
+  /\bchild_process\b/,
+];
+
+const SAFETY_PATTERNS: RegExp[] = [
+  ...ALWAYS_BLOCKED_PATTERNS,
+  ...SUBPROCESS_PATTERNS,
 ];
 
 const SECRET_PATTERNS: RegExp[] = [
@@ -187,11 +197,17 @@ const hookCoverageRule: LintRule = {
 const handlerSafetyRule: LintRule = {
   id: 'handler-safety',
   description: 'Inline handler source must not contain dangerous patterns',
-  run: ({ inlineHandlerSource }) => {
+  run: ({ manifest, inlineHandlerSource }) => {
     if (!inlineHandlerSource || inlineHandlerSource.length === 0) return [];
+
+    const hasSubprocessCapability = manifest.capabilities?.includes('subprocess') ?? false;
+    const activePatterns = hasSubprocessCapability
+      ? ALWAYS_BLOCKED_PATTERNS
+      : SAFETY_PATTERNS;
+
     const issues: LintIssue[] = [];
     for (const source of inlineHandlerSource) {
-      for (const pattern of SAFETY_PATTERNS) {
+      for (const pattern of activePatterns) {
         const match = pattern.exec(source);
         if (match) {
           issues.push({
@@ -199,7 +215,9 @@ const handlerSafetyRule: LintRule = {
             severity: 'error',
             field: 'hooks.<handler>',
             message: `Handler source contains dangerous pattern "${match[0]}"`,
-            suggestion: 'Remove or sandbox the dangerous code',
+            suggestion: SUBPROCESS_PATTERNS.some((p) => p.test(match[0]))
+              ? 'Declare capabilities: [\'subprocess\'] in your manifest and use spawnChild() from @agentplugins/core'
+              : 'Remove or sandbox the dangerous code',
           });
         }
       }
