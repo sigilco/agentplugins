@@ -5,7 +5,7 @@
  */
 
 import { resolve, join } from 'node:path';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import chalk from 'chalk';
 import {
   validateUniversal,
@@ -38,6 +38,8 @@ export interface CompileOptions {
   write?: boolean;
   outDir?: string;
   silent?: boolean;
+  /** Plugin root directory — required to resolve nativeEntry source paths. */
+  pluginRoot?: string;
 }
 
 type AdapterFactory = () => { compile: (manifest: any) => any };
@@ -76,7 +78,7 @@ async function getAdapterFactory(target: TargetPlatform): Promise<AdapterFactory
  * Returns per-target results.
  */
 export async function compile(options: CompileOptions): Promise<CompileResult[]> {
-  const { manifest, write = false, outDir, silent = false } = options;
+  const { manifest, write = false, outDir, silent = false, pluginRoot } = options;
   const targetList = (options.targets || manifest.targets || ALL_TARGETS) as TargetPlatform[];
   const results: CompileResult[] = [];
 
@@ -111,6 +113,14 @@ export async function compile(options: CompileOptions): Promise<CompileResult[]>
           const filePath = join(targetDir, file.path);
           await mkdir(resolve(filePath, '..'), { recursive: true });
           await writeFile(filePath, file.content, 'utf-8');
+        }
+        if (output.nativeCopies && pluginRoot) {
+          for (const copy of output.nativeCopies) {
+            const srcPath = join(resolve(pluginRoot), copy.from);
+            const dstPath = join(targetDir, copy.to);
+            const content = await readFile(srcPath, 'utf-8');
+            await writeFile(dstPath, content, 'utf-8');
+          }
         }
       }
 
@@ -175,6 +185,7 @@ export async function build(options: BuildOptions): Promise<void> {
     targets: targetList,
     write: true,
     outDir,
+    pluginRoot: config.root,
   });
 
   // Strict mode: fail on warnings
