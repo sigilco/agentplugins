@@ -85,12 +85,25 @@ export function buildEventHookBlock(
       continue;
     }
     const handlerBody = buildHandlerInvocation(reg.def.handler, reg.hook);
-    branches.push(`      if (${condition}) {\n${handlerBody}\n      }`);
+
+    if (reg.hook === 'stop') {
+      // stop hook: capture result to handle continueWith (autonomous loop primitive)
+      branches.push(
+        `      if (${condition}) {\n` +
+        `        const __stopResult = await (async () => {\n` +
+        `${handlerBody}\n` +
+        `        })();\n` +
+        `        if (__stopResult?.continueWith) {\n` +
+        `          await ctx.session?.sendMessage?.(__stopResult.continueWith);\n` +
+        `        }\n` +
+        `        return __stopResult;\n` +
+        `      }`
+      );
+    } else {
+      branches.push(`      if (${condition}) {\n${handlerBody}\n      }`);
+    }
   }
 
-  // BUG FIX: Use `(ctx)` instead of `({ event })` so ctx is defined in scope.
-  // OpenCode passes { event } but we need to build a proper HookContext.
-  // For now, pass { event } since that's what the universal handler expects.
   return [
     `    event: async (ctx) => {`,
     `      const { event } = ctx;`,
