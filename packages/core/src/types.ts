@@ -39,6 +39,29 @@ export interface PluginManifest {
   // Build configuration
   /** Target platforms to compile for (if omitted, compiles for all) */
   targets?: TargetPlatform[];
+
+  // v1.1 extensions
+  /** Runtime dependencies (npm packages or external binaries) */
+  dependencies?: Dependency[];
+  /** Long-running companion process */
+  sidecar?: Sidecar;
+  /** SHA-256 of the plugin source tarball; verified at install time */
+  integrity?: string;
+}
+
+// ─── v1.1 Dependency & Sidecar Types ───────────────────────────────────────
+
+export type Dependency =
+  | { type: 'npm'; name: string; version?: string }
+  | { type: 'binary'; name: string; required?: boolean };
+
+export interface Sidecar {
+  command: string;
+  args?: string[];
+  env?: Record<string, string>;
+  port?: number;
+  health?: string;
+  restart?: 'always' | 'on-failure' | 'no';
 }
 
 export type TargetPlatform =
