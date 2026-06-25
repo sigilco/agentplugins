@@ -127,6 +127,52 @@ export function validateUniversal(plugin: PluginManifest): ValidationIssue[] {
     }
   }
 
+  // ─── dependencies ────────────────────────────────────────────────────────
+  if (plugin.dependencies) {
+    for (let i = 0; i < plugin.dependencies.length; i++) {
+      const dep = plugin.dependencies[i];
+      if (dep.type === 'npm') {
+        if (!dep.name) {
+          issues.push({ severity: Severity.ERROR, field: `dependencies[${i}].name`, message: 'npm dependency must have a "name"' });
+        }
+        if (!dep.version) {
+          issues.push({ severity: Severity.WARNING, field: `dependencies[${i}].version`, message: `npm dependency "${dep.name ?? i}" has no version pinned — resolution is implicit` });
+        }
+      } else if (dep.type === 'binary') {
+        if (!dep.name) {
+          issues.push({ severity: Severity.ERROR, field: `dependencies[${i}].name`, message: 'binary dependency must have a "name"' });
+        }
+      }
+    }
+  }
+
+  // ─── sidecar ──────────────────────────────────────────────────────────────
+  if (plugin.sidecar) {
+    if (!plugin.sidecar.command) {
+      issues.push({ severity: Severity.WARNING, field: 'sidecar.command', message: 'sidecar command is empty' });
+    } else if (plugin.sidecar.port !== undefined) {
+      if (plugin.sidecar.port < 0 || plugin.sidecar.port > 65535) {
+        issues.push({
+          severity: Severity.ERROR,
+          field: 'sidecar.port',
+          message: `sidecar port ${plugin.sidecar.port} is out of range (0-65535)`,
+        });
+      }
+    }
+  }
+
+  // ─── integrity ────────────────────────────────────────────────────────────
+  if (plugin.integrity !== undefined) {
+    if (!/^sha256:[a-f0-9]{64}$/i.test(plugin.integrity)) {
+      issues.push({
+        severity: Severity.ERROR,
+        field: 'integrity',
+        message: 'integrity must be in the form "sha256:<64 hex chars>"',
+        suggestion: 'Compute with: shasum -a 256 <tarball> | awk \'{print "sha256:" $1}\'',
+      });
+    }
+  }
+
   // ─── tools ────────────────────────────────────────────────────────────────
   if (plugin.tools) {
     for (let i = 0; i < plugin.tools.length; i++) {

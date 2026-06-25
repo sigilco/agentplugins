@@ -123,6 +123,53 @@
         "type": "string",
         "enum": ["claude", "codex", "copilot", "gemini", "kimi", "opencode", "pimono"]
       }
+    },
+    "dependencies": {
+      "type": "array",
+      "description": "Runtime dependencies required by this plugin (npm packages or external binaries)",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": ["name", "type"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": "string", "minLength": 1 },
+              "version": { "type": "string", "description": "semver range or pinned version" },
+              "type": { "const": "npm" }
+            }
+          },
+          {
+            "type": "object",
+            "required": ["name", "type"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": "string", "minLength": 1, "pattern": "^[a-zA-Z0-9._-]+$" },
+              "required": { "type": "boolean", "default": true },
+              "type": { "const": "binary" }
+            }
+          }
+        ]
+      }
+    },
+    "sidecar": {
+      "type": "object",
+      "description": "Long-running companion process required by the plugin",
+      "required": ["command"],
+      "additionalProperties": false,
+      "properties": {
+        "command": { "type": "string", "minLength": 1 },
+        "args": { "type": "array", "items": { "type": "string" } },
+        "env": { "type": "object", "additionalProperties": { "type": "string" } },
+        "port": { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "health": { "type": "string", "description": "Health check path or command" },
+        "restart": { "enum": ["always", "on-failure", "no"], "default": "no" }
+      }
+    },
+    "integrity": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "description": "SHA-256 of the plugin source tarball; verified at install time. Format: sha256:<64 hex chars>"
     }
   },
   "$defs": {

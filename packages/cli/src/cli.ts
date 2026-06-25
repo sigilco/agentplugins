@@ -11,6 +11,7 @@
  *   agentplugins update [name]          # Update plugin(s) from source
  *   agentplugins info <name>            # Show plugin details
  *   agentplugins doctor                 # Run diagnostics
+ *   agentplugins import <fmt> <src>     # Translate Claude/Codex/Skills.sh → AgentPlugins
  *
  * Codegen commands:
  *   agentplugins build                  # Build plugin for target platforms
@@ -33,6 +34,8 @@ import { list } from './commands/list.js';
 import { update } from './commands/update.js';
 import { info } from './commands/info.js';
 import { doctor } from './commands/doctor.js';
+import { importCommand } from './commands/import.js';
+import { audit } from './commands/audit.js';
 import { loadConfig } from './config.js';
 
 const cli = cac('agentplugins');
@@ -107,6 +110,42 @@ cli
     } catch (err) {
       console.error(chalk.red('Doctor failed:'), err instanceof Error ? err.message : String(err));
       process.exit(1);
+    }
+  });
+
+cli
+  .command('import <format> <source>', 'Translate a community plugin (Claude Code, Codex, Skills.sh) into an AgentPlugins manifest')
+  .option('-o, --out <file>', 'Output manifest path (default: <source>/agentplugins.imported.json)')
+  .option('--write', 'Install the generated manifest into the universal store', { default: false })
+  .option('--no-vendor', 'Skip copying upstream files into .agentplugins-vendor/')
+  .option('-q, --quiet', 'Suppress warning output', { default: false })
+  .action(async (format: string, source: string, options) => {
+    try {
+      await importCommand({
+        format,
+        source,
+        out: options.out,
+        write: options.write,
+        vendor: options.vendor,
+        quiet: options.quiet,
+      });
+    } catch (err) {
+      console.error(chalk.red('Import failed:'), err instanceof Error ? err.message : String(err));
+      process.exit(1);
+    }
+  });
+
+cli
+  .command('audit <source>', 'Audit a plugin source for installability and supply-chain risk without writing to the store')
+  .option('--json', 'Output the report as JSON', { default: false })
+  .option('--no-scripts', 'Skip lifecycle script policy evaluation')
+  .action(async (source: string, options) => {
+    try {
+      const code = await audit({ source, json: options.json, scripts: options.scripts });
+      process.exit(code);
+    } catch (err) {
+      console.error(chalk.red('Audit failed:'), err instanceof Error ? err.message : String(err));
+      process.exit(2);
     }
   });
 
