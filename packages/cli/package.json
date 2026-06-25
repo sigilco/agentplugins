@@ -1,6 +1,6 @@
 {
   "name": "@agentplugins/cli",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "CLI for building AgentPlugins plugins across multiple AI agent harnesses",
   "type": "module",
   "bin": {
@@ -21,6 +21,9 @@
   },
   "dependencies": {
     "@agentplugins/core": "workspace:*",
+    "@agentplugins/ingest": "workspace:*",
+    "@agentplugins/schema": "workspace:*",
+    "@agentplugins/security": "workspace:*",
     "@agentplugins/adapter-claude": "workspace:*",
     "@agentplugins/adapter-codex": "workspace:*",
     "@agentplugins/adapter-copilot": "workspace:*",
@@ -43,5 +46,5 @@
     "ai",
     "plugin"
   ],
-  "license": "MIT"
+  "license": "Apache-2.0"
 }

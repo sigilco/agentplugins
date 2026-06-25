@@ -127,6 +127,52 @@ export function validateUniversal(plugin: PluginManifest): ValidationIssue[] {
     }
   }
 
+  // ─── dependencies ────────────────────────────────────────────────────────
+  if (plugin.dependencies) {
+    for (let i = 0; i < plugin.dependencies.length; i++) {
+      const dep = plugin.dependencies[i];
+      if (dep.type === 'npm') {
+        if (!dep.name) {
+          issues.push({ severity: Severity.ERROR, field: `dependencies[${i}].name`, message: 'npm dependency must have a "name"' });
+        }
+        if (!dep.version) {
+          issues.push({ severity: Severity.WARNING, field: `dependencies[${i}].version`, message: `npm dependency "${dep.name ?? i}" has no version pinned — resolution is implicit` });
+        }
+      } else if (dep.type === 'binary') {
+        if (!dep.name) {
+          issues.push({ severity: Severity.ERROR, field: `dependencies[${i}].name`, message: 'binary dependency must have a "name"' });
+        }
+      }
+    }
+  }
+
+  // ─── sidecar ──────────────────────────────────────────────────────────────
+  if (plugin.sidecar) {
+    if (!plugin.sidecar.command) {
+      issues.push({ severity: Severity.WARNING, field: 'sidecar.command', message: 'sidecar command is empty' });
+    } else if (plugin.sidecar.port !== undefined) {
+      if (plugin.sidecar.port < 0 || plugin.sidecar.port > 65535) {
+        issues.push({
+          severity: Severity.ERROR,
+          field: 'sidecar.port',
+          message: `sidecar port ${plugin.sidecar.port} is out of range (0-65535)`,
+        });
+      }
+    }
+  }
+
+  // ─── integrity ────────────────────────────────────────────────────────────
+  if (plugin.integrity !== undefined) {
+    if (!/^sha256:[a-f0-9]{64}$/i.test(plugin.integrity)) {
+      issues.push({
+        severity: Severity.ERROR,
+        field: 'integrity',
+        message: 'integrity must be in the form "sha256:<64 hex chars>"',
+        suggestion: 'Compute with: shasum -a 256 <tarball> | awk \'{print "sha256:" $1}\'',
+      });
+    }
+  }
+
   // ─── tools ────────────────────────────────────────────────────────────────
   if (plugin.tools) {
     for (let i = 0; i < plugin.tools.length; i++) {
@@ -200,6 +246,10 @@ export interface PlatformConstraints {
   supportsInlineHandler: boolean;
   supportsPromptHandler: boolean;
   supportsMCPToolHandler: boolean;
+  /** True when the adapter emits native tool definitions from plugin.tools[]. */
+  supportsNativeTools: boolean;
+  /** True when the platform can consume mcpServers as a tool delivery mechanism. */
+  supportsMcpServersAsTools: boolean;
   maxDescriptionLength: number;
   supportedHooks: readonly UniversalHookName[];
   manifestPath: string;
@@ -215,6 +265,8 @@ export function getPlatformConstraints(platform: TargetPlatform): PlatformConstr
       supportsInlineHandler: false,
       supportsPromptHandler: true,
       supportsMCPToolHandler: true,
+      supportsNativeTools: false,
+      supportsMcpServersAsTools: true,
       maxDescriptionLength: 1024,
       supportedHooks: [
         'sessionStart', 'sessionEnd', 'userPromptSubmit', 'userPromptExpansion',
@@ -225,7 +277,7 @@ export function getPlatformConstraints(platform: TargetPlatform): PlatformConstr
       ],
       manifestPath: '.claude-plugin/plugin.json',
       requiresStrictValidation: false,
-      notes: ['5 handler types: command, http, mcp_tool, prompt, agent'],
+      notes: ['5 handler types: command, http, mcp_tool, prompt, agent', 'Use mcpServers for tools — plugin.tools[] is not natively emitted'],
     },
     codex: {
       maxNameLength: 64,
@@ -233,6 +285,8 @@ export function getPlatformConstraints(platform: TargetPlatform): PlatformConstr
       supportsInlineHandler: false,
       supportsPromptHandler: false,
       supportsMCPToolHandler: false,
+      supportsNativeTools: false,
+      supportsMcpServersAsTools: true,
       maxDescriptionLength: 1024,
       supportedHooks: [
         'sessionStart', 'subagentStart', 'preToolUse', 'permissionRequest',
@@ -241,7 +295,7 @@ export function getPlatformConstraints(platform: TargetPlatform): PlatformConstr
       ],
       manifestPath: '.codex-plugin/plugin.json',
       requiresStrictValidation: false,
-      notes: ['Hooks are command-based only (JSON stdin/stdout)'],
+      notes: ['Hooks are command-based only (JSON stdin/stdout)', 'Use mcpServers for tools — plugin.tools[] is not natively emitted'],
     },
     copilot: {
       maxNameLength: 64,
@@ -249,6 +303,8 @@ export function getPlatformConstraints(platform: TargetPlatform): PlatformConstr
       supportsInlineHandler: false,
       supportsPromptHandler: true,
       supportsMCPToolHandler: false,
+      supportsNativeTools: false,
+      supportsMcpServersAsTools: false,
       maxDescriptionLength: 1024,
       supportedHooks: [
         'sessionStart', 'sessionEnd', 'userPromptSubmit', 'preToolUse',
@@ -257,7 +313,7 @@ export function getPlatformConstraints(platform: TargetPlatform): PlatformConstr
       ],
       manifestPath: 'plugin.json',
       requiresStrictValidation: true,
-      notes: ['preToolUse is fail-closed: errors/timeouts deny tool calls'],
+      notes: ['preToolUse is fail-closed: errors/timeouts deny tool calls', 'No native tool or MCP support'],
     },
     gemini: {
       maxNameLength: 64,
@@ -265,6 +321,8 @@ export function getPlatformConstraints(platform: TargetPlatform): PlatformConstr
       supportsInlineHandler: false,
       supportsPromptHandler: false,
       supportsMCPToolHandler: false,
+      supportsNativeTools: false,
+      supportsMcpServersAsTools: false,
       maxDescriptionLength: 1024,
       supportedHooks: [
         'sessionStart', 'preToolUse', 'postToolUse', 'preCompact',
@@ -273,7 +331,7 @@ export function getPlatformConstraints(platform: TargetPlatform): PlatformConstr
       ],
       manifestPath: 'gemini-extension.json',
       requiresStrictValidation: true,
-      notes: ['Uses exit codes: 0=success, 2=block, other=warning'],
+      notes: ['Uses exit codes: 0=success, 2=block, other=warning', 'No native tool or MCP support'],
     },
     kimi: {
       maxNameLength: 64,
@@ -281,6 +339,8 @@ export function getPlatformConstraints(platform: TargetPlatform): PlatformConstr
       supportsInlineHandler: false,
       supportsPromptHandler: false,
       supportsMCPToolHandler: false,
+      supportsNativeTools: false,
+      supportsMcpServersAsTools: false,
       maxDescriptionLength: 1024,
       supportedHooks: [
         'sessionStart', 'userPromptSubmit', 'preToolUse', 'permissionRequest',
@@ -288,7 +348,7 @@ export function getPlatformConstraints(platform: TargetPlatform): PlatformConstr
       ],
       manifestPath: 'kimi.plugin.json',
       requiresStrictValidation: true,
-      notes: ['Hooks are fail-open (not fail-closed like Copilot)'],
+      notes: ['Hooks are fail-open (not fail-closed like Copilot)', 'No native tool or MCP support'],
     },
     opencode: {
       maxNameLength: 64,
@@ -296,6 +356,8 @@ export function getPlatformConstraints(platform: TargetPlatform): PlatformConstr
       supportsInlineHandler: true,
       supportsPromptHandler: false,
       supportsMCPToolHandler: false,
+      supportsNativeTools: true,
+      supportsMcpServersAsTools: true,
       maxDescriptionLength: 1024,
       supportedHooks: [
         'sessionStart', 'sessionEnd', 'preToolUse', 'postToolUse',
@@ -303,7 +365,7 @@ export function getPlatformConstraints(platform: TargetPlatform): PlatformConstr
       ],
       manifestPath: 'package.json', // Uses npm package.json + opencode.json
       requiresStrictValidation: false,
-      notes: ['TypeScript-native, inline handlers only. Bun runtime.'],
+      notes: ['TypeScript-native, inline handlers only. Bun runtime.', 'Supports both plugin.tools[] and mcpServers'],
     },
     pimono: {
       maxNameLength: 64,
@@ -311,6 +373,8 @@ export function getPlatformConstraints(platform: TargetPlatform): PlatformConstr
       supportsInlineHandler: true,
       supportsPromptHandler: false,
       supportsMCPToolHandler: false,
+      supportsNativeTools: true,
+      supportsMcpServersAsTools: true,
       maxDescriptionLength: 1024,
       supportedHooks: [
         'sessionStart', 'sessionEnd', 'userPromptSubmit', 'preToolUse',
@@ -320,7 +384,7 @@ export function getPlatformConstraints(platform: TargetPlatform): PlatformConstr
       ],
       manifestPath: 'package.json', // Uses package.json with "pi" key
       requiresStrictValidation: false,
-      notes: ['TypeScript-native, inline handlers only. Uses ExtensionAPI pattern.'],
+      notes: ['TypeScript-native, inline handlers only. Uses ExtensionAPI pattern.', 'Supports both plugin.tools[] and mcpServers'],
     },
   };
 
@@ -367,6 +431,20 @@ export function validateForPlatform(
         });
       }
     }
+  }
+
+  // ─── tools[] cross-harness compatibility ────────────────────────────────────
+  if (plugin.tools && plugin.tools.length > 0 && !constraints.supportsNativeTools) {
+    const suggestion = constraints.supportsMcpServersAsTools
+      ? `Use "mcpServers" instead — it is the recommended universal tool mechanism for ${platform}. See /guide/mcp-servers.`
+      : `${platform} does not support native tools or mcpServers. Tools in this manifest will be ignored on ${platform}.`;
+    issues.push({
+      severity: Severity.WARNING,
+      field: 'tools',
+      message:
+        `"tools[]" is not natively emitted by the ${platform} adapter. ` + suggestion,
+      suggestion,
+    });
   }
 
   // Check name length

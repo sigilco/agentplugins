@@ -40,4 +40,4 @@ Install with: `cp -r dist/pimono ~/.pi/agent/extensions/`
 
 ## License
 
-MIT
+Apache-2.0

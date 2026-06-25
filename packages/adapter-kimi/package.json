@@ -1,6 +1,6 @@
 {
   "name": "@agentplugins/adapter-kimi",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "AgentPlugins platform adapter for Kimi (Moonshot AI)",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -32,7 +32,7 @@
     "typescript": "^5.3.0"
   },
   "peerDependencies": {
-    "@agentplugins/core": "^0.2.0"
+    "@agentplugins/core": "^0.3.0"
   },
   "keywords": [
     "agentplugins",
@@ -41,7 +41,7 @@
     "plugin",
     "adapter"
   ],
-  "license": "MIT",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/sigilco/agentplugins.git",

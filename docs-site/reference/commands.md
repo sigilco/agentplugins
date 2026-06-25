@@ -159,7 +159,7 @@ agentplugins info my-plugin
 my-plugin@1.2.0
 Description:  Does awesome things across every agent
 Author:       Jane Doe <jane@example.com>
-License:      MIT
+License:      Apache-2.0
 Repository:   https://github.com/user/my-plugin
 
 Hooks:

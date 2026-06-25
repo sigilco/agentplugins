@@ -175,30 +175,31 @@ function validateGeminiManifest(plugin: PluginManifest): ValidationIssue[] {
 
   /* ---- handler type compatibility ---- */
   for (const hook of hooks) {
-    if (hook.handlerType === "file") {
+    if (hook.handlerType === "reference") {
       issues.push({
         severity: Severity.WARNING,
         message:
-          'Gemini CLI prefers inline handlers; "file" handlers are wrapped in temporary scripts.',
+          'Gemini CLI prefers inline handlers; "reference" handlers are wrapped in temporary scripts.',
       });
     }
   }
 
-  /* ---- settings / envVar sanity ---- */
-  for (const setting of plugin.settings ?? []) {
-    const ev = `${plugin.name.toUpperCase()}_${setting.title.toUpperCase().replace(/[^A-Z0-9]/g, "_")}`;
+  /* ---- userConfig / envVar sanity ---- */
+  for (const [key, opt] of Object.entries(plugin.userConfig ?? {})) {
+    const ev = `${plugin.name.toUpperCase()}_${key.toUpperCase().replace(/[^A-Z0-9]/g, "_")}`;
     if (!/^[A-Z_][A-Z0-9_]*$/.test(ev)) {
       issues.push({
         severity: Severity.WARNING,
-        message: `Setting "${setting.title}" envVar "${ev}" does not follow UPPER_SNAKE_CASE convention.`,
+        message: `userConfig "${key}" would map to envVar "${ev}" which does not follow UPPER_SNAKE_CASE convention.`,
       });
     }
     if (ev.startsWith("GEMINI_")) {
       issues.push({
         severity: Severity.WARNING,
-        message: `Setting "${setting.title}" envVar "${ev}" may collide with Gemini reserved variables.`,
+        message: `userConfig "${key}" envVar "${ev}" may collide with Gemini reserved variables.`,
       });
     }
+    void opt; // opt validated universally; only key-derived envVar is checked here
   }
 
   return issues;
@@ -343,7 +344,7 @@ export class GeminiAdapter implements PlatformAdapter {
     "notification",
   ];
 
-  readonly supportedHandlers: readonly HandlerType[] = ["inline", "file"];
+  readonly supportedHandlers: readonly HandlerType[] = ["inline", "reference"];
 
   readonly manifestPath = "gemini-extension.json";
   readonly manifestFormat = "json" as const;
@@ -374,12 +375,13 @@ export class GeminiAdapter implements PlatformAdapter {
     if (meta.plan) geminiManifest.plan = meta.plan as string;
     if (meta.themes) geminiManifest.themes = meta.themes as unknown[];
 
-    if (plugin.settings && plugin.settings.length > 0) {
-      geminiManifest.settings = plugin.settings.map((s) => ({
-        name: s.title,
-        description: s.description ?? "",
-        envVar: sanitizeEnvVar(`${plugin.name.toUpperCase()}_${s.title.toUpperCase().replace(/[^A-Z0-9]/g, "_")}`),
-        sensitive: s.sensitive === true,
+    const userConfigEntries = Object.entries(plugin.userConfig ?? {});
+    if (userConfigEntries.length > 0) {
+      geminiManifest.settings = userConfigEntries.map(([key, opt]) => ({
+        name: opt.title ?? key,
+        description: opt.description ?? "",
+        envVar: sanitizeEnvVar(`${plugin.name.toUpperCase()}_${key.toUpperCase().replace(/[^A-Z0-9]/g, "_")}`),
+        sensitive: opt.sensitive === true,
       }));
     }
 
@@ -403,7 +405,7 @@ export class GeminiAdapter implements PlatformAdapter {
       const hookFilePath = `hooks/${hookFileName}`;
 
       let scriptContent: string;
-      if (hook.handlerType === "file" && hook.script) {
+      if (hook.handlerType === "reference" && hook.script) {
         scriptContent = wrapFileHandler(hook.script);
       } else {
         // inline handler
@@ -415,7 +417,7 @@ export class GeminiAdapter implements PlatformAdapter {
       }
 
       // Add the actual implementation file for inline handlers too
-      if (hook.handlerType !== "file") {
+      if (hook.handlerType !== "reference") {
         files.push({
           path: hookFilePath,
           content: hook.script ?? "// no-op",

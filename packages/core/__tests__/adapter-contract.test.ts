@@ -152,11 +152,9 @@ describe('PlatformAdapter Contract Suite', () => {
     it.each(adapters)(
       '$name: supportedHandlers contains only valid HandlerType values',
       ({ adapter }) => {
-        const validHandlerTypes: HandlerType[] = ['command', 'http', 'inline', 'file'];
+        const validHandlerTypes: HandlerType[] = ['command', 'http', 'inline', 'reference'];
         for (const handler of adapter.supportedHandlers) {
-          // NOTE: pimono has ExtendedHandlerType which includes 'reference' — this is a known type violation
-          // but we allow it since it's intentional extension
-          expect(validHandlerTypes.includes(handler as HandlerType) || handler === 'reference').toBe(true);
+          expect(validHandlerTypes).toContain(handler as HandlerType);
         }
       }
     );
@@ -479,19 +477,10 @@ describe('PlatformAdapter Contract Suite', () => {
       }
     });
 
-    // Known bug: pimono has type violations - ExtendedHandlerType includes 'reference'
-    it('adapter-pimono: supportedHandlers should match core HandlerType', () => {
+    it('adapter-pimono: supportedHandlers are all valid HandlerType values', () => {
       const adapter = createPiMonoAdapter();
-      const coreHandlerTypes: HandlerType[] = ['command', 'http', 'inline', 'file'];
-
-      // Known issue: pimono has ExtendedHandlerType = HandlerType | 'reference'
-      // This is an intentional extension but violates the strict interface
+      const coreHandlerTypes: HandlerType[] = ['command', 'http', 'inline', 'reference'];
       for (const handler of adapter.supportedHandlers) {
-        // 'reference' is not in core HandlerType - this is the known deviation
-        if (handler === 'reference') {
-          // This is the known bug - we document it
-          continue;
-        }
         expect(coreHandlerTypes).toContain(handler as HandlerType);
       }
     });
@@ -522,7 +511,7 @@ describe('All adapters against full plugin manifest', () => {
     displayName: 'Comprehensive Test Plugin',
     author: { name: 'Test Author', email: 'test@example.com' },
     homepage: 'https://example.com',
-    license: 'MIT',
+    license: 'Apache-2.0',
     keywords: ['test', 'agentplugins'],
     defaultEnabled: true,
     hooks: {

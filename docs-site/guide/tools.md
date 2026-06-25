@@ -136,18 +136,58 @@ The manifest declares the **shape** of a tool. The implementation — what runs 
 
 ## Per-platform behavior
 
-| Platform | Tool support | Notes |
-|---|---|---|
-| Claude | ✓ | Emits native tool definitions. |
-| Codex | ✓ | Emits native tool definitions. |
-| Copilot | ✓ | Emits native tool definitions. |
-| Gemini | ✓ | Emits native tool definitions. |
-| Kimi | ✓ | Emits native tool definitions. |
-| OpenCode | ✓ | Emits native tool definitions. |
-| Pi Mono | ✓ | Emits native tool definitions. |
+`tools[]` is natively emitted by **OpenCode** and **Pi Mono** only. For all other platforms — including the Tier-1 harnesses Claude Code and Codex — **`mcpServers` is the recommended universal tool delivery mechanism**.
+
+| Platform | `tools[]` | `mcpServers` | Notes |
+|---|:---:|:---:|---|
+| Claude Code | ⚠️ | ✅ | `tools[]` not emitted; use `mcpServers` — full Tier-1 tool parity |
+| Codex | ⚠️ | ✅ | Same as Claude Code |
+| OpenCode | ✅ | ✅ | First-class `tools[]` + `mcpServers` both supported |
+| Pi Mono | ✅ | ✅ | First-class `tools[]` + `mcpServers` both supported |
+| Copilot | ⚠️ | ❌ | Neither emitted; Tier-2 only |
+| Gemini | ⚠️ | ❌ | Neither emitted; Tier-2 only |
+| Kimi | ⚠️ | ❌ | Neither emitted; Tier-2 only |
+
+> ⚠️ When `tools[]` is declared and the target platform does not natively emit it, `agentplugins validate` emits a **WARNING** (not an error) with a pointer to `mcpServers`. The build still succeeds.
+
+### Recommended cross-harness pattern
+
+For plugins targeting all Tier-1 harnesses, back tools with an MCP server:
+
+```typescript
+export default definePlugin({
+  name: 'my-tools',
+  version: '1.0.0',
+
+  // Tier-1 universal tool path: all four harnesses consume MCP servers
+  mcpServers: {
+    'my-tools-server': {
+      command: 'npx',
+      args: ['my-tools-mcp-server'],
+    },
+  },
+
+  // Optional: declare tool shapes for OpenCode/Pi Mono native emission
+  tools: [
+    {
+      name: 'lookup-user',
+      description: 'Look up a user by ID. Returns name and email.',
+      parameters: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', description: 'The user identifier' },
+        },
+        required: ['id'],
+      },
+    },
+  ],
+})
+```
+
+See the [Tier-1 Capability Matrix](/reference/compat-matrix) for full cross-harness tool support details.
 
 ## Next steps
 
+- [MCP Servers](/guide/mcp-servers) — recommended universal tool mechanism for all Tier-1 harnesses.
 - [Manifest reference](/guide/manifest) for the full `tools` schema.
-- [MCP servers](/guide/mcp-servers) for backing tools with MCP servers.
-- [JSON Schema](/reference/schema) for validating tool definitions.
+- [Tier-1 Capability Matrix](/reference/compat-matrix) for cross-harness support details.

@@ -58,4 +58,4 @@ The CLI looks for `agentplugins.config.ts` (or `.js`, `.mjs`, `.json`) in the cu
 
 ## License
 
-MIT
+Apache-2.0

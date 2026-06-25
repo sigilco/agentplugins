@@ -1,6 +1,6 @@
 {
   "name": "@agentplugins/schema",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "JSON Schema + TypeScript types + Ajv validators for the AgentPlugins manifest. The public contract for the ecosystem.",
   "type": "module",
   "main": "./dist/index.js",
@@ -33,7 +33,7 @@
     "ai",
     "plugin"
   ],
-  "license": "MIT",
+  "license": "Apache-2.0",
   "dependencies": {
     "ajv": "^8.17.1"
   },

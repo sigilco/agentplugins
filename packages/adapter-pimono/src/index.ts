@@ -172,7 +172,8 @@ const HOOK_TO_EVENT = {
   subagentStart: "agent.AgentStart",
   subagentStop: "agent.AgentStop",
   preCompact: "session.CompactStart",
-  stop: "agent.AgentStop",
+  // agent.AgentEnd = agent loop completed naturally (≠ agent.AgentStop = subagent explicitly stopped)
+  stop: "agent.AgentEnd",
 };
 
 /* ────────────────────────────────────────────────────────────────────────────

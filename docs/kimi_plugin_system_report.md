@@ -33,7 +33,7 @@ The manifest file can be placed at either location (with `kimi.plugin.json` taki
   "keywords": ["finance", "stocks", "crypto"],
   "author": "Developer Name",
   "homepage": "https://github.com/user/kimi-finance",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "skills": "./skills/",
   "sessionStart": {
     "skill": "using-finance"

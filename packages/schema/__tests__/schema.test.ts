@@ -92,6 +92,120 @@ describe("@agentplugins/schema", () => {
     });
   });
 
+  describe("v1.1 fields — dependencies", () => {
+    it("accepts a valid npm dependency", () => {
+      const result = validateManifest({
+        name: "my-plugin",
+        version: "1.0.0",
+        description: "A valid plugin for testing",
+        dependencies: [{ type: "npm", name: "left-pad", version: "^1.0.0" }],
+      });
+      expect(result.valid).toBe(true);
+    });
+
+    it("accepts a valid binary dependency", () => {
+      const result = validateManifest({
+        name: "my-plugin",
+        version: "1.0.0",
+        description: "A valid plugin for testing",
+        dependencies: [{ type: "binary", name: "ripgrep", required: true }],
+      });
+      expect(result.valid).toBe(true);
+    });
+
+    it("rejects a dependency without a name", () => {
+      const result = validateManifest({
+        name: "my-plugin",
+        version: "1.0.0",
+        description: "A valid plugin for testing",
+        dependencies: [{ type: "npm", name: "" }],
+      });
+      expect(result.valid).toBe(false);
+    });
+
+    it("rejects a dependency without a type", () => {
+      const result = validateManifest({
+        name: "my-plugin",
+        version: "1.0.0",
+        description: "A valid plugin for testing",
+        dependencies: [{ name: "left-pad" }],
+      });
+      expect(result.valid).toBe(false);
+    });
+  });
+
+  describe("v1.1 fields — sidecar", () => {
+    it("accepts a minimal sidecar", () => {
+      const result = validateManifest({
+        name: "my-plugin",
+        version: "1.0.0",
+        description: "A valid plugin for testing",
+        sidecar: { command: "node" },
+      });
+      expect(result.valid).toBe(true);
+    });
+
+    it("accepts a fully-specified sidecar", () => {
+      const result = validateManifest({
+        name: "my-plugin",
+        version: "1.0.0",
+        description: "A valid plugin for testing",
+        sidecar: {
+          command: "node",
+          args: ["server.js"],
+          env: { NODE_ENV: "production" },
+          port: 8080,
+          health: "/healthz",
+          restart: "on-failure",
+        },
+      });
+      expect(result.valid).toBe(true);
+    });
+
+    it("rejects an invalid restart policy", () => {
+      const result = validateManifest({
+        name: "my-plugin",
+        version: "1.0.0",
+        description: "A valid plugin for testing",
+        sidecar: { command: "node", restart: "sometimes" },
+      });
+      expect(result.valid).toBe(false);
+    });
+  });
+
+  describe("v1.1 fields — integrity", () => {
+    it("accepts a valid sha256 integrity string", () => {
+      const sha = "a".repeat(64);
+      const result = validateManifest({
+        name: "my-plugin",
+        version: "1.0.0",
+        description: "A valid plugin for testing",
+        integrity: `sha256:${sha}`,
+      });
+      expect(result.valid).toBe(true);
+    });
+
+    it("rejects a malformed integrity string", () => {
+      const result = validateManifest({
+        name: "my-plugin",
+        version: "1.0.0",
+        description: "A valid plugin for testing",
+        integrity: "not-a-hash",
+      });
+      expect(result.valid).toBe(false);
+    });
+
+    it("rejects an integrity string with wrong length", () => {
+      const result = validateManifest({
+        name: "my-plugin",
+        version: "1.0.0",
+        description: "A valid plugin for testing",
+        integrity: "sha256:abcd",
+      });
+      expect(result.valid).toBe(false);
+    });
+  });
+
   describe("isValidManifest()", () => {
     it("returns true for valid manifests", () => {
       expect(

@@ -1,0 +1,45 @@
+{
+  "name": "@agentplugins/ingest",
+  "version": "0.3.0",
+  "description": "Format ingestors for importing community plugins from Claude Code, Codex, and Skills.sh into AgentPlugins v1 manifests.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "test": "vitest run"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "agentplugins",
+    "ingest",
+    "compat",
+    "claude-code",
+    "codex",
+    "skills-sh"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@agentplugins/schema": "workspace:*",
+    "gray-matter": "^4.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.1.4"
+  }
+}

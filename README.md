@@ -204,4 +204,4 @@ Manifest → Core (validate + compile) → Adapters → Platform-native output
 
 ## License
 
-MIT
+Apache-2.0

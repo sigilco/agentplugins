@@ -1,6 +1,6 @@
 {
   "name": "@agentplugins/adapter-opencode",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "OpenCode platform adapter for AgentPlugins - generates OpenCode-compatible plugins from universal manifests",
   "type": "module",
   "main": "./dist/index.js",
@@ -35,7 +35,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "license": "MIT",
+  "license": "Apache-2.0",
   "keywords": [
     "agentplugins",
     "opencode",

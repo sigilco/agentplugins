@@ -233,7 +233,7 @@ export default definePlugin({
   author: { name: 'Jane Doe', url: 'https://janedoe.dev' },
   homepage: 'https://github.com/user/my-security-guard',
   repository: 'https://github.com/user/my-security-guard',
-  license: 'MIT',
+  license: 'Apache-2.0',
   keywords: ['security', 'safety', 'guard'],
 
   targets: ['claude', 'codex', 'copilot', 'gemini', 'kimi', 'opencode', 'pimono'],

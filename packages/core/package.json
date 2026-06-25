@@ -1,6 +1,6 @@
 {
   "name": "@agentplugins/core",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Core types, validation, and plugin registry for AgentPlugins",
   "type": "module",
   "main": "./dist/index.js",
@@ -35,7 +35,7 @@
     "plugin",
     "core"
   ],
-  "license": "MIT",
+  "license": "Apache-2.0",
   "dependencies": {
     "zod": "^3.25.76"
   },

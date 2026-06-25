@@ -95,6 +95,13 @@ export default withMermaid(defineConfig({
             { text: 'Linting', link: '/guide/linting' },
           ],
         },
+        {
+          text: 'Community',
+          items: [
+            { text: 'Ecosystem', link: '/guide/ecosystem' },
+            { text: 'Rewriting for Tier-1 Parity', link: '/guide/porting' },
+          ],
+        },
       ],
       '/reference/': [
         {
@@ -104,6 +111,7 @@ export default withMermaid(defineConfig({
             { text: 'JSON Schema', link: '/reference/schema' },
             { text: 'Agent Paths', link: '/reference/agent-paths' },
             { text: 'Adapters', link: '/reference/adapters' },
+            { text: 'Tier-1 Capability Matrix', link: '/reference/compat-matrix' },
           ],
         },
       ],

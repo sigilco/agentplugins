@@ -1,3 +1,16 @@
+export type Dependency =
+  | { type: 'npm'; name: string; version?: string }
+  | { type: 'binary'; name: string; required?: boolean };
+
+export interface Sidecar {
+  command: string;
+  args?: string[];
+  env?: Record<string, string>;
+  port?: number;
+  health?: string;
+  restart?: 'always' | 'on-failure' | 'no';
+}
+
 export interface ManifestSchema {
   $schema?: string;
   name: string;
@@ -23,6 +36,9 @@ export interface ManifestSchema {
   settings?: UserConfigOptionSchema[];
   metadata?: Record<string, unknown>;
   targets?: string[];
+  dependencies?: Dependency[];
+  sidecar?: Sidecar;
+  integrity?: string;
 }
 
 export interface SkillSchema {
