@@ -1,9 +1,11 @@
 /**
  * output-generators.ts — OpenCode output file generators
  *
- * These functions generate the two output files for the OpenCode adapter:
- * 1. `{pluginName}.ts` - The TypeScript plugin file with hook handlers
+ * These functions generate output files for the OpenCode adapter:
+ * 1. `plugins/{pluginName}.ts` - The TypeScript plugin file with hook handlers
  * 2. `opencode.json` - The plugin manifest configuration
+ * 3. `command/{name}.md` - One file per command (optional)
+ * 4. `agent/{name}.md` - One file per agent definition (optional)
  */
 
 import type { PluginManifest } from "@agentplugins/core";
@@ -22,7 +24,8 @@ export function generatePluginFile(
   manifest: PluginManifest,
   hookCodeMap: Map<string, string>
 ): FileOutput {
-  const pluginFileName = `${manifest.name}.ts`;
+  // Plugin lives under plugins/ subdir so OpenCode discovers it at plugins/<name>.ts
+  const pluginFileName = `plugins/${manifest.name}.ts`;
 
   // Build hook entries from the hookCodeMap
   const hookEntries: string[] = [];
@@ -31,6 +34,15 @@ export function generatePluginFile(
       `    "${hookName}": async (${getHookParams(hookName)}) => {\n${indentHandler(handlerCode)}\n    }`
     );
   }
+
+  // Emit __pluginRoot when any hook uses a command-type handler (needs file resolution)
+  const hasCommandHandler = Object.values(manifest.hooks ?? {}).some(
+    (h) => h?.handler?.type === "command"
+  );
+  // plugins/<name>.ts is 3 dirs deep inside the store: .agentplugins-dist/opencode/plugins/
+  const pluginRootLine = hasCommandHandler
+    ? `  const __pluginRoot = new URL('../../../', import.meta.url).pathname.replace(/\\/$/, '');\n`
+    : "";
 
   const overridePath = manifest.adapterOverrides?.opencode;
   const overrideBlock = overridePath
@@ -62,6 +74,7 @@ export function generatePluginFile(
     ` */`,
     ``,
     `export default async function(ctx) {`,
+    pluginRootLine,
     overrideBlock,
     `  return {`,
     hookEntries.join(",\n"),
@@ -147,4 +160,37 @@ export function generateManifest(
     path: configFileName,
     content: configFileContent,
   };
+}
+
+// ─── Command File Generator ───────────────────────────────────────────────────
+
+/**
+ * Generates one `command/<name>.md` file per command in the manifest.
+ * Format follows OpenCode's native command layout: YAML frontmatter + prompt body.
+ * Universal `{{args}}` placeholders are replaced with OpenCode's `$ARGUMENTS`.
+ */
+export function generateCommandFiles(manifest: PluginManifest): FileOutput[] {
+  return (manifest.commands ?? []).map((cmd) => {
+    const prompt = (cmd.prompt ?? "").replace(/\{\{args\}\}/g, "$ARGUMENTS");
+    const descLine = cmd.description ? `description: ${cmd.description}` : `description: ""`;
+    const content = [`---`, descLine, `---`, ``, prompt, ``].join("\n");
+    return { path: `command/${cmd.name}.md`, content };
+  });
+}
+
+// ─── Agent File Generator ─────────────────────────────────────────────────────
+
+/**
+ * Generates one `agent/<name>.md` file per agent definition in the manifest.
+ */
+export function generateAgentFiles(manifest: PluginManifest): FileOutput[] {
+  return (manifest.agents ?? []).map((agent) => {
+    const lines = ["---", `description: ${agent.description ?? ""}`];
+    if (agent.tools && agent.tools.length > 0) {
+      lines.push(`tools: [${agent.tools.join(", ")}]`);
+    }
+    lines.push("---", "", agent.prompt ?? "", "");
+    const content = lines.join("\n");
+    return { path: `agent/${agent.name}.md`, content };
+  });
 }
