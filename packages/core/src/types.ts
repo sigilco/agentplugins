@@ -31,10 +31,10 @@ export interface PluginManifest {
   hooks?: UniversalHooks;
   mcpServers?: Record<string, MCPServerConfig>;
   tools?: ToolDefinition[];
+  /** Named user-configurable options (displayed in UI, stored per-harness). */
   userConfig?: Record<string, UserConfigOption>;
 
   metadata?: Record<string, unknown>;
-  settings?: UserConfigOption[];
 
   // Build configuration
   /** Target platforms to compile for (if omitted, compiles for all) */
@@ -211,7 +211,8 @@ export interface HookDefinition {
 export type HookHandler =
   | CommandHookHandler
   | HttpHookHandler
-  | InlineHookHandler;
+  | InlineHookHandler
+  | ReferenceHookHandler;
 
 export interface CommandHookHandler {
   type: 'command';
@@ -235,6 +236,14 @@ export interface InlineHookHandler {
   type: 'inline';
   /** Inline function — will be wrapped for command-based platforms */
   handler: (ctx: HookContext) => Promise<HookResult>;
+}
+
+export interface ReferenceHookHandler {
+  type: 'reference';
+  /** Reference to a named export or file path. Adapters generate a proxy call. */
+  reference: string;
+  /** Optional source file to import the reference from */
+  source?: string;
 }
 
 // ─── Hook Context & Result ────────────────────────────────────────────────────
@@ -306,7 +315,7 @@ export interface PlatformAdapter {
   compile(plugin: PluginManifest): AdapterOutput;
 }
 
-export type HandlerType = 'command' | 'http' | 'inline' | 'file';
+export type HandlerType = 'command' | 'http' | 'inline' | 'reference';
 
 export enum Severity {
   ERROR = 'error',
