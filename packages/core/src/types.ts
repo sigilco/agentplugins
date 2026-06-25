@@ -38,6 +38,12 @@ export interface PluginManifest {
 
   metadata?: Record<string, unknown>;
 
+  /**
+   * Explicit capability opt-ins required for otherwise-restricted operations.
+   * Currently recognised values: `'subprocess'` (unlocks child_process usage in lint).
+   */
+  capabilities?: string[];
+
   // Build configuration
   /** Target platforms to compile for (if omitted, compiles for all) */
   targets?: TargetPlatform[];
@@ -339,6 +345,10 @@ export interface HookContext {
   agentType?: string;
   /** Turn identifier */
   turnId?: string;
+  /** For subagent hooks: the CLI command used to spawn the child agent */
+  agentCommand?: string;
+  /** For subagent hooks: working directory of the child agent process */
+  agentCwd?: string;
 }
 
 export interface HookResult {

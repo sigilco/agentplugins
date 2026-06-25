@@ -7,6 +7,7 @@
 // Types — plugin author surface
 export type {
   PluginManifest,
+  NativeEntry,
   TargetPlatform,
   Skill,
   MCPServerConfig,
@@ -81,6 +82,10 @@ export type {
   DoctorResult,
   DoctorIssue,
 } from './store.js';
+
+// Subprocess — for code-emitting adapters needing child process spawning
+export { spawnChild } from './subprocess.js';
+export type { SpawnChildOptions, SpawnChildResult } from './subprocess.js';
 
 /**
  * Convenience function to define a plugin with TypeScript intellisense.
