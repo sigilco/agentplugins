@@ -107,6 +107,63 @@ describe("validate() — OpenCode adapter", () => {
     });
   });
 
+  describe("guided per-harness hooks (subagent lifecycle)", () => {
+    it("returns WARNING (not ERROR) for subagentStart", () => {
+      const manifest: PluginManifest = {
+        name: "test-plugin",
+        version: "1.0.0",
+        description: "A test plugin",
+        hooks: { subagentStart: inlineHandler() },
+      };
+
+      const issues = validate(manifest);
+      expect(issues.filter((i) => i.severity === Severity.ERROR)).toHaveLength(0);
+      expect(issues).toContainEqual(
+        expect.objectContaining({
+          severity: Severity.WARNING,
+          field: "hooks",
+          message: expect.stringContaining("subagentStart"),
+        })
+      );
+    });
+
+    it("returns WARNING (not ERROR) for subagentStop", () => {
+      const manifest: PluginManifest = {
+        name: "test-plugin",
+        version: "1.0.0",
+        description: "A test plugin",
+        hooks: { subagentStop: inlineHandler() },
+      };
+
+      const issues = validate(manifest);
+      expect(issues.filter((i) => i.severity === Severity.ERROR)).toHaveLength(0);
+      expect(issues).toContainEqual(
+        expect.objectContaining({
+          severity: Severity.WARNING,
+          field: "hooks",
+          message: expect.stringContaining("subagentStop"),
+        })
+      );
+    });
+
+    it("emits WARNING for subagent hooks alongside valid hooks without blocking build", () => {
+      const manifest: PluginManifest = {
+        name: "test-plugin",
+        version: "1.0.0",
+        description: "A test plugin",
+        hooks: {
+          sessionStart: inlineHandler(),
+          subagentStart: inlineHandler(),
+          subagentStop: inlineHandler(),
+        },
+      };
+
+      const issues = validate(manifest);
+      expect(issues.filter((i) => i.severity === Severity.ERROR)).toHaveLength(0);
+      expect(issues.filter((i) => i.severity === Severity.WARNING)).toHaveLength(2);
+    });
+  });
+
   describe("unsupported hooks", () => {
     it("returns ERROR for unsupported hook", () => {
       const manifest: PluginManifest = {
