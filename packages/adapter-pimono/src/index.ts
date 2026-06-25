@@ -781,13 +781,26 @@ function compilePlugin(plugin: PluginManifest): AdapterOutput {
 
   tsLines.push(``);
 
-  // Default factory function.
+  // Default factory function (async when adapterOverrides is set).
+  const overridePath = plugin.adapterOverrides?.pimono;
   tsLines.push(`/**`);
   tsLines.push(` * Pi Mono extension factory.`);
   tsLines.push(` *`);
   tsLines.push(` * @param pi - The ExtensionAPI instance provided by the Pi Mono runtime.`);
   tsLines.push(` */`);
-  tsLines.push(`export default function(pi: ExtensionAPI) {`);
+  tsLines.push(`export default async function(pi: ExtensionAPI) {`);
+  if (overridePath) {
+    tsLines.push(`  // Runtime adapter override — tries user file first, falls back to codegen.`);
+    tsLines.push(`  try {`);
+    tsLines.push(`    const overrideMod = await import(${tsStringLiteral(overridePath)});`);
+    tsLines.push(`    if (typeof overrideMod.default === 'function') {`);
+    tsLines.push(`      return overrideMod.default(pi);`);
+    tsLines.push(`    }`);
+    tsLines.push(`  } catch {`);
+    tsLines.push(`    pi.logger?.warn?.("[${plugin.name}] adapterOverrides.pimono not found — using generated implementation");`);
+    tsLines.push(`  }`);
+    tsLines.push(``);
+  }
   tsLines.push(`  // Extension entry point — register all hooks, tools, commands, etc.`);
   tsLines.push(`  pi.logger?.info?.("[${plugin.name}] Extension loaded on ${DISPLAY_NAME}");`);
   tsLines.push(``);
