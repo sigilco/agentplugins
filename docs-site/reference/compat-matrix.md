@@ -26,7 +26,7 @@ Legend:
 | `agents[]` | ✅ | ✅ | ✅ | ✅ | Universal codegen |
 | `subagentStart` | ✅ | ✅ | ⚠️ | ✅ | OpenCode: no native event; emits WARN; guided path: intercept via `preToolUse` for subagent tool |
 | `subagentStop` | ✅ | ✅ | ⚠️ | ✅ | Same as above; Pi `stop`↔`subagentStop` collision fixed in v0.3.0 |
-| `tools[]` (first-class) | ❌ native | ❌ native | ✅ | ✅ | Use `mcpServers` for Claude/Codex; WARN emitted |
+| `tools[]` (first-class) | ⚠️ | ⚠️ | ✅ | ✅ | WARN emitted; use `mcpServers` for Claude/Codex (Tier-1 universal tool path) |
 | `stop` / `continueWith` | ⚠️ | ⚠️ | ⚠️ | ⚠️ | New primitive — v0.4.0; all-Tier-1 design |
 | Native-entry passthrough | n/a (JSON) | n/a (JSON) | ⚠️ | ⚠️ | `nativeEntry` escape hatch — v0.4.0 |
 | `spawnChild` subprocess | ✅ via cmd | ✅ via cmd | ⚠️ | ⚠️ | Primitive set — v0.4.0 |
