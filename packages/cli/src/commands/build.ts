@@ -118,6 +118,7 @@ export async function compile(options: CompileOptions): Promise<CompileResult[]>
           for (const copy of output.nativeCopies) {
             const srcPath = join(resolve(pluginRoot), copy.from);
             const dstPath = join(targetDir, copy.to);
+            await mkdir(resolve(dstPath, '..'), { recursive: true });
             const content = await readFile(srcPath, 'utf-8');
             await writeFile(dstPath, content, 'utf-8');
           }

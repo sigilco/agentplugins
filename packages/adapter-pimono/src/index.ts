@@ -26,6 +26,7 @@ import {
   type PluginManifest,
   type TargetPlatform,
   type HookHandler,
+  type CommandHookHandler,
   type ToolDefinition,
   type InlineHookHandler,
   type HookContext,
@@ -257,6 +258,11 @@ function validatePlugin(plugin: PluginManifest): ValidationIssue[] {
         continue;
       }
 
+      if (hookHandler.type === "command") {
+        // Command handlers are wrapped via execSync so the shell script runs inside the Pi process.
+        continue;
+      }
+
       if (hookHandler.type === "reference") {
         const refHandler = hookHandler as HandlerReference;
         // Reference handlers are accepted; the adapter generates a proxy function.
@@ -384,6 +390,44 @@ function generateInlineHandlerBody(
 }
 
 /**
+ * Generate handler code for a "command" type handler.
+ *
+ * Pi Mono extensions run in Node.js, so we wrap the shell command via
+ * execSync. The CLAUDE_PLUGIN_ROOT env var is set to __piPluginRoot so hook
+ * scripts can locate sibling files regardless of cwd. Stdout is parsed as
+ * JSON and returned; parse failures return an empty object.
+ *
+ * @param handler - The command handler definition.
+ * @param event   - The Pi Mono event name (for logging).
+ * @returns TypeScript source string for the handler body.
+ */
+function generateCommandHandlerBody(handler: CommandHookHandler, event: string): string {
+  // Replace ${CLAUDE_PLUGIN_ROOT} references with the runtime __piPluginRoot variable.
+  // Strip surrounding shell double-quotes from path arguments so the result is a
+  // valid JS template literal (e.g. `node "${CLAUDE_PLUGIN_ROOT}/x"` → `node ${__piPluginRoot}/x`).
+  const cmdTemplate = handler.command
+    .replace(/"(\$\{CLAUDE_PLUGIN_ROOT\}[^"]*?)"/g, (_m, p1: string) => p1.replace('${CLAUDE_PLUGIN_ROOT}', '${__piPluginRoot}'))
+    .replace(/\$\{CLAUDE_PLUGIN_ROOT\}/g, '${__piPluginRoot}');
+  const lines: string[] = [
+    `// [${event}] command handler (executed via execSync)`,
+    `const { execSync: __execSync } = await import('node:child_process');`,
+    `const __cmdStr = \`${cmdTemplate}\`;`,
+    `let __cmdRaw = '';`,
+    `try {`,
+    `  __cmdRaw = __execSync(__cmdStr, {`,
+    `    encoding: 'utf8',`,
+    `    shell: true,`,
+    `    env: { ...process.env, CLAUDE_PLUGIN_ROOT: __piPluginRoot },`,
+    `  });`,
+    `} catch (__e: any) {`,
+    `  __cmdRaw = __e.stdout ?? '';`,
+    `}`,
+    `try { return JSON.parse(__cmdRaw.trim()); } catch { return {}; }`,
+  ];
+  return lines.join("\n    ");
+}
+
+/**
  * Generate a handler for a "reference" type handler.
  *
  * Since Pi Mono expects inline functions, we generate a thin async wrapper
@@ -430,13 +474,19 @@ function generateEventRegistration(
 
   const isStopEvent = event === "agent.AgentEnd";
 
+  const handlerType = (handler as { type?: string }).type;
+
   if (isStopEvent) {
     // stop hook: capture result so we can handle continueWith
     lines.push(`pi.on(${tsStringLiteral(event)}, async (ctx) => {`);
     lines.push(`  let __result;`);
-    if ((handler as HandlerReference).type === "reference") {
+    if (handlerType === "reference") {
       lines.push(`  __result = await (async (ctx) => {`);
       lines.push(`    ${generateReferenceHandler(handler as HandlerReference).replace(/\n/g, "\n    ")}`);
+      lines.push(`  })(ctx);`);
+    } else if (handlerType === "command") {
+      lines.push(`  __result = await (async (ctx) => {`);
+      lines.push(`    ${generateCommandHandlerBody(handler as CommandHookHandler, event).replace(/\n/g, "\n    ")}`);
       lines.push(`  })(ctx);`);
     } else {
       lines.push(`  __result = await (async (ctx) => {`);
@@ -450,8 +500,10 @@ function generateEventRegistration(
     lines.push(`});`);
   } else {
     lines.push(`pi.on(${tsStringLiteral(event)}, async (ctx) => {`);
-    if ((handler as HandlerReference).type === "reference") {
+    if (handlerType === "reference") {
       lines.push(`  ${generateReferenceHandler(handler as HandlerReference).replace(/\n/g, "\n  ")}`);
+    } else if (handlerType === "command") {
+      lines.push(`  ${generateCommandHandlerBody(handler as CommandHookHandler, event).replace(/\n/g, "\n  ")}`);
     } else {
       lines.push(
         `  ${generateInlineHandlerBody(handler as InlineHookHandlerExt, event).replace(/\n/g, "\n  ")}`
@@ -687,12 +739,10 @@ function compilePlugin(plugin: PluginManifest): AdapterOutput {
 
   // If any handler references an external source file, we treat it as multi-file.
   if (plugin.hooks) {
-    for (const handler of Object.values(plugin.hooks)) {
-      if (handler.type === "reference" && handler.source) {
-        isMultiFile = true;
-        break;
-      }
-      if (handler.type === "inline" && handler.source) {
+    for (const hookDef of Object.values(plugin.hooks)) {
+      const h = (hookDef as { handler?: unknown }).handler as { type?: string; source?: string } | undefined;
+      if (!h) continue;
+      if ((h.type === "reference" || h.type === "inline") && h.source) {
         isMultiFile = true;
         break;
       }
@@ -805,17 +855,28 @@ function compilePlugin(plugin: PluginManifest): AdapterOutput {
   tsLines.push(`  pi.logger?.info?.("[${plugin.name}] Extension loaded on ${DISPLAY_NAME}");`);
   tsLines.push(``);
 
+  // Emit __piPluginRoot helper when any hook uses a command handler.
+  const hasCommandHandlers = plugin.hooks
+    ? Object.values(plugin.hooks).some((h) => (h as { handler?: { type?: string } }).handler?.type === 'command')
+    : false;
+  if (hasCommandHandlers) {
+    tsLines.push(`  // Directory of this extension file — used to resolve CLAUDE_PLUGIN_ROOT for command handlers.`);
+    tsLines.push(`  const __piPluginRoot = new URL('.', import.meta.url).pathname.replace(/\\/$/, '');`);
+    tsLines.push(``);
+  }
+
   // ── Hooks ──
   if (plugin.hooks && Object.keys(plugin.hooks).length > 0) {
     tsLines.push(`  /* ── Lifecycle Hooks ── */`);
-    for (const [hookName, handler] of Object.entries(plugin.hooks)) {
+    for (const [hookName, hookDef] of Object.entries(plugin.hooks)) {
       const event = HOOK_TO_EVENT[hookName as UniversalHookName];
       if (!event) {
         tsLines.push(`  // WARNING: No Pi Mono event for hook "${hookName}" — skipping`);
         tsLines.push(``);
         continue;
       }
-      const regLines = generateEventRegistration(event, handler);
+      const hookHandler = (hookDef as { handler: HookHandler | HandlerReference }).handler;
+      const regLines = generateEventRegistration(event, hookHandler);
       for (const line of regLines) {
         tsLines.push(`  ${line}`);
       }
@@ -919,11 +980,28 @@ function compilePlugin(plugin: PluginManifest): AdapterOutput {
     }
   }
 
+  // ── NativeCopies for command handlers ──
+  // Any hook that uses a command handler may reference files via ${CLAUDE_PLUGIN_ROOT}/path.
+  // Extract those paths so the CLI copies them into dist/pimono/ alongside the extension.
+  const nativeCopies: { from: string; to: string }[] = [];
+  if (plugin.hooks) {
+    for (const hookDef of Object.values(plugin.hooks)) {
+      const h = (hookDef as { handler?: unknown }).handler as CommandHookHandler | undefined;
+      if (!h || h.type !== 'command') continue;
+      const pluginRootRefs = h.command.matchAll(/\$\{CLAUDE_PLUGIN_ROOT\}\/([^\s"'`]+)/g);
+      for (const match of pluginRootRefs) {
+        const relPath = match[1];
+        nativeCopies.push({ from: relPath, to: relPath });
+      }
+    }
+  }
+
   return {
     files,
     manifest: plugin,
     warnings,
     issues: [],
+    ...(nativeCopies.length > 0 ? { nativeCopies } : {}),
   };
 }
 
