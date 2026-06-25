@@ -19,44 +19,46 @@ This installs the plugin into `~/.agents/plugins/<name>/` and symlinks it to eve
 
 ## Available plugins
 
-### agentplugins-caveman
+### caveman
 
-A caveman-style coding workflow plugin. Provides skills, a cavecrew of subagent roles, and MCP middleware for shrinking context.
+Why use many token when few do trick. Ultra-compressed communication mode — cuts ~75% of output tokens while preserving full technical accuracy. Includes the cavecrew of subagent presets for compressed delegation.
 
-**Functionality:** skills + `agents[]` cavecrew + `mcpServers` context shrink  
-**Replaces:** the 850-line custom caveman installer with `agentplugins add`
+**Functionality:** skills + `agents[]` cavecrew (investigator / builder / reviewer) + lifecycle hooks  
+**Replaces:** the 850-line custom caveman installer — `agentplugins add` handles detection and symlinking across all tier-1 harnesses
 
 ```bash
-agentplugins add sigilco/agentplugins-caveman
+agentplugins add JuliusBrussee/caveman
 ```
 
 | Tier-1 | Claude Code | Codex | OpenCode | Pi Mono |
 |---|:---:|:---:|:---:|:---:|
-| Skills | ✅ | ✅ | ✅ | ✅ |
-| Cavecrew (agents[]) | ✅ | ✅ | ✅ | ✅ |
-| Context shrink (mcpServers) | ✅ | ✅ | ✅ | ✅ |
+| Skills (caveman + 6 companions) | ✅ | ✅ | ✅ | ✅ |
+| Cavecrew agents[] | ✅ | ✅ | ✅ | ✅ |
+| sessionStart hook | ✅ | ✅ | ✅ | ✅ |
+
+> **Note:** The `caveman-shrink` MCP proxy utility is not declared in `mcpServers` — it wraps an existing server rather than acting as a standalone one. See `src/mcp-servers/caveman-shrink/README.md` for manual setup.
 
 ---
 
-### agentplugins-ponytail
+### ponytail
 
-A productivity plugin with lifecycle hooks, skills, and commands. Includes subagent start tracking.
+He says nothing. He writes one line. It works. Lazy senior dev mode — forces the minimum solution that works: YAGNI → stdlib → native → one line.
 
-**Functionality:** skills + lifecycle hooks + commands + `subagentStart`  
-**Replaces:** ponytail's per-harness setup scripts; benchmark compatibility preserved
+**Functionality:** skills + lifecycle hooks + 6 slash commands + `subagentStart`  
+**Replaces:** ponytail's per-harness install scripts; promptfoo benchmark preserved and unchanged
 
 ```bash
-agentplugins add sigilco/agentplugins-ponytail
+agentplugins add DietrichGebert/ponytail
 ```
 
 | Tier-1 | Claude Code | Codex | OpenCode | Pi Mono |
 |---|:---:|:---:|:---:|:---:|
-| Skills | ✅ | ✅ | ✅ | ✅ |
-| Lifecycle hooks | ✅ | ✅ | ✅ | ✅ |
-| Commands | ✅ | ✅ | ✅ | ✅ |
+| Skills (ponytail + 5 sub-skills) | ✅ | ✅ | ✅ | ✅ |
+| sessionStart + userPromptSubmit | ✅ | ✅ | ⚠️ | ✅ |
 | subagentStart | ✅ | ✅ | ⚠️ | ✅ |
+| Commands (/ponytail + 5 variants) | ✅ | ✅ | ✅ | ✅ |
 
-⚠️ OpenCode: no native subagent event — guided per-harness. See [compat matrix](/reference/compat-matrix).
+⚠️ OpenCode: `subagentStart` and `userPromptSubmit` have no native equivalent — these hooks are ignored with a WARN. See [compat matrix](/reference/compat-matrix).
 
 ---
 
