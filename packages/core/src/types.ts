@@ -54,6 +54,15 @@ export interface PluginManifest {
    */
   nativeEntry?: NativeEntry;
 
+  /**
+   * Per-harness runtime adapter overrides. At runtime the generated code tries
+   * to `import()` the specified file; if found it replaces the built-in adapter
+   * logic. Lets authors pin to a specific SDK version or swap implementations
+   * when upstream harness APIs change. Paths are relative to the plugin root.
+   * Only meaningful for code-emitting adapters (pimono, opencode).
+   */
+  adapterOverrides?: Partial<Record<TargetPlatform, string>>;
+
   // v1.1 extensions
   /** Runtime dependencies (npm packages or external binaries) */
   dependencies?: Dependency[];
