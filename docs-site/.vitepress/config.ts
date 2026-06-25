@@ -104,6 +104,7 @@ export default withMermaid(defineConfig({
             { text: 'JSON Schema', link: '/reference/schema' },
             { text: 'Agent Paths', link: '/reference/agent-paths' },
             { text: 'Adapters', link: '/reference/adapters' },
+            { text: 'Tier-1 Capability Matrix', link: '/reference/compat-matrix' },
           ],
         },
       ],
