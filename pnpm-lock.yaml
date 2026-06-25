@@ -186,6 +186,9 @@ importers:
       '@agentplugins/schema':
         specifier: workspace:*
         version: link:../schema
+      '@agentplugins/security':
+        specifier: workspace:*
+        version: link:../security
       '@clack/prompts':
         specifier: ^0.7.0
         version: 0.7.0
