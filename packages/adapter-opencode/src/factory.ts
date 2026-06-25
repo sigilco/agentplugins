@@ -95,6 +95,17 @@ class OpenCodeAdapter implements PlatformAdapter {
    * Compiles the universal plugin into platform-specific output.
    */
   compile(plugin: PluginManifest): AdapterOutput {
+    // Native-entry passthrough: skip codegen entirely
+    if (plugin.nativeEntry?.opencode) {
+      return {
+        files: [],
+        manifest: { name: plugin.name, version: plugin.version },
+        warnings: [],
+        issues: [],
+        nativeCopies: [{ from: plugin.nativeEntry.opencode, to: `${plugin.name}.ts` }],
+      };
+    }
+
     // Run validation first
     const validateFn = createValidate();
     const issues = validateFn(plugin);
