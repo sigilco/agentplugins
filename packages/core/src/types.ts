@@ -364,6 +364,19 @@ export interface HookResult {
   reason?: string;
   /** Suppress tool output */
   suppressOutput?: boolean;
+  /**
+   * When returned from a `stop` hook, enqueues this string as a new user
+   * message, causing the agent to continue working. The spec guarantees that
+   * `userPromptSubmit` fires on the enqueued message.
+   *
+   * Implemented natively on pimono (pi.sendUserMessage) and opencode.
+   * JSON-emitting adapters pass the field through in stdout JSON — Claude/Codex
+   * harness support depends on harness version; see the compat matrix.
+   *
+   * Safety: always pair with an exit condition (e.g. a `goal_complete` tool)
+   * to avoid runaway loops.
+   */
+  continueWith?: string;
 }
 
 // ─── Adapter Contract ─────────────────────────────────────────────────────────
