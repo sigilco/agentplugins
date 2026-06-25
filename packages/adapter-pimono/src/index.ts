@@ -648,6 +648,17 @@ function generateFlagRegistrations(
  * @returns AdapterOutput with generated files and metadata.
  */
 function compilePlugin(plugin: PluginManifest): AdapterOutput {
+  // ── Native-entry passthrough: skip codegen entirely ──
+  if (plugin.nativeEntry?.pimono) {
+    return {
+      files: [],
+      manifest: plugin,
+      warnings: [],
+      issues: [],
+      nativeCopies: [{ from: plugin.nativeEntry.pimono, to: 'index.ts' }],
+    };
+  }
+
   const files: FileOutput[] = [];
 
   // ── Determine if this is a multi-file extension ──
