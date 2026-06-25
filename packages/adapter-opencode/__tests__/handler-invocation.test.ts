@@ -119,13 +119,12 @@ describe("buildHandlerInvocation()", () => {
   });
 
   describe("command handler", () => {
-    it("returns Bun.$ backtick syntax wrapping", () => {
+    it("uses execSync from node:child_process", () => {
       const handler = commandHandler("echo 'hello world'");
       const code = buildHandlerInvocation(handler, HOOK_NAME, CONTEXT_VAR);
 
-      // Should use Bun.$ with backticks
-      expect(code).toContain("Bun.$`");
-      expect(code).toContain("`");
+      expect(code).toContain("execSync");
+      expect(code).toContain("node:child_process");
     });
 
     it("command string is properly included", () => {
@@ -136,21 +135,28 @@ describe("buildHandlerInvocation()", () => {
       expect(code).toContain("echo 'test command'");
     });
 
-    it("captures stdout from command execution", () => {
+    it("parses JSON from stdout", () => {
       const handler = commandHandler("ls -la");
       const code = buildHandlerInvocation(handler, HOOK_NAME, CONTEXT_VAR);
 
-      // Should capture stdout
-      expect(code).toContain("stdout");
+      expect(code).toContain("JSON.parse");
     });
 
-    it("returns stdout as result", () => {
+    it("returns parsed JSON result", () => {
       const handler = commandHandler("pwd");
       const code = buildHandlerInvocation(handler, HOOK_NAME, CONTEXT_VAR);
 
-      // Should return stdout
-      expect(code).toContain("return");
-      expect(code).toContain("stdout");
+      expect(code).toContain("return JSON.parse");
+    });
+
+    it("substitutes ${CLAUDE_PLUGIN_ROOT} with __pluginRoot in the command string", () => {
+      const handler = commandHandler('node "${CLAUDE_PLUGIN_ROOT}/hooks/checker.js"');
+      const code = buildHandlerInvocation(handler, HOOK_NAME, CONTEXT_VAR);
+
+      expect(code).toContain("__pluginRoot");
+      // The template placeholder should be gone from the command; CLAUDE_PLUGIN_ROOT may still
+      // appear as an env key (CLAUDE_PLUGIN_ROOT: __pluginRoot) which is intentional.
+      expect(code).not.toContain("${CLAUDE_PLUGIN_ROOT}");
     });
 
     it("uses 8 spaces for inner body indentation", () => {
@@ -281,13 +287,13 @@ describe("buildHandlerInvocation()", () => {
 
       // Each should generate distinct code patterns
       expect(inlineCode).toContain("await");
-      expect(commandCode).toContain("Bun.$`");
+      expect(commandCode).toContain("execSync");
       expect(httpCode).toContain("fetch(");
 
       // No cross-contamination
-      expect(inlineCode).not.toContain("Bun.$`");
+      expect(inlineCode).not.toContain("execSync");
       expect(commandCode).not.toContain("fetch(");
-      expect(httpCode).not.toContain("Bun.$`");
+      expect(httpCode).not.toContain("execSync");
     });
   });
 

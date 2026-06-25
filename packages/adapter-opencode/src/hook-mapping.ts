@@ -104,12 +104,7 @@ export function buildEventHookBlock(
     }
   }
 
-  return [
-    `    event: async (ctx) => {`,
-    `      const { event } = ctx;`,
-    branches.join('\n'),
-    `    }`,
-  ].join('\n');
+  return branches.join('\n');
 }
 
 // ─── buildHookArgs ───────────────────────────────────────────────────────────
@@ -183,11 +178,22 @@ export function buildHandlerInvocation(
 
     case 'command': {
       const ch = handler as CommandHookHandler;
+      // Replace ${CLAUDE_PLUGIN_ROOT} with __pluginRoot (defined in the outer plugin function)
+      const cmdTemplate = ch.command
+        .replace(/"(\$\{CLAUDE_PLUGIN_ROOT\}[^"]*?)"/g, (_m: string, p1: string) =>
+          p1.replace("${CLAUDE_PLUGIN_ROOT}", "${__pluginRoot}"))
+        .replace(/\$\{CLAUDE_PLUGIN_ROOT\}/g, "${__pluginRoot}");
       return [
-        `${indent}// [${hookName}] command handler (wrapped via Bun.$)`,
-        `${indent}const proc = Bun.$\`${ch.command}\`;`,
-        `${indent}const stdout = await proc.text();`,
-        `${indent}return stdout;`,
+        `${indent}// [${hookName}] command handler`,
+        `${indent}const { execSync: __execSync } = await import('node:child_process');`,
+        `${indent}const __cmdStr = \`${cmdTemplate}\`;`,
+        `${indent}let __cmdRaw = '';`,
+        `${indent}try {`,
+        `${indent}  __cmdRaw = __execSync(__cmdStr, { encoding: 'utf8', shell: true, env: { ...process.env, CLAUDE_PLUGIN_ROOT: __pluginRoot } });`,
+        `${indent}} catch (__e) {`,
+        `${indent}  __cmdRaw = (__e as any).stdout ?? '';`,
+        `${indent}}`,
+        `${indent}try { return JSON.parse(__cmdRaw.trim()); } catch { return {}; }`,
       ].join('\n');
     }
 

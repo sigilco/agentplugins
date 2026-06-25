@@ -22,8 +22,8 @@ describe("compile() integration", () => {
       const output = adapter.compile(manifest);
 
       expect(output).toHaveProperty("files");
-      expect(output.files.length).toBe(2);
-      expect(output.files[0].path).toBe("test-plugin.ts");
+      expect(output.files.length).toBeGreaterThanOrEqual(2);
+      expect(output.files[0].path).toBe("plugins/test-plugin.ts");
       expect(output.files[1].path).toBe("opencode.json");
     });
 
@@ -71,7 +71,7 @@ describe("compile() integration", () => {
       const pluginFile = output.files.find((f) => f.path.endsWith(".ts"));
       expect(pluginFile).toBeDefined();
       expect(pluginFile?.content).toContain("export default async function(ctx)");
-      expect(pluginFile?.content).toContain("event:");
+      expect(pluginFile?.content).toContain('"event"');
       expect(pluginFile?.content).toContain('event.type === "session.created"');
     });
 

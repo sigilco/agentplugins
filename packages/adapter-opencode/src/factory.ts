@@ -30,7 +30,7 @@ import {
   buildHookArgs,
 } from "./hook-mapping";
 import { buildHandlerInvocation } from "./handler-invocation";
-import { generatePluginFile, generateManifest } from "./output-generators";
+import { generatePluginFile, generateManifest, generateCommandFiles, generateAgentFiles } from "./output-generators";
 
 /**
  * The 8 hooks supported by OpenCode.
@@ -75,7 +75,7 @@ class OpenCodeAdapter implements PlatformAdapter {
    * using Bun's shell API (`$`) so that they appear as inline functions to
    * the OpenCode runtime.
    */
-  readonly supportedHandlers: readonly HandlerType[] = ["inline"];
+  readonly supportedHandlers: readonly HandlerType[] = ["inline", "command"];
 
   /** Path to manifest file (relative to plugin root). */
   readonly manifestPath = "opencode.json";
@@ -143,6 +143,8 @@ class OpenCodeAdapter implements PlatformAdapter {
     const files = [
       generatePluginFile(plugin, hookCodeMap),
       generateManifest(plugin, hookCodeMap),
+      ...generateCommandFiles(plugin),
+      ...generateAgentFiles(plugin),
     ];
 
     return {

@@ -118,11 +118,11 @@ describe('buildEventHookBlock', () => {
 
     const result = buildEventHookBlock(registrations);
 
-    // The generated code should NOT have `handler(ctx)` where ctx is undefined
-    // Instead, it should use the proper context from the async function parameter
-    expect(result).toContain('async (ctx) =>'); // ctx should be properly scoped
-    expect(result).not.toContain('(handler)(ctx)'); // ctx is undefined here - BUG!
+    // buildEventHookBlock now returns just the body (branches), not a wrapper function
     expect(result).toContain('event.type === "session.created"');
+    expect(result).not.toContain('(handler)(ctx)');
+    // event is in scope from the outer async ({ event }) => wrapper in generatePluginFile
+    expect(result).not.toContain('const { event } = ctx');
   });
 
   it('should generate conditional for sessionStart with session.created', () => {
@@ -186,9 +186,8 @@ describe('buildEventHookBlock', () => {
 
     const result = buildEventHookBlock(registrations);
 
-    // Should be a valid function expression
-    expect(result).toContain('event:');
-    expect(result).toContain('async');
+    // Returns branches body (no outer event: wrapper — that's added by generatePluginFile)
+    expect(result).toContain('if (event.type');
     expect(result).toContain('event.type');
   });
 });
@@ -241,10 +240,10 @@ describe('buildHandlerInvocation', () => {
 
     const result = buildHandlerInvocation(handler, 'sessionStart');
 
-    expect(result).toContain('// [sessionStart] command handler (wrapped via Bun.$)');
-    expect(result).toContain('Bun.$`');
-    expect(result).toContain('const stdout = await proc.text()');
-    expect(result).toContain('return stdout;');
+    expect(result).toContain('// [sessionStart] command handler');
+    expect(result).toContain('execSync');
+    expect(result).toContain("import('node:child_process')");
+    expect(result).toContain('JSON.parse');
   });
 
   it('should generate HTTP handler with fetch', () => {
@@ -287,10 +286,8 @@ describe('Hook Code Generation Integration', () => {
 
     const eventBlock = buildEventHookBlock(registrations);
 
-    // The event block should use ctx properly, not have undefined ctx
-    expect(eventBlock).toContain('async (ctx) =>');
-
-    // Handler should be called with proper context, not undefined ctx
+    // buildEventHookBlock returns branches body (event: wrapper added by generatePluginFile)
+    expect(eventBlock).toContain('event.type === "session.created"');
     expect(eventBlock).not.toMatch(/\(handler\)\(ctx\)/);
   });
 

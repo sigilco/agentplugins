@@ -58,16 +58,26 @@ export function buildHandlerInvocation(
 
     case "command": {
       const ch = handler as CommandHookHandler;
+      // Replace ${CLAUDE_PLUGIN_ROOT} with __pluginRoot (defined by generatePluginFile when needed)
+      const cmdTemplate = ch.command
+        .replace(/"(\$\{CLAUDE_PLUGIN_ROOT\}[^"]*?)"/g, (_m, p1: string) =>
+          p1.replace("${CLAUDE_PLUGIN_ROOT}", "${__pluginRoot}"))
+        .replace(/\$\{CLAUDE_PLUGIN_ROOT\}/g, "${__pluginRoot}");
       return [
-        `${INDENT}// [${hookName}] command handler (wrapped via Bun.$)`,
+        `${INDENT}// [${hookName}] command handler`,
+        `${INDENT}const { execSync: __execSync } = await import('node:child_process');`,
+        `${INDENT}const __cmdStr = \`${cmdTemplate}\`;`,
+        `${INDENT}let __cmdRaw = '';`,
         `${INDENT}try {`,
-        `${INDENT}  const proc = Bun.$\`${ch.command}\`;`,
-        `${INDENT}  const stdout = await proc.text();`,
-        `${INDENT}  return stdout;`,
-        `${INDENT}} catch (error) {`,
-        `${INDENT}  console.error(\`[${hookName}] command handler error:\`, error);`,
-        `${INDENT}  throw error;`,
+        `${INDENT}  __cmdRaw = __execSync(__cmdStr, {`,
+        `${INDENT}    encoding: 'utf8',`,
+        `${INDENT}    shell: true,`,
+        `${INDENT}    env: { ...process.env, CLAUDE_PLUGIN_ROOT: __pluginRoot },`,
+        `${INDENT}  });`,
+        `${INDENT}} catch (__e) {`,
+        `${INDENT}  __cmdRaw = (__e as any).stdout ?? '';`,
         `${INDENT}}`,
+        `${INDENT}try { return JSON.parse(__cmdRaw.trim()); } catch { return {}; }`,
       ].join("\n");
     }
 
