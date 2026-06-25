@@ -41,7 +41,7 @@ export function checkNpmProvenance(spec: string): NpmProvenanceResult {
       signed: null,
     };
   }
-  const r = spawnSync('npm', ['audit', 'signatures', '--json'], { encoding: 'utf-8' });
+  const r = spawnSync('npm', ['audit', 'signatures', '--json'], { encoding: 'utf-8', timeout: 5_000 });
   let signed: boolean | null = null;
   const signingKeys: string[] = [];
   if (r.stdout) {
