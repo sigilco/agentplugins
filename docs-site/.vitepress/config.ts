@@ -95,6 +95,13 @@ export default withMermaid(defineConfig({
             { text: 'Linting', link: '/guide/linting' },
           ],
         },
+        {
+          text: 'Community',
+          items: [
+            { text: 'Ecosystem', link: '/guide/ecosystem' },
+            { text: 'Rewriting for Tier-1 Parity', link: '/guide/porting' },
+          ],
+        },
       ],
       '/reference/': [
         {
