@@ -41,6 +41,12 @@ export interface PluginManifest {
   // Build configuration
   /** Target platforms to compile for (if omitted, compiles for all) */
   targets?: TargetPlatform[];
+  /**
+   * Escape hatch: supply a hand-written native file for a code-emitting adapter.
+   * When set, the adapter copies the specified file verbatim into dist/<target>/
+   * instead of running codegen. Paths are relative to the plugin root.
+   */
+  nativeEntry?: NativeEntry;
 
   // v1.1 extensions
   /** Runtime dependencies (npm packages or external binaries) */
@@ -64,6 +70,14 @@ export interface Sidecar {
   port?: number;
   health?: string;
   restart?: 'always' | 'on-failure' | 'no';
+}
+
+/** Paths to hand-written native files for code-emitting adapters (escape hatch). */
+export interface NativeEntry {
+  /** Path (relative to plugin root) to a TS file loaded verbatim by the pimono adapter. */
+  pimono?: string;
+  /** Path (relative to plugin root) to a TS file loaded verbatim by the opencode adapter. */
+  opencode?: string;
 }
 
 export type TargetPlatform =
@@ -380,12 +394,22 @@ export interface ValidationIssue {
   suggestion?: string;
 }
 
+/** Instructs the CLI to copy a source file verbatim rather than generating content. */
+export interface NativeCopy {
+  /** Relative path from the plugin root of the source file. */
+  from: string;
+  /** Destination filename within `dist/<target>/`. */
+  to: string;
+}
+
 export interface AdapterOutput {
   files: FileOutput[];
   manifest: Record<string, unknown>;
   warnings: string[];
   issues: ValidationIssue[];
   postInstall?: string[];
+  /** Verbatim file copies requested by a native-entry passthrough. Resolved by the CLI. */
+  nativeCopies?: NativeCopy[];
 }
 
 export interface FileOutput {
