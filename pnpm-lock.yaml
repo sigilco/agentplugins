@@ -180,6 +180,12 @@ importers:
       '@agentplugins/core':
         specifier: workspace:*
         version: link:../core
+      '@agentplugins/ingest':
+        specifier: workspace:*
+        version: link:../ingest
+      '@agentplugins/schema':
+        specifier: workspace:*
+        version: link:../schema
       '@clack/prompts':
         specifier: ^0.7.0
         version: 0.7.0
@@ -205,6 +211,25 @@ importers:
       zod:
         specifier: ^3.25.76
         version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.41
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.1.4
+        version: 3.2.6(@types/debug@4.1.13)(@types/node@20.19.41)
+
+  packages/ingest:
+    dependencies:
+      '@agentplugins/schema':
+        specifier: workspace:*
+        version: link:../schema
+      gray-matter:
+        specifier: ^4.0.3
+        version: 4.0.3
     devDependencies:
       '@types/node':
         specifier: ^20.0.0

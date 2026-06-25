@@ -21,6 +21,8 @@
   },
   "dependencies": {
     "@agentplugins/core": "workspace:*",
+    "@agentplugins/ingest": "workspace:*",
+    "@agentplugins/schema": "workspace:*",
     "@agentplugins/adapter-claude": "workspace:*",
     "@agentplugins/adapter-codex": "workspace:*",
     "@agentplugins/adapter-copilot": "workspace:*",
