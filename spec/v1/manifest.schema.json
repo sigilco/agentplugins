@@ -166,6 +166,14 @@
         "restart": { "enum": ["always", "on-failure", "no"], "default": "no" }
       }
     },
+    "capabilities": {
+      "type": "array",
+      "description": "Explicit capability opt-ins for otherwise-restricted operations. Recognised values: 'subprocess' (unlocks child_process usage in the lint rule).",
+      "items": {
+        "type": "string",
+        "enum": ["subprocess"]
+      }
+    },
     "nativeEntry": {
       "type": "object",
       "description": "Escape hatch: supply a hand-written native file for a code-emitting adapter. When set, the adapter copies the file verbatim into dist/<target>/ instead of running codegen. Paths are relative to the plugin root.",
