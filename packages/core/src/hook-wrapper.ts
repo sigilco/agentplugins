@@ -115,6 +115,8 @@ function normalizeContext(ctx, eventName) {
     agentId: ctx.agent_id ?? ctx.agentId,
     agentType: ctx.agent_type ?? ctx.agentType ?? ctx.agent,
     turnId: ctx.turn_id ?? ctx.turnId,
+    agentCommand: ctx.agent_command ?? ctx.agentCommand,
+    agentCwd: ctx.agent_cwd ?? ctx.agentCwd,
     // Pass through any extra fields
     ...ctx,
   };
@@ -134,11 +136,13 @@ function formatOutput(result, platform, hookName) {
           },
           ...(result.systemMessage ? { systemMessage: result.systemMessage } : {}),
           ...(result.continue === false ? { continue: false, stopReason: result.reason } : {}),
+          ...(result.continueWith ? { continueWith: result.continueWith } : {}),
         };
       }
       return {
         ...(result.systemMessage ? { systemMessage: result.systemMessage } : {}),
         ...(result.continue === false ? { continue: false, stopReason: result.reason } : {}),
+        ...(result.continueWith ? { continueWith: result.continueWith } : {}),
       };
 
     case 'gemini':
@@ -146,6 +150,7 @@ function formatOutput(result, platform, hookName) {
       return {
         ...(result.systemMessage ? { systemMessage: result.systemMessage } : {}),
         ...(result.additionalContext ? { additionalContext: result.additionalContext } : {}),
+        ...(result.continueWith ? { continueWith: result.continueWith } : {}),
       };
 
     case 'copilot':
@@ -154,6 +159,7 @@ function formatOutput(result, platform, hookName) {
         ...(result.systemMessage ? { systemMessage: result.systemMessage } : {}),
         ...(result.additionalContext ? { additionalContext: result.additionalContext } : {}),
         ...(result.continue === false ? { continue: false } : {}),
+        ...(result.continueWith ? { continueWith: result.continueWith } : {}),
       };
 
     case 'claude':
@@ -164,6 +170,7 @@ function formatOutput(result, platform, hookName) {
         ...(result.systemMessage ? { systemMessage: result.systemMessage } : {}),
         ...(result.additionalContext ? { additionalContext: result.additionalContext } : {}),
         ...(result.continue === false ? { continue: false } : {}),
+        ...(result.continueWith ? { continueWith: result.continueWith } : {}),
       };
   }
 }
