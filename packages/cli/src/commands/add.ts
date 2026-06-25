@@ -15,11 +15,9 @@ import {
   installPlugin,
   getDetectedAgents,
   getStorePath,
-  getSkillsCompatPath,
-  getPluginStorePath,
 } from '@agentplugins/core';
 import { join } from 'node:path';
-import { existsSync, rmSync, mkdirSync, symlinkSync, unlinkSync } from 'node:fs';
+import { existsSync, rmSync } from 'node:fs';
 import { compile } from './build.js';
 import type { PluginManifest } from '@agentplugins/core';
 
@@ -107,7 +105,7 @@ export async function add(options: AddOptions): Promise<void> {
     }
   }
 
-  // Install
+  // Install (also creates per-skill flat links via installPlugin → linkPluginSkills)
   const result = installPlugin(tempDir, {
     source,
     name,
@@ -115,9 +113,6 @@ export async function add(options: AddOptions): Promise<void> {
     manifestPath: manifestResult.path,
     version,
   });
-
-  // Also symlink to skills-compat for Skills.sh
-  symlinkToSkillsCompat(name);
 
   // Summary
   console.log(chalk.green(`\n✅ Installed ${name} v${version}`));
@@ -159,17 +154,3 @@ async function tryTsConfig(dir: string): Promise<{ path: string; manifest: Recor
   return null;
 }
 
-/** Symlink plugin to ~/.agents/skills/ for Skills.sh compatibility */
-function symlinkToSkillsCompat(name: string): void {
-  const skillsPath = join(getSkillsCompatPath(), name);
-  const targetPath = getPluginStorePath(name);
-  try {
-    mkdirSync(getSkillsCompatPath(), { recursive: true });
-    if (existsSync(skillsPath)) {
-      try { unlinkSync(skillsPath); } catch { /* ignore */ }
-    }
-    symlinkSync(targetPath, skillsPath, 'dir');
-  } catch {
-    // Non-fatal — skills compat is best-effort
-  }
-}
