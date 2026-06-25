@@ -38,7 +38,7 @@ The manifest file is located at `.claude-plugin/plugin.json` in the plugin root.
   },
   "homepage": "https://docs.example.com/plugin",
   "repository": "https://github.com/author/plugin",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "keywords": ["keyword1", "keyword2"],
   "defaultEnabled": true,
   "skills": "./custom/skills/",
@@ -565,7 +565,7 @@ my-plugin/
     "name": "Developer",
     "email": "dev@example.com"
   },
-  "license": "MIT"
+  "license": "Apache-2.0"
 }
 ```
 
@@ -604,7 +604,7 @@ enterprise-plugin/
   "displayName": "Enterprise Tools",
   "description": "Enterprise automation tools for Claude Code",
   "version": "1.2.0",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "defaultEnabled": true,
   "author": {
     "name": "Enterprise Dev Team",

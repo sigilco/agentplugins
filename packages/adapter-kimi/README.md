@@ -44,4 +44,4 @@ Install with: `cp -r dist/kimi ~/.kimi/plugins/`
 
 ## License
 
-MIT
+Apache-2.0

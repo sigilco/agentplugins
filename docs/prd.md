@@ -45,7 +45,7 @@ Five operating principles (see [`.agents/plans/2026-06-25-tier1-parity-roadmap.m
 
 1. **Tier-1 parity is the bar.** Same functionality across Claude Code, Codex, OpenCode, Pi Mono. TUI-grade fidelity (overlays, widgets) is the only allowed degradation.
 2. **Codegen first, guided per-harness fallback second.** Where universal codegen can express a capability across all Tier-1, do that. Where a harness lacks the native primitive, check whether all Tier-1 can support it via a custom (escape-hatch) method, and if so guide the author — rather than dropping the feature.
-3. **Keep a compat matrix.** The living [Tier-1 Capability Matrix](../docs-site/reference/compat-matrix.md) records what's universal-codegen, guided-per-harness, and genuinely unsupported. It's the contract for "same functionality, different plumbing."
+3. **Keep a compat matrix.** The living [Tier-1 Capability Matrix](../docs-site/reference/compat-matrix.md) (published at `/reference/compat-matrix`) records what's universal-codegen, guided-per-harness, and genuinely unsupported. It's the contract for "same functionality, different plumbing."
 4. **Lean, no global SDK.** Primitives express intent, not mechanism; each adapter owns its own plumbing. The escape hatch lets power users write native code against each harness's SDK.
 5. **Community plugins are ground-up rewrites on agentplugins**, not mechanical ports. They drive primitive discovery, but every primitive must serve all Tier-1, never one plugin.
 

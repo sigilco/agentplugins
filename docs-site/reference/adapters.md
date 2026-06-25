@@ -4,17 +4,21 @@ An adapter compiles the universal manifest into one target platform's native for
 
 ## Adapter matrix
 
-| Adapter | Output type | Native handlers | Hooks supported |
-|---|---|---|---|
-| `claude` | JSON manifest + `commands.json` | command, http, reference | full |
-| `codex` | JSON manifest | command | subset |
-| `copilot` | JSON manifest | command, http, reference | subset |
-| `gemini` | JSON manifest | command | subset |
-| `kimi` | JSON manifest | command | subset |
-| `opencode` | TypeScript plugin + `opencode.json` | inline (reference) | subset |
-| `pimono` | TypeScript extension + `package.json` | inline (reference) | subset |
+| Adapter | Output type | Native handlers | Hooks supported | `tools[]` | `mcpServers` |
+|---|---|---|---|:---:|:---:|
+| `claude` | JSON manifest + `commands.json` | command, http, reference | full | ⚠️ | ✅ |
+| `codex` | JSON manifest | command | subset | ⚠️ | ✅ |
+| `copilot` | JSON manifest | command, http, reference | subset | ⚠️ | ❌ |
+| `gemini` | JSON manifest | command | subset | ⚠️ | ❌ |
+| `kimi` | JSON manifest | command | subset | ⚠️ | ❌ |
+| `opencode` | TypeScript plugin + `opencode.json` | inline (reference) | subset | ✅ | ✅ |
+| `pimono` | TypeScript extension + `package.json` | inline (reference) | subset | ✅ | ✅ |
+
+⚠️ = WARN emitted; `tools[]` is not natively emitted — use `mcpServers` for Claude/Codex (Tier-1 universal tool path).
 
 Two families: **JSON-emitting** adapters (claude, codex, copilot, gemini, kimi) produce static manifest files the host reads at startup. **Code-emitting** adapters (opencode, pimono) produce real TypeScript modules the host imports and calls.
+
+See the [Tier-1 Capability Matrix](/reference/compat-matrix) for full cross-harness details.
 
 ## JSON-emitting adapters
 

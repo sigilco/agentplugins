@@ -35,7 +35,7 @@
     "plugin",
     "core"
   ],
-  "license": "MIT",
+  "license": "Apache-2.0",
   "dependencies": {
     "zod": "^3.25.76"
   },

@@ -43,4 +43,4 @@ Install with: `gemini extensions install ./dist/gemini`
 
 ## License
 
-MIT
+Apache-2.0

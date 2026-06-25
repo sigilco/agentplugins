@@ -29,16 +29,41 @@ export interface PluginManifest {
   // Features
   skills?: Skill[];
   hooks?: UniversalHooks;
+  commands?: Command[];
+  agents?: AgentDefinition[];
   mcpServers?: Record<string, MCPServerConfig>;
   tools?: ToolDefinition[];
+  /** Named user-configurable options (displayed in UI, stored per-harness). */
   userConfig?: Record<string, UserConfigOption>;
 
   metadata?: Record<string, unknown>;
-  settings?: UserConfigOption[];
 
   // Build configuration
   /** Target platforms to compile for (if omitted, compiles for all) */
   targets?: TargetPlatform[];
+
+  // v1.1 extensions
+  /** Runtime dependencies (npm packages or external binaries) */
+  dependencies?: Dependency[];
+  /** Long-running companion process */
+  sidecar?: Sidecar;
+  /** SHA-256 of the plugin source tarball; verified at install time */
+  integrity?: string;
+}
+
+// ─── v1.1 Dependency & Sidecar Types ───────────────────────────────────────
+
+export type Dependency =
+  | { type: 'npm'; name: string; version?: string }
+  | { type: 'binary'; name: string; required?: boolean };
+
+export interface Sidecar {
+  command: string;
+  args?: string[];
+  env?: Record<string, string>;
+  port?: number;
+  health?: string;
+  restart?: 'always' | 'on-failure' | 'no';
 }
 
 export type TargetPlatform =
@@ -68,6 +93,31 @@ export interface Skill {
   /** Markdown content or path to SKILL.md */
   content?: string;
   /** File path (relative) to SKILL.md */
+  filePath?: string;
+}
+
+// ─── Commands ─────────────────────────────────────────────────────────────────
+
+export interface Command {
+  /** Slash command name (without /) */
+  name: string;
+  description?: string;
+  /** Prompt template injected when the command is invoked */
+  prompt?: string;
+  /** Hint shown in the command picker for expected argument(s) */
+  argumentHint?: string;
+}
+
+// ─── Agents ───────────────────────────────────────────────────────────────────
+
+export interface AgentDefinition {
+  name: string;
+  description?: string;
+  /** System prompt / behaviour spec for this subagent */
+  prompt?: string;
+  /** Explicit tool allow-list (harness-specific names) */
+  tools?: string[];
+  /** Path to a SKILL.md that defines this agent (alternative to prompt) */
   filePath?: string;
 }
 
@@ -211,7 +261,8 @@ export interface HookDefinition {
 export type HookHandler =
   | CommandHookHandler
   | HttpHookHandler
-  | InlineHookHandler;
+  | InlineHookHandler
+  | ReferenceHookHandler;
 
 export interface CommandHookHandler {
   type: 'command';
@@ -235,6 +286,14 @@ export interface InlineHookHandler {
   type: 'inline';
   /** Inline function — will be wrapped for command-based platforms */
   handler: (ctx: HookContext) => Promise<HookResult>;
+}
+
+export interface ReferenceHookHandler {
+  type: 'reference';
+  /** Reference to a named export or file path. Adapters generate a proxy call. */
+  reference: string;
+  /** Optional source file to import the reference from */
+  source?: string;
 }
 
 // ─── Hook Context & Result ────────────────────────────────────────────────────
@@ -306,7 +365,7 @@ export interface PlatformAdapter {
   compile(plugin: PluginManifest): AdapterOutput;
 }
 
-export type HandlerType = 'command' | 'http' | 'inline' | 'file';
+export type HandlerType = 'command' | 'http' | 'inline' | 'reference';
 
 export enum Severity {
   ERROR = 'error',

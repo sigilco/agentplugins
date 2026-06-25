@@ -45,4 +45,4 @@ OpenCode natively executes TypeScript plugin modules, so inline handlers are emi
 
 ## License
 
-MIT
+Apache-2.0

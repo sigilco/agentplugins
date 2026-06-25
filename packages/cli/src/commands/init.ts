@@ -363,8 +363,8 @@ function buildPackageJson(a: ScaffoldAnswers) {
       validate: 'agentplugins validate',
     },
     devDependencies: {
-      '@agentplugins/core': '^0.1.0',
-      '@agentplugins/cli': '^0.1.0',
+      '@agentplugins/core': '^0.2.0',
+      '@agentplugins/cli': '^0.2.0',
       typescript: '^5.5.0',
     },
   };

@@ -1,0 +1,45 @@
+{
+  "name": "@agentplugins/security",
+  "version": "0.3.0",
+  "description": "Security and trust primitives for AgentPlugins: integrity hashing, SSRF-safe fetch, lifecycle script policy, and wrappers for osv-scanner, OpenSSF Scorecard, and npm provenance.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "test": "vitest run"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "agentplugins",
+    "security",
+    "integrity",
+    "ssrf",
+    "supply-chain",
+    "osv",
+    "scorecard"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@agentplugins/schema": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.1.4"
+  }
+}
