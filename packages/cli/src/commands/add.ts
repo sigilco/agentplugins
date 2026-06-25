@@ -20,6 +20,8 @@ import {
 } from '@agentplugins/core';
 import { join } from 'node:path';
 import { existsSync, rmSync, mkdirSync, symlinkSync, unlinkSync } from 'node:fs';
+import { compile } from './build.js';
+import type { PluginManifest } from '@agentplugins/core';
 
 export interface AddOptions {
   source: string;
@@ -66,7 +68,9 @@ export async function add(options: AddOptions): Promise<void> {
     process.exit(1);
   }
 
-  const name = manifestResult.manifest['name'] as string;
+  const rawName = manifestResult.manifest['name'] as string;
+  // Strip npm scope prefix (@scope/name → name) for use as a filesystem-safe plugin identifier
+  const name = rawName.replace(/^@[^/]+\//, '');
   const version = (manifestResult.manifest['version'] as string) || '0.0.0';
 
   console.log(chalk.cyan(`\nPlugin: ${name} v${version}`));
@@ -79,6 +83,28 @@ export async function add(options: AddOptions): Promise<void> {
     console.log(chalk.gray('Install Claude, Codex, or another supported agent to enable symlinking.'));
   } else {
     console.log(chalk.gray(`Detected ${agents.length} agent${agents.length > 1 ? 's' : ''}: ${agents.map((a) => a.displayName).join(', ')}`));
+  }
+
+  // Compile for harnesses that load compiled artifacts (opencode, pimono)
+  const compilableAgents = agents.filter((a) => a.pluginPath);
+  if (compilableAgents.length > 0) {
+    const targets = compilableAgents.map((a) => a.name);
+    console.log(chalk.blue(`\nCompiling for ${targets.join(', ')}...`));
+    const distDir = join(tempDir, '.agentplugins-dist');
+    try {
+      await compile({
+        manifest: manifestResult.manifest as unknown as PluginManifest,
+        targets: targets as any,
+        write: true,
+        outDir: distDir,
+        pluginRoot: tempDir,
+        silent: false,
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.log(chalk.yellow(`\n⚠  Compilation failed: ${msg}`));
+      console.log(chalk.gray('Plugin will be installed without compiled artifacts.'));
+    }
   }
 
   // Install
@@ -98,7 +124,7 @@ export async function add(options: AddOptions): Promise<void> {
   console.log(chalk.gray(`   Store: ${getStorePath()}/${name}`));
 
   if (result.symlinks.length > 0) {
-    console.log(chalk.gray('\nSymlinked to:'));
+    console.log(chalk.gray('\nInstalled to:'));
     for (const s of result.symlinks) {
       console.log(chalk.gray(`   ${s.agentDisplayName}: ${s.linkPath}`));
     }

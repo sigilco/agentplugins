@@ -67,7 +67,10 @@ export {
   updatePlugin,
   symlinkPlugin,
   unlinkPluginSymlink,
+  linkCompiledPlugin,
+  unlinkCompiledPlugin,
   getSymlinks,
+  getPluginDistPath,
   runDoctor,
 } from './store.js';
 export type {
