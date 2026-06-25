@@ -69,6 +69,7 @@ export {
   unlinkPluginSymlink,
   linkCompiledPlugin,
   unlinkCompiledPlugin,
+  linkPluginSkills,
   getSymlinks,
   getPluginDistPath,
   runDoctor,

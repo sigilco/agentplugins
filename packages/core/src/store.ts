@@ -42,6 +42,11 @@ export interface AgentPathEntry {
    * - 'dir': a directory symlink to the whole dist/<target>/ dir (e.g. Pi Mono)
    */
   pluginPathMode?: 'file' | 'dir';
+  /**
+   * Multi-artifact mapping: each entry links files from dist/<target>/<from>/ into <to>/.
+   * When present, overrides the single-file/dir behavior of pluginPath/pluginPathMode.
+   */
+  artifacts?: Array<{ from: string; to: string }>;
 }
 
 export interface PluginMeta {
@@ -80,6 +85,8 @@ export interface DetectedAgent {
   pluginPathExists?: boolean;
   /** How the compiled artifact is linked (mirrors AgentPathEntry.pluginPathMode) */
   pluginPathMode?: 'file' | 'dir';
+  /** Multi-artifact mapping (mirrors AgentPathEntry.artifacts) */
+  artifacts?: Array<{ from: string; to: string }>;
 }
 
 export interface SymlinkInfo {
@@ -137,6 +144,11 @@ export const AGENT_PATHS: readonly AgentPathEntry[] = [
     manifestPath: '~/.config/opencode/config.json',
     pluginPath: '~/.config/opencode/plugins',
     pluginPathMode: 'file',
+    artifacts: [
+      { from: 'plugins', to: '~/.config/opencode/plugins' },
+      { from: 'command', to: '~/.config/opencode/command' },
+      { from: 'agent',   to: '~/.config/opencode/agent' },
+    ],
   },
   {
     name: 'kimi',
@@ -244,6 +256,7 @@ export function detectAgents(): DetectedAgent[] {
         pluginPathExists: existsSync(pluginPath),
         pluginPathMode: entry.pluginPathMode,
       }),
+      ...(entry.artifacts !== undefined && { artifacts: entry.artifacts }),
     };
   });
 }
@@ -479,15 +492,18 @@ export function installPlugin(
   if (opts.symlink !== false) {
     const agents = getDetectedAgents();
     for (const agent of agents) {
-      let info: SymlinkInfo | null = null;
       if (agent.pluginPath) {
-        info = linkCompiledPlugin(opts.name, agent);
+        const infos = linkCompiledPlugin(opts.name, agent);
+        symlinks.push(...infos);
+        if (infos.length > 0) continue;
       }
-      if (!info) {
-        info = symlinkPlugin(opts.name, agent);
-      }
+      // Fallback for non-compiled harnesses: whole-dir link into skillPath
+      const info = symlinkPlugin(opts.name, agent);
       if (info) symlinks.push(info);
     }
+    // Flat per-skill links into skills-compat and all agent skillPaths
+    const skillLinks = linkPluginSkills(opts.name, agents);
+    symlinks.push(...skillLinks);
   }
 
   return { meta, symlinks };
@@ -535,16 +551,19 @@ export function removePlugin(name: string): void {
     throw new Error(`Plugin "${name}" is not installed`);
   }
 
-  // Unlink symlinks / compiled links from all agents
-  for (const agent of detectAgents()) {
+  const allAgents = detectAgents();
+
+  // Unlink compiled links and old whole-dir skill symlinks from all agents
+  for (const agent of allAgents) {
     unlinkCompiledPlugin(name, agent);
     unlinkPluginSymlink(name, agent);
   }
 
-  // Also unlink from skills-compat
+  // Unlink per-skill flat links (new-style) and old-style whole-dir skills-compat link
+  unlinkPluginSkills(name, allAgents);
   const skillsLink = join(getSkillsCompatPath(), name);
-  if (existsSync(skillsLink)) {
-    unlinkSync(skillsLink);
+  if (isSymlink(skillsLink)) {
+    try { unlinkSync(skillsLink); } catch { /* ignore */ }
   }
 
   // Remove from store
@@ -677,19 +696,19 @@ export function updatePlugin(name: string): PluginMeta {
   writeFileSync(getMetaPath(name), JSON.stringify(updatedMeta, null, 2), 'utf-8');
 
   // Refresh symlinks / compiled links
-  for (const agent of getDetectedAgents()) {
+  const agents = getDetectedAgents();
+  for (const agent of agents) {
     unlinkCompiledPlugin(name, agent);
     unlinkPluginSymlink(name, agent);
-    // For harnesses with pluginPath, try compiled link (dist must already exist in store)
-    let linked = false;
     if (agent.pluginPath) {
-      const info = linkCompiledPlugin(name, agent);
-      if (info) linked = true;
+      const infos = linkCompiledPlugin(name, agent);
+      if (infos.length > 0) continue;
     }
-    if (!linked) {
-      symlinkPlugin(name, agent);
-    }
+    symlinkPlugin(name, agent);
   }
+  // Refresh flat per-skill links
+  unlinkPluginSkills(name, agents);
+  linkPluginSkills(name, agents);
 
   return updatedMeta;
 }
@@ -722,15 +741,43 @@ function findTsFile(dir: string, pluginName: string): string | null {
 
 /**
  * Link compiled plugin artifacts from the store's .agentplugins-dist/<target>/
- * into the harness's plugin directory. Returns null if the dist dir doesn't exist
+ * into the harness's plugin directories. Returns [] if the dist dir doesn't exist
  * or the agent doesn't have a pluginPath.
+ *
+ * When agent.artifacts is set (e.g. OpenCode), links each subdir's files into the
+ * corresponding harness dir. Otherwise falls back to single-file or dir mode.
  */
-export function linkCompiledPlugin(pluginName: string, agent: DetectedAgent): SymlinkInfo | null {
-  if (!agent.pluginPath || !agent.pluginPathMode) return null;
+export function linkCompiledPlugin(pluginName: string, agent: DetectedAgent): SymlinkInfo[] {
+  if (!agent.pluginPath || !agent.pluginPathMode) return [];
 
   const targetDir = join(getPluginDistPath(pluginName), agent.name);
-  if (!existsSync(targetDir)) return null;
+  if (!existsSync(targetDir)) return [];
 
+  const results: SymlinkInfo[] = [];
+
+  if (agent.artifacts) {
+    // Multi-artifact mode: link files from each from/ subdir into the corresponding to/ dir
+    for (const artifact of agent.artifacts) {
+      const fromDir = join(targetDir, artifact.from);
+      if (!existsSync(fromDir)) continue;
+      const toDir = expandHome(artifact.to);
+      mkdirSync(toDir, { recursive: true });
+      for (const file of readdirSync(fromDir)) {
+        const srcPath = join(fromDir, file);
+        const linkPath = join(toDir, file);
+        if (existsSync(linkPath) || isSymlink(linkPath)) {
+          try { unlinkSync(linkPath); } catch { rmSync(linkPath, { recursive: true, force: true }); }
+        }
+        try {
+          symlinkSync(srcPath, linkPath, 'file');
+          results.push({ agent: agent.name, agentDisplayName: agent.displayName, linkPath, targetPath: srcPath, valid: existsSync(srcPath) });
+        } catch { /* skip — best-effort */ }
+      }
+    }
+    return results;
+  }
+
+  // Legacy single-file or dir mode (e.g. Pi Mono)
   mkdirSync(agent.pluginPath, { recursive: true });
 
   let linkPath: string;
@@ -739,9 +786,8 @@ export function linkCompiledPlugin(pluginName: string, agent: DetectedAgent): Sy
   if (agent.pluginPathMode === 'file') {
     // Find the .ts file in the dist dir — adapter may use a scoped name as the filename
     const tsFile = findTsFile(targetDir, pluginName);
-    if (!tsFile) return null;
+    if (!tsFile) return [];
     targetPath = join(targetDir, tsFile);
-    // Always link with the sanitized pluginName so the installed path is predictable
     linkPath = join(agent.pluginPath, `${pluginName}.ts`);
   } else {
     targetPath = targetDir;
@@ -749,31 +795,43 @@ export function linkCompiledPlugin(pluginName: string, agent: DetectedAgent): Sy
   }
 
   if (existsSync(linkPath) || isSymlink(linkPath)) {
-    try {
-      unlinkSync(linkPath);
-    } catch {
-      rmSync(linkPath, { recursive: true, force: true });
-    }
+    try { unlinkSync(linkPath); } catch { rmSync(linkPath, { recursive: true, force: true }); }
   }
 
   try {
     symlinkSync(targetPath, linkPath, agent.pluginPathMode === 'dir' ? 'dir' : 'file');
-  } catch {
-    return null;
-  }
+    results.push({ agent: agent.name, agentDisplayName: agent.displayName, linkPath, targetPath, valid: existsSync(targetPath) });
+  } catch { /* skip */ }
 
-  return {
-    agent: agent.name,
-    agentDisplayName: agent.displayName,
-    linkPath,
-    targetPath,
-    valid: existsSync(targetPath),
-  };
+  return results;
 }
 
-/** Remove a compiled plugin's link from an agent's pluginPath */
+/** Remove compiled plugin links from an agent's plugin directories */
 export function unlinkCompiledPlugin(pluginName: string, agent: DetectedAgent): void {
   if (!agent.pluginPath || !agent.pluginPathMode) return;
+
+  if (agent.artifacts) {
+    // Remove legacy-named symlink (e.g. pluginName.ts) that may exist from before artifacts mode
+    const legacyLink = join(expandHome(agent.pluginPath), `${pluginName}.ts`);
+    if (isSymlink(legacyLink)) {
+      try { unlinkSync(legacyLink); } catch { /* ignore */ }
+    }
+    const targetDir = join(getPluginDistPath(pluginName), agent.name);
+    for (const artifact of agent.artifacts) {
+      const fromDir = join(targetDir, artifact.from);
+      if (!existsSync(fromDir)) continue;
+      const toDir = expandHome(artifact.to);
+      for (const file of readdirSync(fromDir)) {
+        const linkPath = join(toDir, file);
+        if (isSymlink(linkPath)) {
+          try { unlinkSync(linkPath); } catch { /* ignore */ }
+        }
+      }
+    }
+    return;
+  }
+
+  // Legacy mode
   const linkPath = agent.pluginPathMode === 'file'
     ? join(agent.pluginPath, `${pluginName}.ts`)
     : join(agent.pluginPath, pluginName);
@@ -835,49 +893,151 @@ export function unlinkPluginSymlink(pluginName: string, agent: DetectedAgent): v
   }
 }
 
-/** Get all symlinks for a plugin across agents (both skill-path and compiled-plugin links) */
+/**
+ * Create per-skill flat symlinks for a plugin into:
+ * - ~/.agents/skills/<skill-name>  (Skills.sh compat)
+ * - <agent.skillPath>/<skill-name>  (for each detected agent)
+ *
+ * Scans only top-level skills/ subdirs (one level deep) to avoid nested dupes from plugins like
+ * caveman-installer that bundle sub-plugins under plugins/ — which would cause Pi skill collisions
+ * if the whole plugin dir were symlinked.
+ */
+export function linkPluginSkills(pluginName: string, agents: DetectedAgent[]): SymlinkInfo[] {
+  const pluginDir = getPluginStorePath(pluginName);
+  const skillsDir = join(pluginDir, 'skills');
+  if (!existsSync(skillsDir)) return [];
+
+  const results: SymlinkInfo[] = [];
+  const skillsCompatPath = getSkillsCompatPath();
+  mkdirSync(skillsCompatPath, { recursive: true });
+
+  for (const skillDir of readdirSync(skillsDir)) {
+    const skillDirPath = join(skillsDir, skillDir);
+    if (!lstatSync(skillDirPath).isDirectory()) continue;
+    const skillMdPath = join(skillDirPath, 'SKILL.md');
+    if (!existsSync(skillMdPath)) continue;
+
+    // Read frontmatter name; fall back to dir name
+    let skillName = skillDir;
+    try {
+      const content = readFileSync(skillMdPath, 'utf-8');
+      const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
+      if (fmMatch) {
+        const nameMatch = fmMatch[1].match(/^name:\s*(.+)$/m);
+        if (nameMatch) skillName = nameMatch[1].trim();
+      }
+    } catch { /* use dir name */ }
+
+    // Skills-compat link
+    const compatLink = join(skillsCompatPath, skillName);
+    if (existsSync(compatLink) || isSymlink(compatLink)) {
+      try { unlinkSync(compatLink); } catch { rmSync(compatLink, { recursive: true, force: true }); }
+    }
+    try {
+      symlinkSync(skillDirPath, compatLink, 'dir');
+      results.push({ agent: 'skills-compat', agentDisplayName: 'Skills.sh compat', linkPath: compatLink, targetPath: skillDirPath, valid: true });
+    } catch { /* best-effort */ }
+
+    // Per-agent skillPath links (skip compiled-artifact harnesses — they have their own skill discovery)
+    for (const agent of agents) {
+      if (!agent.skillPathExists && !agent.binaryFound) continue;
+      mkdirSync(agent.skillPath, { recursive: true });
+      const agentSkillLink = join(agent.skillPath, skillName);
+      if (existsSync(agentSkillLink) || isSymlink(agentSkillLink)) {
+        try { unlinkSync(agentSkillLink); } catch { rmSync(agentSkillLink, { recursive: true, force: true }); }
+      }
+      try {
+        symlinkSync(skillDirPath, agentSkillLink, 'dir');
+        results.push({ agent: agent.name, agentDisplayName: agent.displayName, linkPath: agentSkillLink, targetPath: skillDirPath, valid: true });
+      } catch { /* best-effort */ }
+    }
+  }
+
+  return results;
+}
+
+/** Remove per-skill symlinks for a plugin from skills-compat and all agent skillPaths */
+function unlinkPluginSkills(pluginName: string, agents: DetectedAgent[]): void {
+  const skillsDir = join(getPluginStorePath(pluginName), 'skills');
+  if (!existsSync(skillsDir)) return;
+
+  const skillsCompatPath = getSkillsCompatPath();
+
+  for (const skillDir of readdirSync(skillsDir)) {
+    const skillDirPath = join(skillsDir, skillDir);
+    if (!lstatSync(skillDirPath).isDirectory()) continue;
+    const skillMdPath = join(skillDirPath, 'SKILL.md');
+    if (!existsSync(skillMdPath)) continue;
+
+    let skillName = skillDir;
+    try {
+      const content = readFileSync(skillMdPath, 'utf-8');
+      const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
+      if (fmMatch) {
+        const nameMatch = fmMatch[1].match(/^name:\s*(.+)$/m);
+        if (nameMatch) skillName = nameMatch[1].trim();
+      }
+    } catch { /* use dir name */ }
+
+    const compatLink = join(skillsCompatPath, skillName);
+    if (isSymlink(compatLink)) {
+      try { unlinkSync(compatLink); } catch { /* ignore */ }
+    }
+
+    for (const agent of agents) {
+      const agentSkillLink = join(agent.skillPath, skillName);
+      if (isSymlink(agentSkillLink)) {
+        try { unlinkSync(agentSkillLink); } catch { /* ignore */ }
+      }
+    }
+  }
+}
+
+/** Get all symlinks for a plugin across agents (compiled artifact links + skill-path links) */
 export function getSymlinks(pluginName: string, agents?: DetectedAgent[]): SymlinkInfo[] {
   const detectedAgents = agents ?? detectAgents();
   const results: SymlinkInfo[] = [];
 
   for (const agent of detectedAgents) {
-    // Check compiled plugin link first (for harnesses with pluginPath)
     if (agent.pluginPath && agent.pluginPathMode) {
-      const compiledLinkPath = agent.pluginPathMode === 'file'
-        ? join(agent.pluginPath, `${pluginName}.ts`)
-        : join(agent.pluginPath, pluginName);
-      if (isSymlink(compiledLinkPath)) {
-        const targetPath = readlinkSync(compiledLinkPath);
-        results.push({
-          agent: agent.name,
-          agentDisplayName: agent.displayName,
-          linkPath: compiledLinkPath,
-          targetPath,
-          valid: existsSync(targetPath),
-        });
-        continue;
+      if (agent.artifacts) {
+        // Multi-artifact mode: report each linked artifact file
+        const targetDir = join(getPluginDistPath(pluginName), agent.name);
+        let foundAny = false;
+        for (const artifact of agent.artifacts) {
+          const fromDir = join(targetDir, artifact.from);
+          if (!existsSync(fromDir)) continue;
+          const toDir = expandHome(artifact.to);
+          for (const file of readdirSync(fromDir)) {
+            const linkPath = join(toDir, file);
+            if (isSymlink(linkPath)) {
+              const targetPath = readlinkSync(linkPath);
+              results.push({ agent: agent.name, agentDisplayName: agent.displayName, linkPath, targetPath, valid: existsSync(targetPath) });
+              foundAny = true;
+            }
+          }
+        }
+        if (foundAny) continue;
+      } else {
+        // Legacy single-file or dir mode
+        const compiledLinkPath = agent.pluginPathMode === 'file'
+          ? join(agent.pluginPath, `${pluginName}.ts`)
+          : join(agent.pluginPath, pluginName);
+        if (isSymlink(compiledLinkPath)) {
+          const targetPath = readlinkSync(compiledLinkPath);
+          results.push({ agent: agent.name, agentDisplayName: agent.displayName, linkPath: compiledLinkPath, targetPath, valid: existsSync(targetPath) });
+          continue;
+        }
       }
     }
 
-    // Fall back to skill-path symlink
+    // Skill-path symlink (whole-dir fallback for non-compiled harnesses)
     const linkPath = join(agent.skillPath, pluginName);
     if (isSymlink(linkPath)) {
       const targetPath = readlinkSync(linkPath);
-      results.push({
-        agent: agent.name,
-        agentDisplayName: agent.displayName,
-        linkPath,
-        targetPath,
-        valid: existsSync(targetPath),
-      });
+      results.push({ agent: agent.name, agentDisplayName: agent.displayName, linkPath, targetPath, valid: existsSync(targetPath) });
     } else if (existsSync(linkPath) && lstatSync(linkPath).isDirectory()) {
-      results.push({
-        agent: agent.name,
-        agentDisplayName: agent.displayName,
-        linkPath,
-        targetPath: linkPath,
-        valid: true,
-      });
+      results.push({ agent: agent.name, agentDisplayName: agent.displayName, linkPath, targetPath: linkPath, valid: true });
     }
   }
 

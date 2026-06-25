@@ -13,10 +13,13 @@ import {
 // ─── AGENT_PATHS shape ────────────────────────────────────────────────────────
 
 describe('AGENT_PATHS', () => {
-  it('has pluginPath and pluginPathMode for opencode', () => {
+  it('has pluginPath, pluginPathMode, and artifacts for opencode', () => {
     const opencode = AGENT_PATHS.find((e) => e.name === 'opencode');
     expect(opencode?.pluginPath).toBe('~/.config/opencode/plugins');
     expect(opencode?.pluginPathMode).toBe('file');
+    expect(opencode?.artifacts).toBeDefined();
+    expect(opencode?.artifacts?.some((a) => a.from === 'plugins')).toBe(true);
+    expect(opencode?.artifacts?.some((a) => a.from === 'command')).toBe(true);
   });
 
   it('has pluginPath and pluginPathMode for pimono', () => {
@@ -69,38 +72,27 @@ describe('linkCompiledPlugin (file mode — opencode)', () => {
     rmSync(tmpRoot, { recursive: true, force: true });
   });
 
-  it('creates a file symlink into pluginPath', () => {
+  it('returns empty array when dist dir does not exist at expected path', () => {
     const pluginPath = join(tmpRoot, 'opencode-plugins');
     mkdirSync(pluginPath, { recursive: true });
 
-    const agent = makeAgent({ pluginPath, pluginPathMode: 'file' });
-    // Patch getPluginDistPath by controlling the distDir through a real store structure
-    // We need to override the store path; instead use a mock agent pointing to our tmpRoot
-    // To avoid patching the module, we call linkCompiledPlugin directly with an agent
-    // that has pluginPath set, but we need the store path to match our tmpRoot.
-    // Since getPluginDistPath reads from ~/.agents/plugins, we create a fake store.
-    //
-    // Simplest approach: patch the env via process.env.HOME (affects homedir()).
-    // Easier: just test that the function returns null when dist doesn't exist at expected path.
-    // For a white-box test we verify the path logic using actual fs operations.
-
-    // linkCompiledPlugin calls getPluginDistPath(pluginName) which is ~/.agents/plugins/<name>/.agentplugins-dist
-    // To test end-to-end, we'd need to control HOME. Instead, test the null-when-no-dist path.
+    // linkCompiledPlugin uses getPluginDistPath(pluginName) = ~/.agents/plugins/<name>/.agentplugins-dist
+    // For a nonexistent plugin the dist dir won't exist → empty array
     const agentNoDist = makeAgent({ pluginPath, pluginPathMode: 'file' });
     const result = linkCompiledPlugin('nonexistent-plugin', agentNoDist);
-    expect(result).toBeNull();
+    expect(result).toEqual([]);
   });
 
-  it('returns null when agent has no pluginPath', () => {
+  it('returns empty array when agent has no pluginPath', () => {
     const agent = makeAgent({ pluginPath: undefined, pluginPathMode: undefined });
     const result = linkCompiledPlugin(pluginName, agent);
-    expect(result).toBeNull();
+    expect(result).toEqual([]);
   });
 
-  it('returns null when agent has pluginPath but no pluginPathMode', () => {
+  it('returns empty array when agent has pluginPath but no pluginPathMode', () => {
     const agent = makeAgent({ pluginPath: '/some/path', pluginPathMode: undefined });
     const result = linkCompiledPlugin(pluginName, agent);
-    expect(result).toBeNull();
+    expect(result).toEqual([]);
   });
 });
 
