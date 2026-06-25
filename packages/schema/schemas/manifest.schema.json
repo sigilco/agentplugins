@@ -166,6 +166,21 @@
         "restart": { "enum": ["always", "on-failure", "no"], "default": "no" }
       }
     },
+    "nativeEntry": {
+      "type": "object",
+      "description": "Escape hatch: supply a hand-written native file for a code-emitting adapter. When set, the adapter copies the file verbatim into dist/<target>/ instead of running codegen. Paths are relative to the plugin root.",
+      "additionalProperties": false,
+      "properties": {
+        "pimono": {
+          "type": "string",
+          "description": "Relative path to a TS file loaded verbatim by the pimono adapter"
+        },
+        "opencode": {
+          "type": "string",
+          "description": "Relative path to a TS file loaded verbatim by the opencode adapter"
+        }
+      }
+    },
     "integrity": {
       "type": "string",
       "pattern": "^sha256:[a-f0-9]{64}$",
