@@ -34,6 +34,12 @@
     "plugin"
   ],
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sigilco/agentplugins.git",
+    "directory": "packages/schema"
+  },
+  "homepage": "https://agentplugins.pages.dev/",
   "dependencies": {
     "ajv": "^8.17.1"
   },

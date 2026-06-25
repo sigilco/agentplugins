@@ -36,6 +36,12 @@
     "model-context-protocol"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sigilco/agentplugins.git",
+    "directory": "packages/migrate"
+  },
+  "homepage": "https://agentplugins.pages.dev/",
   "dependencies": {
     "@agentplugins/core": "workspace:*",
     "@agentplugins/ingest": "workspace:*",

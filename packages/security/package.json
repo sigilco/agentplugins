@@ -34,6 +34,12 @@
     "scorecard"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sigilco/agentplugins.git",
+    "directory": "packages/security"
+  },
+  "homepage": "https://agentplugins.pages.dev/",
   "dependencies": {
     "@agentplugins/schema": "workspace:*"
   },

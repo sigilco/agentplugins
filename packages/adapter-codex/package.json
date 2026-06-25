@@ -43,6 +43,7 @@
     "url": "https://github.com/sigilco/agentplugins.git",
     "directory": "packages/adapter-codex"
   },
+  "homepage": "https://agentplugins.pages.dev/",
   "keywords": [
     "agentplugins",
     "codex",

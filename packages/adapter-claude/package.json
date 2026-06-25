@@ -32,5 +32,11 @@
   "publishConfig": {
     "access": "public"
   },
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sigilco/agentplugins.git",
+    "directory": "packages/adapter-claude"
+  },
+  "homepage": "https://agentplugins.pages.dev/"
 }
