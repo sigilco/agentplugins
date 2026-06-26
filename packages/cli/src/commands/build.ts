@@ -14,6 +14,7 @@ import {
   type TargetPlatform,
   type PluginManifest,
 } from '@agentplugins/core';
+import { sanitizeJoin } from '@agentplugins/compile';
 import type { LoadedConfig } from '../config.js';
 
 // ─── Compile (extracted for reuse by preview) ──────────────────────────────
@@ -116,9 +117,10 @@ export async function compile(options: CompileOptions): Promise<CompileResult[]>
           await writeFile(filePath, file.content, 'utf-8');
         }
         if (output.nativeCopies && pluginRoot) {
+          const resolvedRoot = resolve(pluginRoot);
           for (const copy of output.nativeCopies) {
-            const srcPath = join(resolve(pluginRoot), copy.from);
-            const dstPath = join(targetDir, copy.to);
+            const srcPath = sanitizeJoin(resolvedRoot, copy.from);
+            const dstPath = sanitizeJoin(targetDir, copy.to);
             await mkdir(resolve(dstPath, '..'), { recursive: true });
             const content = await readFile(srcPath, 'utf-8');
             await writeFile(dstPath, content, 'utf-8');
