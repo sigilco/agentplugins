@@ -14,7 +14,7 @@ import {
   type TargetPlatform,
   type PluginManifest,
 } from '@agentplugins/core';
-import { sanitizeJoin } from '@agentplugins/compile';
+import { sanitizeJoin, lint, type LintIssue } from '@agentplugins/compile';
 import type { LoadedConfig } from '../config.js';
 
 // ─── Compile (extracted for reuse by preview) ──────────────────────────────
@@ -183,6 +183,16 @@ export async function build(options: BuildOptions): Promise<void> {
     throw new Error('Universal validation failed. Fix errors before building.');
   }
 
+  // Lint
+  console.log(chalk.blue('🔍 Running lint...'));
+  const inlineSources = await collectInlineSources(manifest, config.root);
+  const lintIssues = lint({ manifest, inlineHandlerSource: inlineSources });
+  printLintIssues(lintIssues);
+  const lintErrors = lintIssues.filter(i => i.severity === 'error');
+  if (options.strict && lintErrors.length > 0) {
+    throw new Error(`Strict mode: ${lintErrors.length} lint error(s) found.`);
+  }
+
   // Compile + write
   const results = await compile({
     manifest,
@@ -211,6 +221,18 @@ export async function build(options: BuildOptions): Promise<void> {
   console.log();
 }
 
+function printLintIssues(issues: LintIssue[]): void {
+  for (const issue of issues) {
+    const color = issue.severity === 'error' ? chalk.red : chalk.yellow;
+    const icon = issue.severity === 'error' ? '✗' : '⚠';
+    const field = issue.field ? chalk.gray(`[${issue.field}] `) : '';
+    console.log(color(`   ${icon} ${field}${issue.message}`));
+    if (issue.suggestion) {
+      console.log(chalk.cyan(`     → ${issue.suggestion}`));
+    }
+  }
+}
+
 function printIssues(issues: Array<{ severity: string; field?: string; message: string; suggestion?: string }>): void {
   for (const issue of issues) {
     const color = issue.severity === 'error' ? chalk.red : issue.severity === 'warning' ? chalk.yellow : chalk.gray;
@@ -234,4 +256,26 @@ function getInstallCommand(target: string, pluginName: string): string {
     pimono: `cp -r dist/pimono ~/.pi/agent/extensions/`,
   };
   return commands[target] || `See ${target} documentation`;
+}
+
+async function collectInlineSources(manifest: PluginManifest, pluginRoot: string): Promise<string[]> {
+  const sources: string[] = [];
+  if (!manifest.hooks) return sources;
+  for (const def of Object.values(manifest.hooks)) {
+    if (!def) continue;
+    const handler = def.handler as { type: string; code?: string; source?: string };
+    if (handler.type === 'inline') {
+      if (handler.code) {
+        sources.push(handler.code);
+      } else if (handler.source) {
+        try {
+          const content = await readFile(sanitizeJoin(resolve(pluginRoot), handler.source), 'utf-8');
+          sources.push(content);
+        } catch {
+          // skip unreadable sources
+        }
+      }
+    }
+  }
+  return sources;
 }

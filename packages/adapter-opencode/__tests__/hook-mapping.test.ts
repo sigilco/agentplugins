@@ -297,3 +297,23 @@ describe('Hook Code Generation Integration', () => {
     expect(args).toBe('input, output');
   });
 });
+
+// ─── continueWith iteration cap ────────────────────────────────────────────
+
+describe('continueWith iteration cap', () => {
+  const createHookDef = (handler: (ctx: unknown) => Promise<unknown>): HookDefinition => ({
+    handler: { type: 'inline', handler },
+  });
+
+  it('emits __continueWithCount counter and cap value 20 in stop registration', () => {
+    const registrations = [
+      { hook: 'stop' as UniversalHookName, def: createHookDef(async () => ({})) },
+    ];
+
+    const result = buildEventHookBlock(registrations);
+
+    expect(result).toContain('__continueWithCount');
+    expect(result).toContain('> 20');
+    expect(result).toContain('continueWith: undefined');
+  });
+});

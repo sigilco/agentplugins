@@ -503,6 +503,9 @@ function generateEventRegistration(
       lines.push(`  })(ctx);`);
     }
     lines.push(`  if (__result?.continueWith) {`);
+    lines.push(`    if (++__continueWithCount > __MAX_CONTINUE_WITH) {`);
+    lines.push(`      return { ...__result, continueWith: undefined };`);
+    lines.push(`    }`);
     lines.push(`    await pi.sendUserMessage(__result.continueWith);`);
     lines.push(`  }`);
     lines.push(`  return __result;`);
@@ -877,6 +880,9 @@ function compilePlugin(plugin: PluginManifest): AdapterOutput {
   // ── Hooks ──
   if (plugin.hooks && Object.keys(plugin.hooks).length > 0) {
     tsLines.push(`  /* ── Lifecycle Hooks ── */`);
+    // ponytail: per-session cap to prevent runaway continueWith loops; expose via manifest field if tunability needed
+    tsLines.push(`  let __continueWithCount = 0;`);
+    tsLines.push(`  const __MAX_CONTINUE_WITH = 20;`);
     for (const [hookName, hookDef] of Object.entries(plugin.hooks)) {
       const event = HOOK_TO_EVENT[hookName as UniversalHookName];
       if (!event) {

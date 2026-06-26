@@ -47,6 +47,12 @@ export function buildEventHookBlock(
 ): string {
   const branches: string[] = [];
 
+  // ponytail: per-session cap to prevent runaway continueWith loops; expose via manifest field if tunability needed
+  const hasStop = registrations.some(r => r.hook === 'stop');
+  const preamble = hasStop
+    ? `      let __continueWithCount = 0;\n`
+    : '';
+
   for (const reg of registrations) {
     const condition = EVENT_TYPE_CONDITIONS[reg.hook];
     if (!condition) {
@@ -62,6 +68,9 @@ export function buildEventHookBlock(
         `${handlerBody}\n` +
         `        })();\n` +
         `        if (__stopResult?.continueWith) {\n` +
+        `          if (++__continueWithCount > 20) {\n` +
+        `            return { ...__stopResult, continueWith: undefined };\n` +
+        `          }\n` +
         `          await ctx.session?.sendMessage?.(__stopResult.continueWith);\n` +
         `        }\n` +
         `        return __stopResult;\n` +
@@ -72,7 +81,7 @@ export function buildEventHookBlock(
     }
   }
 
-  return branches.join('\n');
+  return preamble + branches.join('\n');
 }
 
 // ─── buildHookArgs ────────────────────────────────────────────────────────────
