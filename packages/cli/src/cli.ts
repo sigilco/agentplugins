@@ -23,6 +23,7 @@
 
 import { cac } from 'cac';
 import chalk from 'chalk';
+import pkg from '../package.json' with { type: 'json' };
 import { build } from './commands/build.js';
 import { validate } from './commands/validate.js';
 import { init } from './commands/init.js';
@@ -247,6 +248,6 @@ cli
   });
 
 cli.help();
-cli.version('0.2.0');
+cli.version(pkg.version);
 
 cli.parse();
