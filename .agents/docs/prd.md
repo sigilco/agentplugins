@@ -45,7 +45,7 @@ Five operating principles:
 
 1. **Tier-1 parity is the bar.** Same functionality across Claude Code, Codex, OpenCode, Pi Mono. TUI-grade fidelity (overlays, widgets) is the only allowed degradation.
 2. **Codegen first, guided per-harness fallback second.** Where universal codegen can express a capability across all Tier-1, do that. Where a harness lacks the native primitive, check whether all Tier-1 can support it via a custom (escape-hatch) method, and if so guide the author — rather than dropping the feature.
-3. **Keep a compat matrix.** The living [Tier-1 Capability Matrix](../docs-site/reference/compat-matrix.md) (published at `/reference/compat-matrix`) records what's universal-codegen, guided-per-harness, and genuinely unsupported. It's the contract for "same functionality, different plumbing."
+3. **Keep a compat matrix.** The living [Tier-1 Capability Matrix](../../docs-site/reference/compat-matrix.md) (published at `/reference/compat-matrix`) records what's universal-codegen, guided-per-harness, and genuinely unsupported. It's the contract for "same functionality, different plumbing."
 4. **Lean, no global SDK.** Primitives express intent, not mechanism; each adapter owns its own plumbing. The escape hatch lets power users write native code against each harness's SDK.
 5. **Multi-platform by default, platform-specific code allowed.** AgentPlugins gives plugin authors the foundations to distribute their plugin across all Tier-1 harnesses (Claude Code, Codex, OpenCode, Pi Mono). Authors are not forced to support every harness — they may target a single harness or ship harness-specific behavior (e.g., custom logging for one harness) when another harness lacks a needed primitive. The end goal is a distribution platform and utilities so authors can make a plugin usable in other harnesses without porting or rewriting the implementation. Think React Native or Rust: multi-platform by default, platform-specific code when you need it.
 
@@ -70,7 +70,7 @@ _Draft — this section reflects the current product direction and will be final
 - **Distribution-first CLI** — `agentplugins add <github-url>` installs a plugin once; the universal store (`~/.agents/plugins/<name>/`) fans out via symlinks to every detected agent harness.
 - **Skills.sh compatibility** — plugins exposing `SKILL.md` are first-class citizens; our CLI reads both AgentPlugins and Skills.sh layouts.
 - **JSON Schema** — `@agentplugins/schema` package + hosted JSON Schema (`agentplugins.dev/schema/v1.json`) for editor autocomplete and self-documenting manifests.
-- **Tier-1 parity primitives** — every shipped capability works across Claude Code, Codex, OpenCode, and Pi Mono. The [Tier-1 Capability Matrix](../docs-site/reference/compat-matrix.md) is the living contract.
+- **Tier-1 parity primitives** — every shipped capability works across Claude Code, Codex, OpenCode, and Pi Mono. The [Tier-1 Capability Matrix](../../docs-site/reference/compat-matrix.md) is the living contract.
 - **Security & audit guardrails** — `agentplugins audit` scores supply-chain risk (OSV, Scorecard, npm provenance); safe-fetch SSRF guard; lifecycle script policy.
 - **Public launch** — registry, docs site, examples, and a stable v1 manifest format.
 
@@ -83,7 +83,7 @@ _Draft — this section reflects the current product direction and will be final
 - [ ] All hooks supported by at least one adapter; explicit errors for unsupported hooks
 
 ### Quality
-- [ ] Universal manifest is simple: <100 lines YAML for typical plugin
+- [ ] Universal manifest is simple: <100 lines YAML for typical plugin>
 - [ ] Generated code is readable and matches platform conventions
 - [ ] Comprehensive test coverage: contract tests, E2E verification, fixture validation
 - [ ] Zero runtime errors in example-logger across all platforms
