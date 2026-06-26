@@ -27,16 +27,10 @@ npx @agentplugins/cli@latest --version
 
 ## Homebrew
 
-Install from the_sigilco tap:
+Install from the [sigilco/homebrew-tap-agentplugins](https://github.com/sigilco/homebrew-tap-agentplugins) tap:
 
 ```bash
-brew install sigilco/tap/agentplugins
-```
-
-Or install directly from the formula URL:
-
-```bash
-brew install https://raw.githubusercontent.com/sigilco/agentplugins/main/homebrew/Formula/agentplugins.rb
+brew install sigilco/tap-agentplugins/agentplugins
 ```
 
 Upgrade with `brew upgrade agentplugins`.
@@ -69,7 +63,7 @@ Whichever method you chose, confirm the binary is on your `PATH`:
 
 ```bash
 agentplugins --version
-# agentplugins 0.2.0
+# agentplugins/x.y.z
 ```
 
 Then run `doctor` to verify AgentPlugins can detect every installed agent harness on your machine:
@@ -81,7 +75,7 @@ agentplugins doctor
 ```text
 AgentPlugins doctor
 ────────────────────────────────────────
-CLI version      0.2.0
+CLI version      x.y.z
 Store path       ~/.agents/plugins       ✓
 Skills path      ~/.agents/skills        ✓
 

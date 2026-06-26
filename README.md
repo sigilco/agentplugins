@@ -19,7 +19,7 @@ npx @agentplugins/cli add user/awesome-plugin
 bunx @agentplugins/cli add user/awesome-plugin
 
 # 2. Homebrew
-brew install sigilco/tap/agentplugins
+brew install sigilco/tap-agentplugins/agentplugins
 
 # 3. curl (macOS + Linux)
 curl -fsSL https://raw.githubusercontent.com/sigilco/agentplugins/main/scripts/install.sh | bash

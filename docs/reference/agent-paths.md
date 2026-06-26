@@ -38,7 +38,7 @@ Seven agent harnesses are supported:
 ```text
 AgentPlugins doctor
 ────────────────────────────────────────
-CLI version      0.2.0
+CLI version      x.y.z
 Store path       ~/.agents/plugins       ✓
 Skills path      ~/.agents/skills        ✓
 
