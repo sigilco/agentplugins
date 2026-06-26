@@ -8,6 +8,7 @@
 
 import { homedir } from 'node:os';
 import { join, basename } from 'node:path';
+import { sanitizeName } from '@agentplugins/compile';
 import {
   existsSync,
   readFileSync,
@@ -534,7 +535,8 @@ export function addPluginFromSource(source: string): InstallResult | null {
     return null;
   }
 
-  const name = manifestResult.manifest['name'] as string;
+  const rawName = manifestResult.manifest['name'];
+  const name = sanitizeName(rawName);
   const version = (manifestResult.manifest['version'] as string) || '0.0.0';
 
   return installPlugin(tempDir, {
