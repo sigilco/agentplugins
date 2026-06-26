@@ -115,8 +115,6 @@ function normalizeContext(ctx, eventName) {
     agentId: ctx.agent_id ?? ctx.agentId,
     agentType: ctx.agent_type ?? ctx.agentType ?? ctx.agent,
     turnId: ctx.turn_id ?? ctx.turnId,
-    agentCommand: ctx.agent_command ?? ctx.agentCommand,
-    agentCwd: ctx.agent_cwd ?? ctx.agentCwd,
     // Pass through any extra fields
     ...ctx,
   };

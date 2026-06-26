@@ -189,6 +189,30 @@ agents: [
 ],
 ```
 
+## Sidecar
+
+::: warning EXPERIMENTAL
+`sidecar` is experimental. It is accepted by the schema and validated, but **no adapter currently starts or stops sidecar processes**. Do not rely on it for production plugins.
+:::
+
+```typescript
+sidecar: {
+  command: 'node server.js',
+  args: ['--port', '3000'],
+  restart: 'on-failure',
+  health: 'http://localhost:3000/health',
+},
+```
+
+| Field | Type | Notes |
+|---|---|---|
+| `command` | `string` | Executable to run. Required. |
+| `args` | `string[]` | Arguments passed to the command. |
+| `env` | `Record<string, string>` | Environment variables. |
+| `port` | `number` | Expected port for health checks. |
+| `health` | `string` | Health check URL. |
+| `restart` | `'always' \| 'on-failure' \| 'no'` | Restart policy. |
+
 ## Rules
 
 The `rules` array declares behavioral rules — allow/deny/warn patterns applied to tool calls.

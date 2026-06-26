@@ -177,8 +177,6 @@ export const HookContextSchema = z.object({
   agentId: z.string().optional(),
   agentType: z.string().optional(),
   turnId: z.string().optional(),
-  agentCommand: z.string().optional(),
-  agentCwd: z.string().optional(),
 });
 export type HookContext = z.infer<typeof HookContextSchema>;
 
