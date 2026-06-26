@@ -28,7 +28,7 @@
     "vitest": "^1.0.0"
   },
   "peerDependencies": {
-    "@agentplugins/core": "^0.3.0"
+    "@agentplugins/core": "^0.4.0"
   },
   "files": [
     "dist",

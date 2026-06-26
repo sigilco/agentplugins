@@ -27,8 +27,8 @@
 ### Patch Changes
 
 - Updated dependencies
-  - @agentplugins/compile@0.5.0
-  - @agentplugins/contract@0.5.0
+  - @agentplugins/compile@0.4.0
+  - @agentplugins/contract@0.4.0
 
 ## 0.3.0
 
