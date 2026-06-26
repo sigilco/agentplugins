@@ -255,7 +255,7 @@ describe('buildHandlerInvocation', () => {
 
     const result = buildHandlerInvocation(handler, 'notification');
 
-    expect(result).toContain('// [notification] HTTP handler (wrapped via fetch)');
+    expect(result).toContain('// [notification] HTTP handler');
     expect(result).toContain('fetch("https://example.com/hook"');
     expect(result).toContain('method: "POST"');
     expect(result).toContain('body: JSON.stringify(ctx)');

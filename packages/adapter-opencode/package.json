@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@agentplugins/core": "workspace:*",
+    "@agentplugins/compile": "workspace:*",
     "zod": "^3.22.0"
   },
   "devDependencies": {

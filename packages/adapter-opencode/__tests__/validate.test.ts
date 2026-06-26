@@ -244,7 +244,7 @@ describe("validate() — OpenCode adapter", () => {
         expect.objectContaining({
           severity: Severity.INFO,
           field: "hooks.sessionStart",
-          message: expect.stringContaining("Bun.$"),
+          message: expect.stringContaining("execSync"),
         })
       );
     });
@@ -264,7 +264,7 @@ describe("validate() — OpenCode adapter", () => {
         expect.objectContaining({
           severity: Severity.INFO,
           field: "hooks.sessionStart",
-          message: expect.stringContaining("Bun.$"),
+          message: expect.stringContaining("execSync"),
         })
       );
     });
