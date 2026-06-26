@@ -19,6 +19,7 @@ import {
 import { join } from 'node:path';
 import { existsSync, rmSync } from 'node:fs';
 import { compile } from './build.js';
+import { verifyIntegrity, evaluateManifestScripts } from '@agentplugins/security';
 import type { PluginManifest } from '@agentplugins/core';
 
 export interface AddOptions {
@@ -73,6 +74,30 @@ export async function add(options: AddOptions): Promise<void> {
 
   console.log(chalk.cyan(`\nPlugin: ${name} v${version}`));
   console.log(chalk.gray(`Manifest: ${manifestResult.path} (${manifestResult.type})`));
+
+  // B17: verify pinned integrity (opt-in — only if manifest has integrity field)
+  const integrity = manifestResult.manifest['integrity'] as string | undefined;
+  if (integrity && integrity.length > 0) {
+    const { match, reason } = verifyIntegrity(tempDir, integrity);
+    if (!match) {
+      console.error(chalk.red(`\nIntegrity check failed: ${reason}`));
+      rmSync(tempDir, { recursive: true, force: true });
+      process.exit(1);
+    }
+  }
+
+  // B18: evaluate lifecycle script policy
+  const scriptCheck = evaluateManifestScripts(manifestResult.manifest, name);
+  if (!scriptCheck.ok) {
+    for (const issue of scriptCheck.issues) {
+      const tag = issue.decision === 'deny' ? chalk.red('[error]') : chalk.yellow('[review]');
+      console.error(`  ${tag} ${issue.dependency} (${issue.phase}): ${issue.command}`);
+      for (const r of issue.reasons) console.error(chalk.gray(`         ${r}`));
+    }
+    console.error(chalk.red('\nRefusing to install: lifecycle script policy violation'));
+    rmSync(tempDir, { recursive: true, force: true });
+    process.exit(1);
+  }
 
   // Detect agents
   const agents = getDetectedAgents();

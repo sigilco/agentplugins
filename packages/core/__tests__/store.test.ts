@@ -10,6 +10,7 @@ import {
   unlinkAll,
   recordLinkError,
   flushLinkErrors,
+  validateCloneUrl,
   type DetectedAgent,
 } from '../dist/store.js';
 
@@ -230,5 +231,31 @@ describe('link error collection', () => {
     // Restore — the actual exitCode flip happens in installPlugin/updatePlugin,
     // which we can't easily unit-test without a full store. The mechanism is verified above.
     process.exitCode = savedExitCode;
+  });
+});
+
+// ─── B20: validateCloneUrl rejects non-GitHub sources ─────────────────────────
+
+describe('validateCloneUrl', () => {
+  it('allows https://github.com/ URLs', () => {
+    expect(() => validateCloneUrl('https://github.com/user/repo')).not.toThrow();
+  });
+
+  it('rejects non-GitHub HTTPS URLs', () => {
+    expect(() => validateCloneUrl('https://evil.com/repo')).toThrow(
+      /Refusing to clone from non-GitHub source/,
+    );
+  });
+
+  it('rejects non-GitHub HTTPS URLs with .git suffix', () => {
+    expect(() => validateCloneUrl('https://evil.com/repo.git')).toThrow(
+      /Refusing to clone from non-GitHub source/,
+    );
+  });
+
+  it('rejects SSH URLs that were not normalized to github.com', () => {
+    expect(() => validateCloneUrl('git@evil.com:repo.git')).toThrow(
+      /Refusing to clone from non-GitHub source/,
+    );
   });
 });

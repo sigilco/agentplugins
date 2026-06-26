@@ -319,12 +319,23 @@ export function initStore(): void {
 }
 
 /**
+ * Validate that a normalized clone URL points to GitHub.
+ * Prevents community install from arbitrary git hosts.
+ */
+export function validateCloneUrl(url: string): void {
+  if (!/^https:\/\/github\.com\//i.test(url)) {
+    throw new Error(`Refusing to clone from non-GitHub source: ${url}`);
+  }
+}
+
+/**
  * Clone a git repository to a destination directory.
  * Returns the commit hash.
  * Throws on failure.
  */
 export function cloneRepo(source: string, dest: string): string {
   const url = normalizeSource(source);
+  validateCloneUrl(url);
   execSync(`git clone --depth 1 "${url}" "${dest}"`, { stdio: 'pipe' });
   return execSync('git rev-parse HEAD', { cwd: dest, encoding: 'utf-8' }).trim();
 }

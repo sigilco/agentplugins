@@ -15,6 +15,7 @@ import chalk from 'chalk';
 import { ingest, type IngestFormat, type IngestResult } from '@agentplugins/ingest';
 import { isValidManifest } from '@agentplugins/schema';
 import { installPlugin, getStorePath } from '@agentplugins/core';
+import { verifyIntegrity, evaluateManifestScripts } from '@agentplugins/security';
 
 export interface ImportOptions {
   format: string;
@@ -95,6 +96,29 @@ export async function importCommand(options: ImportOptions): Promise<void> {
   if (options.write) {
     const name = (result.manifest.name as string) ?? 'imported-plugin';
     const version = (result.manifest.version as string) ?? '0.0.0';
+
+    // B17: verify pinned integrity (opt-in)
+    const integrity = result.manifest.integrity as string | undefined;
+    if (integrity && integrity.length > 0) {
+      const { match, reason } = verifyIntegrity(source, integrity);
+      if (!match) {
+        console.error(chalk.red(`\nIntegrity check failed: ${reason}`));
+        process.exit(1);
+      }
+    }
+
+    // B18: evaluate lifecycle script policy
+    const scriptCheck = evaluateManifestScripts(result.manifest as Record<string, unknown>, name);
+    if (!scriptCheck.ok) {
+      for (const issue of scriptCheck.issues) {
+        const tag = issue.decision === 'deny' ? chalk.red('[error]') : chalk.yellow('[review]');
+        console.error(`  ${tag} ${issue.dependency} (${issue.phase}): ${issue.command}`);
+        for (const r of issue.reasons) console.error(chalk.gray(`         ${r}`));
+      }
+      console.error(chalk.red('\nRefusing to install: lifecycle script policy violation'));
+      process.exit(1);
+    }
+
     console.log(chalk.blue(`\nInstalling into store at ${getStorePath()}/${name} ...`));
     try {
       installPlugin(source, {
