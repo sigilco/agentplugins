@@ -1,11 +1,11 @@
 /**
  * One-time recompile script for installed plugins.
- * Run from workspace: npx tsx packages/cli/src/commands/recompile-installed.ts
+ * Run from workspace: npx tsx scripts/recompile-installed.ts
  */
 import { join } from 'node:path';
 import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { compile } from './build.js';
+import { compile } from '../packages/cli/src/commands/build.js';
 import {
   getDetectedAgents,
   findManifestInDir,
@@ -27,7 +27,7 @@ async function tryTsConfig(pluginDir: string) {
     try {
       const jiti = (await import('jiti')).default as any;
       // Map @agentplugins/* so jiti can resolve workspace packages from the plugin dir
-      const wsRoot = new URL('../../../../', import.meta.url).pathname;
+      const wsRoot = new URL('../', import.meta.url).pathname;
       const alias: Record<string, string> = {
         '@agentplugins/core': join(wsRoot, 'packages/core/dist/index.js'),
       };
