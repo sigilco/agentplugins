@@ -328,11 +328,37 @@ export const PluginManifestSchema = z.object({
 /**
  * Full runtime PluginManifest — hooks may carry inline function handlers.
  * tools[] may carry runtime handler functions.
+ *
+ * Defined as a concrete interface (not `Omit<z.infer<...>>`) so that consumers
+ * do not need zod in their transitive type resolution path.
  */
-export type PluginManifest = Omit<z.infer<typeof PluginManifestSchema>, 'hooks'> & {
+export interface PluginManifest {
+  name: string;
+  version: string;
+  description: string;
+  displayName?: string;
+  author?: string | { name: string; email?: string; url?: string };
+  homepage?: string;
+  repository?: string;
+  license?: string;
+  keywords?: string[];
+  defaultEnabled?: boolean;
+  skills?: Skill[];
   hooks?: UniversalHooks;
+  commands?: Command[];
+  agents?: AgentDefinition[];
+  mcpServers?: Record<string, MCPServerConfig>;
+  userConfig?: Record<string, UserConfigOption>;
+  metadata?: Record<string, unknown>;
+  capabilities?: string[];
+  targets?: TargetPlatform[];
+  nativeEntry?: NativeEntry;
+  adapterOverrides?: Partial<Record<TargetPlatform, string>>;
+  dependencies?: Dependency[];
+  sidecar?: Sidecar;
+  integrity?: string;
   tools?: ToolDefinition[];
-};
+}
 
 // ─── Adapter contract ─────────────────────────────────────────────────────────
 
