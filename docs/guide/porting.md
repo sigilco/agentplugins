@@ -169,7 +169,7 @@ Confirm the **same observable behaviour** on all four: same hooks fire, same com
 
 - **Universal orchestration runtime** — don't build one. Subagent spawning = per-harness primitives (v0.4.0) + userland provider protocol.
 - **Mechanical ports** — don't translate existing config files 1:1. Rewrite on the manifest; let adapters generate the platform-native output.
-- **v0.4.0 primitives** — `continueWith`, `nativeEntry`, `spawnChild` are not yet released. If your plugin needs them, note the gap and open a primitive proposal.
+- **v0.4.0 primitives** — `continueWith` and `nativeEntry` are not yet released. If your plugin needs them, note the gap and open a primitive proposal.
 
 ---
 

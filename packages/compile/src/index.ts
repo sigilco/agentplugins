@@ -4,4 +4,3 @@ export * from './codegen.js';
 export * from './hook-wrapper.js';
 export * from './validation.js';
 export * from './lint.js';
-export * from './subprocess.js';

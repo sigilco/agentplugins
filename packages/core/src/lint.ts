@@ -217,7 +217,7 @@ const handlerSafetyRule: LintRule = {
               field: 'hooks.<handler>',
               message: `Handler source contains dangerous pattern "${match[0]}"`,
               suggestion: SUBPROCESS_PATTERNS.some((p) => p.test(match[0]))
-                ? 'Declare capabilities: [\'subprocess\'] in your manifest and use spawnChild() from @agentplugins/core'
+                ? 'Declare capabilities: [\'subprocess\'] in your manifest and sandbox subprocess calls carefully'
                 : 'Remove or sandbox the dangerous code',
             });
           }
@@ -238,7 +238,7 @@ const handlerSafetyRule: LintRule = {
                 field: `hooks.${name}`,
                 message: `Handler source contains dangerous pattern "${match[0]}"`,
                 suggestion: SUBPROCESS_PATTERNS.some((p) => p.test(match[0]))
-                  ? 'Declare capabilities: [\'subprocess\'] in your manifest and use spawnChild() from @agentplugins/core'
+                  ? 'Declare capabilities: [\'subprocess\'] in your manifest and sandbox subprocess calls carefully'
                   : 'Remove or sandbox the dangerous code',
               });
             }
