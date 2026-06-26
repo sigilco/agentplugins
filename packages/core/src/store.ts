@@ -772,8 +772,8 @@ export function linkCompiledPlugin(pluginName: string, agent: DetectedAgent): Sy
       for (const file of readdirSync(fromDir)) {
         const srcPath = join(fromDir, file);
         const linkPath = join(toDir, file);
-        if (existsSync(linkPath) || isSymlink(linkPath)) {
-          try { unlinkSync(linkPath); } catch { rmSync(linkPath, { recursive: true, force: true }); }
+        if (isSymlink(linkPath)) {
+          unlinkSync(linkPath);
         }
         try {
           symlinkSync(srcPath, linkPath, 'file');
@@ -801,8 +801,8 @@ export function linkCompiledPlugin(pluginName: string, agent: DetectedAgent): Sy
     linkPath = join(agent.pluginPath, pluginName);
   }
 
-  if (existsSync(linkPath) || isSymlink(linkPath)) {
-    try { unlinkSync(linkPath); } catch { rmSync(linkPath, { recursive: true, force: true }); }
+  if (isSymlink(linkPath)) {
+    unlinkSync(linkPath);
   }
 
   try {
@@ -916,13 +916,9 @@ export function symlinkPlugin(pluginName: string, agent: DetectedAgent): Symlink
   const linkPath = join(agent.skillPath, pluginName);
   const targetPath = getPluginStorePath(pluginName);
 
-  // Remove existing symlink/file if present
-  if (existsSync(linkPath) || isSymlink(linkPath)) {
-    try {
-      unlinkSync(linkPath);
-    } catch {
-      rmSync(linkPath, { recursive: true, force: true });
-    }
+  // Only unlink if it's a symlink — never rmSync a real directory.
+  if (isSymlink(linkPath)) {
+    unlinkSync(linkPath);
   }
 
   // Create symlink (relative for portability)
@@ -980,21 +976,21 @@ export function linkPluginSkills(pluginName: string, agents: DetectedAgent[]): S
     const skillMdPath = join(skillDirPath, 'SKILL.md');
     if (!existsSync(skillMdPath)) continue;
 
-    // Read frontmatter name; fall back to dir name
+    // Read frontmatter name; sanitize before using as symlink target.
     let skillName = skillDir;
     try {
       const content = readFileSync(skillMdPath, 'utf-8');
       const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
       if (fmMatch) {
         const nameMatch = fmMatch[1].match(/^name:\s*(.+)$/m);
-        if (nameMatch) skillName = nameMatch[1].trim();
+        if (nameMatch) skillName = sanitizeName(nameMatch[1].trim());
       }
-    } catch { /* use dir name */ }
+    } catch { /* use dir name (sanitizeName rejection falls here too) */ }
 
-    // Skills-compat link
+    // Skills-compat link — only unlink symlinks, never rmSync real dirs.
     const compatLink = join(skillsCompatPath, skillName);
-    if (existsSync(compatLink) || isSymlink(compatLink)) {
-      try { unlinkSync(compatLink); } catch { rmSync(compatLink, { recursive: true, force: true }); }
+    if (isSymlink(compatLink)) {
+      try { unlinkSync(compatLink); } catch { /* ignore */ }
     }
     try {
       symlinkSync(skillDirPath, compatLink, 'dir');
@@ -1006,8 +1002,8 @@ export function linkPluginSkills(pluginName: string, agents: DetectedAgent[]): S
       if (!agent.skillPathExists && !agent.binaryFound) continue;
       mkdirSync(agent.skillPath, { recursive: true });
       const agentSkillLink = join(agent.skillPath, skillName);
-      if (existsSync(agentSkillLink) || isSymlink(agentSkillLink)) {
-        try { unlinkSync(agentSkillLink); } catch { rmSync(agentSkillLink, { recursive: true, force: true }); }
+      if (isSymlink(agentSkillLink)) {
+        try { unlinkSync(agentSkillLink); } catch { /* ignore */ }
       }
       try {
         symlinkSync(skillDirPath, agentSkillLink, 'dir');
@@ -1038,9 +1034,9 @@ function unlinkPluginSkills(pluginName: string, agents: DetectedAgent[]): void {
       const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
       if (fmMatch) {
         const nameMatch = fmMatch[1].match(/^name:\s*(.+)$/m);
-        if (nameMatch) skillName = nameMatch[1].trim();
+        if (nameMatch) skillName = sanitizeName(nameMatch[1].trim());
       }
-    } catch { /* use dir name */ }
+    } catch { /* use dir name (sanitizeName rejection falls here too) */ }
 
     const compatLink = join(skillsCompatPath, skillName);
     if (isSymlink(compatLink)) {
