@@ -1,7 +1,7 @@
 {
-  "name": "@agentplugins/core",
-  "version": "0.3.0",
-  "description": "Core types, validation, and plugin registry for AgentPlugins",
+  "name": "@agentplugins/compile",
+  "version": "0.4.0",
+  "description": "Shared codegen kernel for AgentPlugins adapters. Secure emit helpers, sanitizers, lint, validation, hook-wrapper.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -9,18 +9,13 @@
     ".": {
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
-    },
-    "./adapter": {
-      "import": "./dist/adapter.js",
-      "types": "./dist/adapter.d.ts"
     }
   },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "test": "vitest",
-    "test:run": "vitest run __tests__/placeholder.test.ts"
+    "test": "vitest run"
   },
   "files": [
     "dist",
@@ -29,23 +24,16 @@
   "publishConfig": {
     "access": "public"
   },
-  "keywords": [
-    "agentplugins",
-    "ai",
-    "plugin",
-    "core"
-  ],
+  "keywords": ["agentplugins", "compile", "codegen", "kernel"],
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/sigilco/agentplugins.git",
-    "directory": "packages/core"
+    "directory": "packages/compile"
   },
   "homepage": "https://agentplugins.pages.dev/",
   "dependencies": {
-    "@agentplugins/contract": "workspace:*",
-    "@agentplugins/compile": "workspace:*",
-    "zod": "^3.25.76"
+    "@agentplugins/contract": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

@@ -1,15 +1,21 @@
 /**
- * AgentPlugins Core
+ * @agentplugins/core — re-export facade
  *
- * The Port — universal plugin interface for AI agent harnesses.
+ * Public API is unchanged. Internals have moved to sub-packages:
+ * - @agentplugins/contract  — manifest schema + all types
+ * - @agentplugins/compile   — codegen kernel, lint, validation, sanitizers
+ * - @agentplugins/store     — install / link / registry (A4, coming next)
  */
 
-// Types — plugin author surface
+// ─── Types from contract ──────────────────────────────────────────────────────
+
 export type {
   PluginManifest,
   NativeEntry,
   TargetPlatform,
   Skill,
+  Command,
+  AgentDefinition,
   MCPServerConfig,
   ToolDefinition,
   ToolParameter,
@@ -17,30 +23,44 @@ export type {
   ToolResult,
   UserConfigOption,
   UniversalHooks,
+  UniversalHookName,
   HookHandler,
   CommandHookHandler,
   HttpHookHandler,
   InlineHookHandler,
+  ReferenceHookHandler,
   HookContext,
   HookResult,
-} from './types.js';
+  HookDefinition,
+  HandlerType,
+  ValidationIssue,
+  NativeCopy,
+  FileOutput,
+  AdapterOutput,
+  PlatformAdapter,
+  BuildConfig,
+  DeepPartial,
+} from '@agentplugins/contract';
 
-export { Severity } from './types.js';
+export {
+  Severity,
+  ALL_TARGETS,
+  UNIVERSAL_HOOK_NAMES,
+  PluginManifestSchema,
+  SerializableHandlerSchema,
+} from '@agentplugins/contract';
 
-// Import PluginManifest for the definePlugin function (value-level usage)
-import type { PluginManifest } from './types.js';
+// ─── Compile kernel re-exports ────────────────────────────────────────────────
 
-// Constants
-export { ALL_TARGETS, UNIVERSAL_HOOK_NAMES } from './types.js';
-
-// Validation — plugin CI
 export { validateUniversal, validateForPlatform } from './validation.js';
-
-// Lint — plugin CI
 export { lint, lintManifest } from './lint.js';
 export type { LintIssue, LintRule } from './lint.js';
 
-// Store — re-exported for CLI use (internal only)
+export { spawnChild } from './subprocess.js';
+export type { SpawnChildOptions, SpawnChildResult } from './subprocess.js';
+
+// ─── Store re-exports (still in core/store.ts pending A4) ────────────────────
+
 export {
   AGENT_PATHS,
   expandHome,
@@ -89,13 +109,10 @@ export type {
   DoctorIssue,
 } from './store.js';
 
-// Subprocess — for code-emitting adapters needing child process spawning
-export { spawnChild } from './subprocess.js';
-export type { SpawnChildOptions, SpawnChildResult } from './subprocess.js';
+// ─── definePlugin helper ──────────────────────────────────────────────────────
 
-/**
- * Convenience function to define a plugin with TypeScript intellisense.
- */
+import type { PluginManifest } from '@agentplugins/contract';
+
 export function definePlugin(manifest: PluginManifest): PluginManifest {
   return manifest;
 }
