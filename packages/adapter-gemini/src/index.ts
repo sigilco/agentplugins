@@ -23,6 +23,9 @@
 import {
   type PluginManifest,
   type TargetPlatform,
+  type HookDefinition,
+  type CommandHookHandler,
+  type ReferenceHookHandler,
   Severity,
 } from "@agentplugins/core";
 
@@ -155,27 +158,30 @@ function validateGeminiManifest(plugin: PluginManifest): ValidationIssue[] {
     });
   }
 
-  const hooks = plugin.hooks ? Object.values(plugin.hooks).filter(Boolean) : [];
+  const hookEntries = plugin.hooks
+    ? (Object.entries(plugin.hooks).filter(([, h]) => h != null) as [UniversalHookName, HookDefinition][])
+    : [];
 
   /* ---- hook compatibility ---- */
-  for (const hook of hooks) {
-    if (UNSUPPORTED_HOOKS.includes(hook.hookName as UniversalHookName)) {
+  for (const [hookName] of hookEntries) {
+    if (UNSUPPORTED_HOOKS.includes(hookName)) {
       issues.push({
         severity: Severity.WARNING,
-        message: `Hook "${hook.hookName}" is not supported by Gemini CLI and will be ignored.`,
+        message: `Hook "${hookName}" is not supported by Gemini CLI and will be ignored.`,
       });
     }
-    if (!UNIVERSAL_TO_GEMINI[hook.hookName]) {
+    if (!UNIVERSAL_TO_GEMINI[hookName]) {
       issues.push({
         severity: Severity.WARNING,
-        message: `Hook "${hook.hookName}" has no Gemini equivalent and will be skipped.`,
+        message: `Hook "${hookName}" has no Gemini equivalent and will be skipped.`,
       });
     }
   }
 
   /* ---- handler type compatibility ---- */
-  for (const hook of hooks) {
-    if (hook.handlerType === "reference") {
+  for (const [hookName, hookDef] of hookEntries) {
+    void hookName;
+    if (hookDef.handler.type === "reference") {
       issues.push({
         severity: Severity.WARNING,
         message:
@@ -356,7 +362,9 @@ export class GeminiAdapter implements PlatformAdapter {
   compile(plugin: PluginManifest): AdapterOutput {
     const issues = this.validate(plugin);
     const files: AdapterFile[] = [];
-    const hooks = plugin.hooks ? Object.values(plugin.hooks).filter(Boolean) : [];
+    const hooks = plugin.hooks
+      ? (Object.entries(plugin.hooks).filter(([, h]) => h != null) as [UniversalHookName, HookDefinition][])
+      : [];
 
     /* ---- 1. gemini-extension.json ---- */
     const geminiManifest: GeminiExtensionManifest = {
@@ -397,54 +405,43 @@ export class GeminiAdapter implements PlatformAdapter {
       hooksJson[event] = [];
     }
 
-    for (const hook of hooks) {
-      const geminiEvent = UNIVERSAL_TO_GEMINI[hook.hookName];
+    for (const [hookName, hookDef] of hooks) {
+      const geminiEvent = UNIVERSAL_TO_GEMINI[hookName];
       if (!geminiEvent) continue;
 
-      const hookFileName = `hook-${hook.hookName}.js`;
+      const hookFileName = `hook-${hookName}.js`;
       const hookFilePath = `hooks/${hookFileName}`;
+      const handler = hookDef.handler;
+      const isReference = handler.type === "reference";
+      const script = handler.type === "command"
+        ? (handler as CommandHookHandler).command
+        : handler.type === "reference"
+          ? ((handler as ReferenceHookHandler).source ?? (handler as ReferenceHookHandler).reference)
+          : undefined;
 
       let scriptContent: string;
-      if (hook.handlerType === "reference" && hook.script) {
-        scriptContent = wrapFileHandler(hook.script);
+      if (isReference && script) {
+        scriptContent = wrapFileHandler(script);
       } else {
-        // inline handler
         scriptContent = wrapInlineHandler(
-          hook.script ?? "// no-op",
-          hook.hookName,
+          script ?? "// no-op",
+          hookName,
           geminiEvent
         );
       }
 
-      // Add the actual implementation file for inline handlers too
-      if (hook.handlerType !== "reference") {
+      if (!isReference) {
         files.push({
           path: hookFilePath,
-          content: hook.script ?? "// no-op",
+          content: script ?? "// no-op",
         });
       }
-
-      // For file handlers, the script references the user's file — no separate copy
 
       const command = `node \${extensionPath}/${hookFilePath}`;
 
       hooksJson[geminiEvent].push({
         command: substituteVariables(command),
-        ...(hook.cwd ? { cwd: hook.cwd } : {}),
-        ...(hook.settingRef
-          ? { settingEnvVar: sanitizeEnvVar(hook.settingRef) }
-          : {}),
       });
-
-      // Ralph extension hooks pattern: AfterAgent looping
-      if (geminiEvent === "AfterAgent" && hook.metadata?.ralphLoop) {
-        hooksJson["AfterAgent"].push({
-          command: substituteVariables(
-            `node \${extensionPath}/${hookFilePath} --ralph-loop`
-          ),
-          ...(hook.cwd ? { cwd: hook.cwd } : {}),
-        });
-      }
     }
 
     // Remove lifecycle events that have no commands
@@ -480,10 +477,9 @@ ${(geminiManifest.settings ?? [])
 
 | Universal Hook | Gemini Event | Command |
 |---------------|--------------|---------|
-${Object.values(plugin.hooks ?? {})
-  .filter((h): h is NonNullable<typeof h> => h !== undefined && 'hookName' in h)
-  .filter((h) => UNIVERSAL_TO_GEMINI[h.hookName])
-  .map((h) => `| \`${h.hookName}\` | \`${UNIVERSAL_TO_GEMINI[h.hookName]}\` | \`node hooks/hook-${h.hookName}.js\` |`)
+${Object.entries(plugin.hooks ?? {})
+  .filter(([hookName, h]) => h != null && UNIVERSAL_TO_GEMINI[hookName as UniversalHookName])
+  .map(([hookName]) => `| \`${hookName}\` | \`${UNIVERSAL_TO_GEMINI[hookName]}\` | \`node hooks/hook-${hookName}.js\` |`)
   .join("\n") || "_No hooks configured._"}
 
 ## Exit-code contract
