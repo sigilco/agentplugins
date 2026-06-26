@@ -34,8 +34,8 @@ const warnings = (issues: LintIssue[]) =>
   issues.filter((i) => i.severity === 'warning');
 
 describe('lint registry', () => {
-  it('registers 8 built-in rules by default', () => {
-    expect(BUILTIN_LINT_RULES).toHaveLength(8);
+  it('registers 9 built-in rules by default', () => {
+    expect(BUILTIN_LINT_RULES).toHaveLength(9);
     expect(BUILTIN_LINT_RULES.map((r) => r.id)).toEqual([
       'naming',
       'versioning',
@@ -45,6 +45,7 @@ describe('lint registry', () => {
       'hook-coverage',
       'handler-safety',
       'secrets',
+      'continuewith-safety',
     ]);
   });
 
