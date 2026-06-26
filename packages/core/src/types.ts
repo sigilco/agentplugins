@@ -39,6 +39,7 @@ export type {
   PlatformAdapter,
   BuildConfig,
   DeepPartial,
+  CompileOptions,
 } from '@agentplugins/contract';
 
 export {

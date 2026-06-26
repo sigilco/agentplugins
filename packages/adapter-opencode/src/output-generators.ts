@@ -10,6 +10,21 @@
 
 import type { PluginManifest } from "@agentplugins/core";
 import type { FileOutput } from "@agentplugins/core/adapter";
+import { sanitizeJoin } from "@agentplugins/compile";
+
+/** Last path segment — ponytail: avoids a node:path dev-dependency in generated dts. */
+function basename(p: string): string {
+  return p.replace(/\\/g, "/").split("/").pop() || p;
+}
+
+/** Resolve a manifest path safely; clamps traversal attempts to the plugin root. */
+function safeResolve(base: string, untrusted: string): string {
+  try {
+    return sanitizeJoin(base, untrusted);
+  } catch {
+    return sanitizeJoin(base, basename(untrusted));
+  }
+}
 
 // ─── Plugin File Generator ────────────────────────────────────────────────────
 
@@ -18,11 +33,13 @@ import type { FileOutput } from "@agentplugins/core/adapter";
  *
  * @param manifest - The plugin manifest
  * @param hookCodeMap - Map of OpenCode hook names to their handler code strings
+ * @param pluginRoot - Optional plugin root for safe path resolution
  * @returns FileOutput with path `{pluginName}.ts` and TypeScript content
  */
 export function generatePluginFile(
   manifest: PluginManifest,
-  hookCodeMap: Map<string, string>
+  hookCodeMap: Map<string, string>,
+  pluginRoot?: string
 ): FileOutput {
   // Plugin lives under plugins/ subdir so OpenCode discovers it at plugins/<name>.ts
   const pluginFileName = `plugins/${manifest.name}.ts`;
@@ -45,11 +62,17 @@ export function generatePluginFile(
     : "";
 
   const overridePath = manifest.adapterOverrides?.opencode;
-  const overrideBlock = overridePath
+  const safeOverride = overridePath && pluginRoot ? safeResolve(pluginRoot, overridePath) : overridePath;
+  const overrideBlock = safeOverride
     ? [
         `  // Runtime adapter override — tries user file first, falls back to codegen.`,
+        ...(pluginRoot
+          ? [
+              `  console.warn('[agentplugins] Loading adapter override from ' + ${JSON.stringify(safeOverride)} + ' — only install overrides from plugins you trust');`,
+            ]
+          : []),
         `  try {`,
-        `    const overrideMod = await import(${JSON.stringify(overridePath)});`,
+        `    const overrideMod = await import(${JSON.stringify(safeOverride)});`,
         `    if (typeof overrideMod.default === 'function') {`,
         `      return overrideMod.default(ctx);`,
         `    }`,

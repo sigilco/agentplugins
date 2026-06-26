@@ -11,6 +11,7 @@
 import {
   type PluginManifest,
   type TargetPlatform,
+  type CompileOptions,
 } from "@agentplugins/core";
 
 import {
@@ -94,7 +95,7 @@ class OpenCodeAdapter implements PlatformAdapter {
   /**
    * Compiles the universal plugin into platform-specific output.
    */
-  compile(plugin: PluginManifest): AdapterOutput {
+  compile(plugin: PluginManifest, options?: CompileOptions): AdapterOutput {
     // Native-entry passthrough: skip codegen entirely
     if (plugin.nativeEntry?.opencode) {
       return {
@@ -141,7 +142,7 @@ class OpenCodeAdapter implements PlatformAdapter {
 
     // Generate output files
     const files = [
-      generatePluginFile(plugin, hookCodeMap),
+      generatePluginFile(plugin, hookCodeMap, options?.pluginRoot),
       generateManifest(plugin, hookCodeMap),
       ...generateCommandFiles(plugin),
       ...generateAgentFiles(plugin),

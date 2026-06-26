@@ -344,6 +344,10 @@ export default definePlugin({
 })
 ```
 
+## Trust boundary
+
+`adapterOverrides` and handler `source` paths are resolved relative to the plugin root and sanitized to prevent path traversal, but they still execute arbitrary code — only install plugins you trust.
+
 ## Next steps
 
 - [Hooks](/guide/hooks) — the 19 lifecycle events in depth.

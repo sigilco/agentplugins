@@ -437,3 +437,51 @@ describe("generateAgentFiles()", () => {
     expect(file.content).toContain("tools: [bash, read]");
   });
 });
+
+describe("adapterOverrides trust boundary", () => {
+  it("sanitizes adapterOverrides.opencode relative path against pluginRoot", () => {
+    const manifest: PluginManifest = {
+      name: "override-test",
+      version: "1.0.0",
+      description: "Tests override sanitization",
+      adapterOverrides: { opencode: "./custom-override.ts" },
+    } as any;
+
+    const result = generatePluginFile(manifest, new Map(), "/tmp/fake-plugin");
+
+    expect(result.content).not.toContain("./custom-override.ts");
+    expect(result.content).toContain("/tmp/fake-plugin/custom-override.ts");
+  });
+
+  it("blocks path traversal in adapterOverrides.opencode", () => {
+    const manifest: PluginManifest = {
+      name: "override-traversal-test",
+      version: "1.0.0",
+      description: "Tests override traversal blocking",
+      adapterOverrides: { opencode: "../evil.ts" },
+    } as any;
+
+    const result = generatePluginFile(manifest, new Map(), "/tmp/fake-plugin");
+
+    expect(result.content).not.toContain("../evil.ts");
+    expect(result.content).not.toMatch(/['"]\.\.\/evil\.ts['"]/);
+    expect(result.content).toContain("/tmp/fake-plugin/evil.ts");
+  });
+
+  it("emits a trust warning when an override is used", () => {
+    const manifest: PluginManifest = {
+      name: "override-warning-test",
+      version: "1.0.0",
+      description: "Tests override warning",
+      adapterOverrides: { opencode: "./override.ts" },
+    } as any;
+
+    const result = generatePluginFile(manifest, new Map(), "/tmp/fake-plugin");
+
+    expect(result.content).toContain("[agentplugins]");
+    expect(result.content).toContain(
+      "only install overrides from plugins you trust"
+    );
+  });
+});
+

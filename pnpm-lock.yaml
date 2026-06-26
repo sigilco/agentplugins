@@ -149,6 +149,9 @@ importers:
 
   packages/adapter-pimono:
     dependencies:
+      '@agentplugins/compile':
+        specifier: workspace:*
+        version: link:../compile
       '@agentplugins/core':
         specifier: workspace:*
         version: link:../core
@@ -159,6 +162,9 @@ importers:
       typescript:
         specifier: ^5.4.0
         version: 5.9.3
+      vitest:
+        specifier: ^1.0.0
+        version: 1.6.1(@types/node@20.19.41)
 
   packages/cli:
     dependencies:

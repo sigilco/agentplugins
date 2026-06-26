@@ -392,6 +392,11 @@ export interface AdapterOutput {
   nativeCopies?: NativeCopy[];
 }
 
+export interface CompileOptions {
+  /** Plugin root directory — used to resolve relative handler source paths safely. */
+  pluginRoot?: string;
+}
+
 export interface PlatformAdapter {
   readonly name: TargetPlatform;
   readonly displayName: string;
@@ -400,7 +405,7 @@ export interface PlatformAdapter {
   readonly manifestPath: string;
   readonly manifestFormat: 'json' | 'toml';
   validate(plugin: PluginManifest): ValidationIssue[];
-  compile(plugin: PluginManifest): AdapterOutput;
+  compile(plugin: PluginManifest, options?: CompileOptions): AdapterOutput;
 }
 
 // ─── Build config ─────────────────────────────────────────────────────────────

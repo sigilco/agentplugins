@@ -40,6 +40,7 @@ export type {
   PlatformAdapter,
   BuildConfig,
   DeepPartial,
+  CompileOptions,
 } from '@agentplugins/contract';
 
 export {
@@ -55,9 +56,6 @@ export {
 export { validateUniversal, validateForPlatform } from './validation.js';
 export { lint, lintManifest } from './lint.js';
 export type { LintIssue, LintRule } from './lint.js';
-
-export { spawnChild } from './subprocess.js';
-export type { SpawnChildOptions, SpawnChildResult } from './subprocess.js';
 
 // ─── Store re-exports (still in core/store.ts pending A4) ────────────────────
 

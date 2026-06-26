@@ -31,6 +31,7 @@ import {
   type InlineHookHandler,
   type HookContext,
   type HookResult,
+  type CompileOptions,
   Severity,
 } from "@agentplugins/core";
 
@@ -42,6 +43,13 @@ import {
   type HandlerType,
   type FileOutput,
 } from "@agentplugins/core/adapter";
+
+import { sanitizeJoin } from "@agentplugins/compile";
+
+/** Last path segment — ponytail: avoids a node:path dev-dependency in generated dts. */
+function basename(p: string): string {
+  return p.replace(/\\/g, "/").split("/").pop() || p;
+}
 
 // ── Local type extensions (to bridge gaps with core types) ───────────────────
 
@@ -201,6 +209,16 @@ function safeIdent(name: string): string {
   const cleaned = name.replace(/[^a-zA-Z0-9_]/g, "_");
   // Ensure it doesn't start with a digit.
   return /^\d/.test(cleaned) ? `_${cleaned}` : cleaned;
+}
+
+/** Resolve a manifest path safely; clamps traversal attempts to the plugin root. */
+function resolveHandlerSource(source: string, pluginRoot?: string): string {
+  if (!pluginRoot) return source;
+  try {
+    return sanitizeJoin(pluginRoot, source);
+  } catch {
+    return sanitizeJoin(pluginRoot, basename(source));
+  }
 }
 
 /* ────────────────────────────────────────────────────────────────────────────
@@ -446,13 +464,13 @@ function generateCommandHandlerBody(handler: CommandHookHandler, event: string):
  * @param handler - The reference handler definition.
  * @returns TypeScript source string for the wrapper.
  */
-function generateReferenceHandler(handler: HandlerReference): string {
+function generateReferenceHandler(handler: HandlerReference, pluginRoot?: string): string {
   const { target, source } = handler;
   const lines: string[] = [];
 
   if (source) {
     // Dynamic import for ESM compatibility.
-    lines.push(`const mod = await import(${tsStringLiteral(source)});`);
+    lines.push(`const mod = await import(${tsStringLiteral(resolveHandlerSource(source, pluginRoot))});`);
     lines.push(`const fn = mod[${tsStringLiteral(target)}] ?? mod.default;`);
   } else {
     // Assume the target is available in the global/module scope.
@@ -476,7 +494,8 @@ function generateReferenceHandler(handler: HandlerReference): string {
  */
 function generateEventRegistration(
   event: string,
-  handler: HookHandler | HandlerReference
+  handler: HookHandler | HandlerReference,
+  pluginRoot?: string
 ): string[] {
   const lines: string[] = [];
   lines.push(`// ${event}`);
@@ -491,7 +510,7 @@ function generateEventRegistration(
     lines.push(`  let __result;`);
     if (handlerType === "reference") {
       lines.push(`  __result = await (async (ctx) => {`);
-      lines.push(`    ${generateReferenceHandler(handler as HandlerReference).replace(/\n/g, "\n    ")}`);
+      lines.push(`    ${generateReferenceHandler(handler as HandlerReference, pluginRoot).replace(/\n/g, "\n    ")}`);
       lines.push(`  })(ctx);`);
     } else if (handlerType === "command") {
       lines.push(`  __result = await (async (ctx) => {`);
@@ -513,7 +532,7 @@ function generateEventRegistration(
   } else {
     lines.push(`pi.on(${tsStringLiteral(event)}, async (ctx) => {`);
     if (handlerType === "reference") {
-      lines.push(`  ${generateReferenceHandler(handler as HandlerReference).replace(/\n/g, "\n  ")}`);
+      lines.push(`  ${generateReferenceHandler(handler as HandlerReference, pluginRoot).replace(/\n/g, "\n  ")}`);
     } else if (handlerType === "command") {
       lines.push(`  ${generateCommandHandlerBody(handler as CommandHookHandler, event).replace(/\n/g, "\n  ")}`);
     } else {
@@ -535,7 +554,7 @@ function generateEventRegistration(
  * @param tools - Array of plugin tools.
  * @returns Lines of TypeScript source.
  */
-function generateToolRegistrations(tools: ToolDefinition[]): string[] {
+function generateToolRegistrations(tools: ToolDefinition[], pluginRoot?: string): string[] {
   const lines: string[] = [];
 
   for (const tool of tools) {
@@ -561,8 +580,9 @@ function generateToolRegistrations(tools: ToolDefinition[]): string[] {
     lines.push(`  handler: async (args) => {`);
     // @ts-expect-error - adapter extends handler with source/target properties
     if ((tool.handler as unknown)?.source) {
+      const source = (tool.handler as unknown as { source?: string }).source ?? "";
       // @ts-expect-error
-      lines.push(`    const mod = await import(${tsStringLiteral((tool.handler as unknown as { source?: string }).source ?? "")});`);
+      lines.push(`    const mod = await import(${tsStringLiteral(resolveHandlerSource(source, pluginRoot))});`);
       // @ts-expect-error
       lines.push(`    return mod[${tsStringLiteral((tool.handler as unknown as { target?: string }).target ?? "default")}](args);`);
     // @ts-expect-error
@@ -587,7 +607,7 @@ function generateToolRegistrations(tools: ToolDefinition[]): string[] {
  * @param commands - Array of plugin commands.
  * @returns Lines of TypeScript source.
  */
-function generateCommandRegistrations(commands: PluginCommand[]): string[] {
+function generateCommandRegistrations(commands: PluginCommand[], pluginRoot?: string): string[] {
   const lines: string[] = [];
 
   for (const cmd of commands) {
@@ -612,7 +632,7 @@ function generateCommandRegistrations(commands: PluginCommand[]): string[] {
     }
     lines.push(`  run: async (ctx, args) => {`);
     if (cmd.handler?.source) {
-      lines.push(`    const mod = await import(${tsStringLiteral(cmd.handler.source)});`);
+      lines.push(`    const mod = await import(${tsStringLiteral(resolveHandlerSource(cmd.handler.source, pluginRoot))});`);
       lines.push(`    return mod[${tsStringLiteral(cmd.handler.target ?? "default")}](ctx, args);`);
     } else if (cmd.handler?.target) {
       lines.push(`    return ${safeIdent(cmd.handler.target)}(ctx, args);`);
@@ -634,7 +654,8 @@ function generateCommandRegistrations(commands: PluginCommand[]): string[] {
  * @returns Lines of TypeScript source.
  */
 function generateShortcutRegistrations(
-  shortcuts: NonNullable<PluginManifest["shortcuts"]>
+  shortcuts: NonNullable<PluginManifest["shortcuts"]>,
+  pluginRoot?: string
 ): string[] {
   const lines: string[] = [];
 
@@ -654,7 +675,7 @@ function generateShortcutRegistrations(
         // Named action reference.
         lines.push(`    return ${safeIdent(sc.action)}(ctx);`);
       } else if (sc.action.source) {
-        lines.push(`    const mod = await import(${tsStringLiteral(sc.action.source)});`);
+        lines.push(`    const mod = await import(${tsStringLiteral(resolveHandlerSource(sc.action.source, pluginRoot))});`);
         lines.push(`    return mod[${tsStringLiteral(sc.action.target ?? "default")}](ctx);`);
       } else if (sc.action.target) {
         lines.push(`    return ${safeIdent(sc.action.target)}(ctx);`);
@@ -677,7 +698,8 @@ function generateShortcutRegistrations(
  * @returns Lines of TypeScript source.
  */
 function generateFlagRegistrations(
-  flags: NonNullable<PluginManifest["flags"]>
+  flags: NonNullable<PluginManifest["flags"]>,
+  pluginRoot?: string
 ): string[] {
   const lines: string[] = [];
 
@@ -699,7 +721,7 @@ function generateFlagRegistrations(
     }
     lines.push(`  handler: async (ctx, value) => {`);
     if (flag.handler?.source) {
-      lines.push(`    const mod = await import(${tsStringLiteral(flag.handler.source)});`);
+      lines.push(`    const mod = await import(${tsStringLiteral(resolveHandlerSource(flag.handler.source, pluginRoot))});`);
       lines.push(`    return mod[${tsStringLiteral(flag.handler.target ?? "default")}](ctx, value);`);
     } else if (flag.handler?.target) {
       lines.push(`    return ${safeIdent(flag.handler.target)}(ctx, value);`);
@@ -732,7 +754,8 @@ function generateFlagRegistrations(
  * @param plugin - The plugin manifest to compile.
  * @returns AdapterOutput with generated files and metadata.
  */
-function compilePlugin(plugin: PluginManifest): AdapterOutput {
+function compilePlugin(plugin: PluginManifest, options?: CompileOptions): AdapterOutput {
+  const pluginRoot = options?.pluginRoot;
   // ── Native-entry passthrough: skip codegen entirely ──
   if (plugin.nativeEntry?.pimono) {
     return {
@@ -816,13 +839,14 @@ function compilePlugin(plugin: PluginManifest): AdapterOutput {
   // Import ExtensionAPI type.
   tsLines.push(`import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";`);
 
+  const overridePath = plugin.adapterOverrides?.pimono;
+
   // If multi-file with source references, collect dynamic import paths.
   const dynamicImports = new Set<string>();
   if (plugin.hooks) {
-    for (const handler of Object.values(plugin.hooks)) {
-      if ("source" in handler && handler.source) {
-        dynamicImports.add(handler.source);
-      }
+    for (const hookDef of Object.values(plugin.hooks)) {
+      const h = (hookDef as { handler?: unknown }).handler as { type?: string; source?: string } | undefined;
+      if (h?.source) dynamicImports.add(h.source);
     }
   }
   if (plugin.tools) {
@@ -835,6 +859,21 @@ function compilePlugin(plugin: PluginManifest): AdapterOutput {
       if (cmd.handler?.source) dynamicImports.add(cmd.handler.source);
     }
   }
+  if (plugin.shortcuts) {
+    for (const sc of plugin.shortcuts) {
+      if (typeof sc.action !== "string" && sc.action?.source) {
+        dynamicImports.add(sc.action.source);
+      }
+    }
+  }
+  if (plugin.flags) {
+    for (const flag of plugin.flags) {
+      if (flag.handler?.source) dynamicImports.add(flag.handler.source);
+    }
+  }
+  if (overridePath) {
+    dynamicImports.add(overridePath);
+  }
 
   if (dynamicImports.size > 0) {
     tsLines.push(``);
@@ -844,17 +883,23 @@ function compilePlugin(plugin: PluginManifest): AdapterOutput {
   tsLines.push(``);
 
   // Default factory function (async when adapterOverrides is set).
-  const overridePath = plugin.adapterOverrides?.pimono;
   tsLines.push(`/**`);
   tsLines.push(` * Pi Mono extension factory.`);
   tsLines.push(` *`);
   tsLines.push(` * @param pi - The ExtensionAPI instance provided by the Pi Mono runtime.`);
   tsLines.push(` */`);
   tsLines.push(`export default async function(pi: ExtensionAPI) {`);
+  if (dynamicImports.size > 0) {
+    tsLines.push(`  console.warn('[agentplugins] Plugin loads external handler modules — only install plugins you trust');`);
+  }
   if (overridePath) {
+    const safeOverride = resolveHandlerSource(overridePath, pluginRoot);
     tsLines.push(`  // Runtime adapter override — tries user file first, falls back to codegen.`);
+    if (pluginRoot) {
+      tsLines.push(`  console.warn('[agentplugins] Loading adapter override from ' + ${JSON.stringify(safeOverride)} + ' — only install overrides from plugins you trust');`);
+    }
     tsLines.push(`  try {`);
-    tsLines.push(`    const overrideMod = await import(${tsStringLiteral(overridePath)});`);
+    tsLines.push(`    const overrideMod = await import(${tsStringLiteral(safeOverride)});`);
     tsLines.push(`    if (typeof overrideMod.default === 'function') {`);
     tsLines.push(`      return overrideMod.default(pi);`);
     tsLines.push(`    }`);
@@ -891,7 +936,7 @@ function compilePlugin(plugin: PluginManifest): AdapterOutput {
         continue;
       }
       const hookHandler = (hookDef as { handler: HookHandler | HandlerReference }).handler;
-      const regLines = generateEventRegistration(event, hookHandler);
+      const regLines = generateEventRegistration(event, hookHandler, pluginRoot);
       for (const line of regLines) {
         tsLines.push(`  ${line}`);
       }
@@ -902,7 +947,7 @@ function compilePlugin(plugin: PluginManifest): AdapterOutput {
   // ── Tools ──
   if (plugin.tools && plugin.tools.length > 0) {
     tsLines.push(`  /* ── Tools ── */`);
-    for (const line of generateToolRegistrations(plugin.tools)) {
+    for (const line of generateToolRegistrations(plugin.tools, pluginRoot)) {
       tsLines.push(`  ${line}`);
     }
     tsLines.push(``);
@@ -911,7 +956,7 @@ function compilePlugin(plugin: PluginManifest): AdapterOutput {
   // ── Commands ──
   if (plugin.commands && plugin.commands.length > 0) {
     tsLines.push(`  /* ── Commands ── */`);
-    for (const line of generateCommandRegistrations(plugin.commands)) {
+    for (const line of generateCommandRegistrations(plugin.commands, pluginRoot)) {
       tsLines.push(`  ${line}`);
     }
     tsLines.push(``);
@@ -920,7 +965,7 @@ function compilePlugin(plugin: PluginManifest): AdapterOutput {
   // ── Shortcuts ──
   if (plugin.shortcuts && plugin.shortcuts.length > 0) {
     tsLines.push(`  /* ── Keyboard Shortcuts ── */`);
-    for (const line of generateShortcutRegistrations(plugin.shortcuts)) {
+    for (const line of generateShortcutRegistrations(plugin.shortcuts, pluginRoot)) {
       tsLines.push(`  ${line}`);
     }
     tsLines.push(``);
@@ -929,7 +974,7 @@ function compilePlugin(plugin: PluginManifest): AdapterOutput {
   // ── Flags ──
   if (plugin.flags && plugin.flags.length > 0) {
     tsLines.push(`  /* ── CLI Flags ── */`);
-    for (const line of generateFlagRegistrations(plugin.flags)) {
+    for (const line of generateFlagRegistrations(plugin.flags, pluginRoot)) {
       tsLines.push(`  ${line}`);
     }
     tsLines.push(``);
@@ -1074,9 +1119,10 @@ export class PiMonoAdapter implements PlatformAdapter {
    * Compile a plugin manifest into Pi Mono extension files.
    *
    * @param plugin - The plugin manifest.
+   * @param options - Optional compile options including pluginRoot for safe path resolution.
    * @returns AdapterOutput containing generated files and metadata.
    */
-  compile(plugin: PluginManifest): AdapterOutput {
+  compile(plugin: PluginManifest, options?: CompileOptions): AdapterOutput {
     // Run validation first and surface errors.
     const issues = this.validate(plugin);
     const errors = issues.filter((i) => i.severity === "error");
@@ -1088,7 +1134,7 @@ export class PiMonoAdapter implements PlatformAdapter {
       );
     }
 
-    return compilePlugin(plugin);
+    return compilePlugin(plugin, options);
   }
 }
 

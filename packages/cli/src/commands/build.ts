@@ -13,6 +13,7 @@ import {
   ALL_TARGETS,
   type TargetPlatform,
   type PluginManifest,
+  type CompileOptions as AdapterCompileOptions,
 } from '@agentplugins/core';
 import { sanitizeJoin, lint, type LintIssue } from '@agentplugins/compile';
 import type { LoadedConfig } from '../config.js';
@@ -43,7 +44,7 @@ export interface CompileOptions {
   pluginRoot?: string;
 }
 
-type AdapterFactory = () => { compile: (manifest: any) => any };
+type AdapterFactory = () => { compile: (manifest: any, options?: AdapterCompileOptions) => any };
 
 async function getAdapterFactory(target: TargetPlatform): Promise<AdapterFactory> {
   switch (target) {
@@ -105,7 +106,7 @@ export async function compile(options: CompileOptions): Promise<CompileResult[]>
 
     try {
       const adapter = factory();
-      const output = adapter.compile(manifest);
+      const output = adapter.compile(manifest, { pluginRoot });
 
       if (write && outDir) {
         const targetDir = join(resolve(outDir), target);
