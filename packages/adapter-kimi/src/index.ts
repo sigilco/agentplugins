@@ -38,6 +38,9 @@ import type {
   TargetPlatform,
   Skill,
   UniversalHooks,
+  InlineHookHandler,
+  HookContext,
+  HookResult,
 } from "@agentplugins/core";
 import { Severity } from "@agentplugins/core";
 
@@ -49,6 +52,11 @@ import type {
   HandlerType,
   HookDefinition,
   FileOutput,
+} from "@agentplugins/core/adapter";
+
+import {
+  generateHookWrapper,
+  generateHandlersModule,
 } from "@agentplugins/core/adapter";
 
 /* -------------------------------------------------------------------------- */
@@ -81,13 +89,8 @@ const SUPPORTED_HOOKS: readonly UniversalHookName[] = [
   "permissionRequest",
 ];
 
-/**
- * Kimi only supports command-based handlers (JSON over stdin/stdout).
- *
- * Inline handlers cannot be expressed in Kimi’s `command` hook schema and are
- * therefore rejected at validation time (with an explanatory issue).
- */
-const SUPPORTED_HANDLERS: readonly HandlerType[] = ["command"];
+/** Supported handler types on Kimi; inline handlers are auto-wrapped as command scripts. */
+const SUPPORTED_HANDLERS: readonly HandlerType[] = ["command", "inline"];
 
 /**
  * Mapping from universal hook names to Kimi-native event names.
@@ -303,12 +306,10 @@ function validateForKimi(manifest: PluginManifest): ValidationIssue[] {
       if (hook.handler) {
         if (hook.handler.type === "inline") {
           issues.push({
-            severity: Severity.ERROR,
+            severity: Severity.INFO,
             field: `hooks.${hookName}.handler`,
-            message:
-              `Kimi does not support inline/function handlers for "${hookName}". ` +
-              `Wrap the logic in a CLI command and set handler.type to "command" ` +
-              `(e.g., "node ./hooks/${hookName}.js").`,
+            message: `Hook "${hookName}" inline handler will be auto-wrapped as a Kimi command script.`,
+            suggestion: `For better performance, use a "command" handler instead.`,
           });
         } else if (hook.handler.type === "command") {
           if (
@@ -386,6 +387,16 @@ function validateForKimi(manifest: PluginManifest): ValidationIssue[] {
 /*                            COMPILATION LOGIC                               */
 /* -------------------------------------------------------------------------- */
 
+function kimiHashId(input: string): string {
+  let hash = 0;
+  for (let i = 0; i < input.length; i++) {
+    const char = input.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash |= 0;
+  }
+  return Math.abs(hash).toString(36).slice(0, 6);
+}
+
 /**
  * Compiles a universal PluginManifest into Kimi-specific output artifacts.
  *
@@ -396,12 +407,17 @@ function validateForKimi(manifest: PluginManifest): ValidationIssue[] {
  *    mapped to Kimi event names.
  * 3. `skills/SKILL__{name}.md` — One Markdown file per skill with YAML
  *    frontmatter.
+ * 4. `hooks/__agentplugins_handlers__.js` + `hooks/<id>.js` — Auto-generated
+ *    wrapper scripts for inline handlers.
  *
  * @param manifest — The universal plugin manifest to compile.
  * @returns AdapterOutput containing all files to be written to disk.
  */
 function compileForKimi(manifest: PluginManifest): AdapterOutput {
   const files: FileOutput[] = [];
+  const warnings: string[] = [];
+  const inlineWrappers = new Map<string, { hookName: string }>();
+  const inlineHandlerFns = new Map<string, (ctx: HookContext) => Promise<HookResult>>();
 
   /* —— 1. Build kimi.plugin.json —— */
   const pluginJson: KimiPluginJson = {
@@ -417,6 +433,14 @@ function compileForKimi(manifest: PluginManifest): AdapterOutput {
   const sessionStartHook = manifest.hooks?.sessionStart;
   if (sessionStartHook?.handler?.type === "command") {
     pluginJson.sessionStart = sessionStartHook.handler.command;
+  } else if (sessionStartHook?.handler?.type === "inline") {
+    const wrapperId = `__inline_sessionStart_${kimiHashId("sessionStart")}`;
+    const inlineHandler = sessionStartHook.handler as InlineHookHandler;
+    if (typeof inlineHandler.handler === 'function') {
+      inlineWrappers.set(wrapperId, { hookName: "sessionStart" });
+      inlineHandlerFns.set(wrapperId, inlineHandler.handler);
+    }
+    pluginJson.sessionStart = `node ./hooks/${wrapperId}.js`;
   }
 
   // mcpServers is optional — only include if the manifest references MCP
@@ -430,7 +454,7 @@ function compileForKimi(manifest: PluginManifest): AdapterOutput {
   });
 
   /* —— 2. Build kimi-hooks.json —— */
-  const hooksJson = buildHooksJson(manifest.hooks || {});
+  const hooksJson = buildHooksJson(manifest.hooks || {}, inlineWrappers, inlineHandlerFns);
 
   // Only emit hooks file if there's at least one supported hook
   if (Object.keys(hooksJson.hooks).length > 0) {
@@ -440,7 +464,28 @@ function compileForKimi(manifest: PluginManifest): AdapterOutput {
     });
   }
 
-  /* —— 3. Generate skill Markdown files —— */
+  /* —— 3. Emit inline handler wrapper scripts —— */
+  if (inlineWrappers.size > 0) {
+    files.push({
+      path: 'hooks/__agentplugins_handlers__.js',
+      content: generateHandlersModule(inlineHandlerFns),
+    });
+    for (const [wrapperId, { hookName }] of inlineWrappers.entries()) {
+      files.push({
+        path: `hooks/${wrapperId}.js`,
+        content: generateHookWrapper('./__agentplugins_handlers__.js', {
+          platform: 'kimi',
+          hookName,
+          wrapperId,
+        }),
+      });
+    }
+    warnings.push(
+      `${inlineWrappers.size} inline handler(s) wrapped as command scripts. Requires Node.js at runtime.`
+    );
+  }
+
+  /* —— 4. Generate skill Markdown files —— */
   if (manifest.skills && manifest.skills.length > 0) {
     for (const skill of manifest.skills) {
       const skillFile = compileSkillToMarkdown(skill);
@@ -448,7 +493,7 @@ function compileForKimi(manifest: PluginManifest): AdapterOutput {
     }
   }
 
-  /* —— 4. Generate README note about installation —— */
+  /* —— 5. Generate README note about installation —— */
   files.push({
     path: "KIMI_INSTALL.md",
     content: generateInstallInstructions(manifest),
@@ -457,7 +502,7 @@ function compileForKimi(manifest: PluginManifest): AdapterOutput {
   return {
     files,
     manifest: {},
-    warnings: [],
+    warnings,
     issues: [],
   };
 }
@@ -467,15 +512,14 @@ function compileForKimi(manifest: PluginManifest): AdapterOutput {
  *
  * Only hooks present in `SUPPORTED_HOOKS` are included. Each hook becomes a
  * top-level event key with a wildcard matcher (`*`) and the command to execute.
- *
- * preToolUse hooks that are marked `blocking` will include a special comment
- * in the statusMessage noting their blocking intent (even though Kimi handles
- * blocking via the protocol level for PreToolUse).
- *
- * @param hooks — Universal hook definitions from the manifest.
- * @returns The Kimi hooks configuration object.
+ * Inline handlers are registered in inlineWrappers/inlineHandlerFns for later
+ * wrapper-script emission by the caller.
  */
-function buildHooksJson(hooks: UniversalHooks): KimiHooksJson {
+function buildHooksJson(
+  hooks: UniversalHooks,
+  inlineWrappers: Map<string, { hookName: string }>,
+  inlineHandlerFns: Map<string, (ctx: HookContext) => Promise<HookResult>>,
+): KimiHooksJson {
   const hooksConfig: KimiHooksJson = { hooks: {} };
 
   for (const [hookName, hook] of Object.entries(hooks)) {
@@ -497,10 +541,23 @@ function buildHooksJson(hooks: UniversalHooks): KimiHooksJson {
       continue;
     }
 
-    // Build the command entry
-    const command = extractCommand(hook, universalName);
+    let command: string | null;
+    if (hook.handler?.type === "inline") {
+      const inlineHandler = hook.handler as InlineHookHandler;
+      if (typeof inlineHandler.handler === 'function') {
+        const wrapperId = `__inline_${universalName}_${kimiHashId(universalName)}`;
+        inlineWrappers.set(wrapperId, { hookName: universalName });
+        inlineHandlerFns.set(wrapperId, inlineHandler.handler);
+        command = `node ./hooks/${wrapperId}.js`;
+      } else {
+        command = null;
+      }
+    } else {
+      command = extractCommand(hook, universalName);
+    }
+
     if (!command) {
-      continue; // No valid command for this hook
+      continue;
     }
 
     const statusMessage = buildStatusMessage(hook, universalName);

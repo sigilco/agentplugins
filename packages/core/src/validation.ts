@@ -282,7 +282,7 @@ export function getPlatformConstraints(platform: TargetPlatform): PlatformConstr
     codex: {
       maxNameLength: 64,
       supportsHttpHandler: false,
-      supportsInlineHandler: false,
+      supportsInlineHandler: true,
       supportsPromptHandler: false,
       supportsMCPToolHandler: false,
       supportsNativeTools: false,
@@ -295,7 +295,7 @@ export function getPlatformConstraints(platform: TargetPlatform): PlatformConstr
       ],
       manifestPath: '.codex-plugin/plugin.json',
       requiresStrictValidation: false,
-      notes: ['Hooks are command-based only (JSON stdin/stdout)', 'Use mcpServers for tools — plugin.tools[] is not natively emitted'],
+      notes: ['Inline handlers auto-wrapped as Node.js command scripts (v0.4.0)', 'Use mcpServers for tools — plugin.tools[] is not natively emitted'],
     },
     copilot: {
       maxNameLength: 64,
@@ -336,7 +336,7 @@ export function getPlatformConstraints(platform: TargetPlatform): PlatformConstr
     kimi: {
       maxNameLength: 64,
       supportsHttpHandler: true,
-      supportsInlineHandler: false,
+      supportsInlineHandler: true,
       supportsPromptHandler: false,
       supportsMCPToolHandler: false,
       supportsNativeTools: false,
@@ -348,7 +348,7 @@ export function getPlatformConstraints(platform: TargetPlatform): PlatformConstr
       ],
       manifestPath: 'kimi.plugin.json',
       requiresStrictValidation: true,
-      notes: ['Hooks are fail-open (not fail-closed like Copilot)', 'No native tool or MCP support'],
+      notes: ['Inline handlers auto-wrapped as Node.js command scripts (v0.4.0)', 'Hooks are fail-open (not fail-closed like Copilot)', 'No native tool or MCP support'],
     },
     opencode: {
       maxNameLength: 64,
