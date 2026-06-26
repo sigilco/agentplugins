@@ -500,6 +500,8 @@ export function installPlugin(
       // Fallback for non-compiled harnesses: whole-dir link into skillPath
       const info = symlinkPlugin(opts.name, agent);
       if (info) symlinks.push(info);
+      const nativeLinks = linkNativeArtifacts(opts.name, agent);
+      symlinks.push(...nativeLinks);
     }
     // Flat per-skill links into skills-compat and all agent skillPaths
     const skillLinks = linkPluginSkills(opts.name, agents);
@@ -553,10 +555,11 @@ export function removePlugin(name: string): void {
 
   const allAgents = detectAgents();
 
-  // Unlink compiled links and old whole-dir skill symlinks from all agents
+  // Unlink compiled links, native artifact links, and old whole-dir skill symlinks from all agents
   for (const agent of allAgents) {
     unlinkCompiledPlugin(name, agent);
     unlinkPluginSymlink(name, agent);
+    unlinkNativeArtifacts(name, agent);
   }
 
   // Unlink per-skill flat links (new-style) and old-style whole-dir skills-compat link
@@ -700,11 +703,13 @@ export function updatePlugin(name: string): PluginMeta {
   for (const agent of agents) {
     unlinkCompiledPlugin(name, agent);
     unlinkPluginSymlink(name, agent);
+    unlinkNativeArtifacts(name, agent);
     if (agent.pluginPath) {
       const infos = linkCompiledPlugin(name, agent);
       if (infos.length > 0) continue;
     }
     symlinkPlugin(name, agent);
+    linkNativeArtifacts(name, agent);
   }
   // Refresh flat per-skill links
   unlinkPluginSkills(name, agents);
@@ -804,6 +809,62 @@ export function linkCompiledPlugin(pluginName: string, agent: DetectedAgent): Sy
   } catch { /* skip */ }
 
   return results;
+}
+
+/**
+ * Link native artifacts from <store>/<pluginName>/.<agent.name>/<artifact.from>/ into
+ * the harness dir. Used for plugins that ship hand-crafted native content (no compilation).
+ *
+ * .mjs sources are linked under a .ts name so OpenCode auto-discovers them via file-drop.
+ * Emits a WARN suggesting the author rename the source to .ts instead.
+ */
+export function linkNativeArtifacts(pluginName: string, agent: DetectedAgent): SymlinkInfo[] {
+  if (!agent.artifacts) return [];
+  const nativeDir = join(getPluginStorePath(pluginName), `.${agent.name}`);
+  const results: SymlinkInfo[] = [];
+  for (const artifact of agent.artifacts) {
+    const fromDir = join(nativeDir, artifact.from);
+    if (!existsSync(fromDir)) continue;
+    const toDir = expandHome(artifact.to);
+    mkdirSync(toDir, { recursive: true });
+    for (const file of readdirSync(fromDir)) {
+      const src = join(fromDir, file);
+      let linkName = file;
+      if (file.endsWith('.mjs')) {
+        linkName = file.replace(/\.mjs$/, '.ts');
+        console.warn(`[agentplugins] WARN: ${pluginName}: ${file} is .mjs — rename to .ts for OpenCode auto-discovery`);
+      } else if (file.endsWith('.js')) {
+        console.warn(`[agentplugins] WARN: ${pluginName}: ${file} is .js (ambiguous CJS/ESM) — rename to .ts`);
+      }
+      const dst = join(toDir, linkName);
+      if (existsSync(dst) || isSymlink(dst)) {
+        try { unlinkSync(dst); } catch { /* ignore */ }
+      }
+      try {
+        symlinkSync(src, dst, lstatSync(src).isDirectory() ? 'dir' : 'file');
+        results.push({ agent: agent.name, agentDisplayName: agent.displayName, linkPath: dst, targetPath: src, valid: existsSync(src) });
+      } catch { /* best-effort */ }
+    }
+  }
+  return results;
+}
+
+/** Remove native artifact links for a plugin from an agent's dirs */
+export function unlinkNativeArtifacts(pluginName: string, agent: DetectedAgent): void {
+  if (!agent.artifacts) return;
+  const nativeDir = join(getPluginStorePath(pluginName), `.${agent.name}`);
+  for (const artifact of agent.artifacts) {
+    const fromDir = join(nativeDir, artifact.from);
+    if (!existsSync(fromDir)) continue;
+    const toDir = expandHome(artifact.to);
+    for (const file of readdirSync(fromDir)) {
+      const linkName = file.endsWith('.mjs') ? file.replace(/\.mjs$/, '.ts') : file;
+      const linkPath = join(toDir, linkName);
+      if (isSymlink(linkPath)) {
+        try { unlinkSync(linkPath); } catch { /* ignore */ }
+      }
+    }
+  }
 }
 
 /** Remove compiled plugin links from an agent's plugin directories */

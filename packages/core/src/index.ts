@@ -69,6 +69,8 @@ export {
   unlinkPluginSymlink,
   linkCompiledPlugin,
   unlinkCompiledPlugin,
+  linkNativeArtifacts,
+  unlinkNativeArtifacts,
   linkPluginSkills,
   getSymlinks,
   getPluginDistPath,
