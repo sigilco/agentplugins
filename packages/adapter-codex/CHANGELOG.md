@@ -1,5 +1,11 @@
 # @agentplugins/adapter-codex
 
+## 0.4.0
+
+### Minor Changes
+
+- v0.4.0: Architecture re-shape + security hardening. New `@agentplugins/contract` and `@agentplugins/compile` packages; `PluginManifest` is now a concrete interface; path-traversal and template-literal injection security fixes.
+
 ## 0.3.0
 
 ### Minor Changes
