@@ -110,13 +110,13 @@ export function createValidate(): (plugin: PluginManifest) => ValidationIssue[] 
         issues.push({
           severity: Severity.INFO,
           field: `hooks.${hookName}`,
-          message: `Command handler will be wrapped using Bun.$() for OpenCode compatibility.`,
+          message: `Command handler will be wrapped using execSync for OpenCode compatibility.`,
         });
       } else if (handler?.type === "http") {
         issues.push({
           severity: Severity.INFO,
           field: `hooks.${hookName}`,
-          message: `HTTP handler will be wrapped using Bun.$() (curl) for OpenCode compatibility.`,
+          message: `HTTP handler will be wrapped using execSync (curl) for OpenCode compatibility.`,
         });
       }
       // Inline handlers are native to OpenCode - no issues generated
