@@ -5,7 +5,7 @@
  */
 
 import { resolve, join } from 'node:path';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import chalk from 'chalk';
 import {
   validateUniversal,
@@ -108,6 +108,7 @@ export async function compile(options: CompileOptions): Promise<CompileResult[]>
 
       if (write && outDir) {
         const targetDir = join(resolve(outDir), target);
+        await rm(targetDir, { recursive: true, force: true });
         await mkdir(targetDir, { recursive: true });
         for (const file of output.files) {
           const filePath = join(targetDir, file.path);
