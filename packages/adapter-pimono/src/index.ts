@@ -401,22 +401,31 @@ function generateInlineHandlerBody(
  * @param event   - The Pi Mono event name (for logging).
  * @returns TypeScript source string for the handler body.
  */
+const PIMONO_PLUGIN_ROOT_RE = /\$\{(?:CLAUDE_)?PLUGIN_ROOT\}/g;
+
 function generateCommandHandlerBody(handler: CommandHookHandler, event: string): string {
-  // Replace ${CLAUDE_PLUGIN_ROOT} references with the runtime __piPluginRoot variable.
-  // Strip surrounding shell double-quotes from path arguments so the result is a
-  // valid JS template literal (e.g. `node "${CLAUDE_PLUGIN_ROOT}/x"` → `node ${__piPluginRoot}/x`).
-  const cmdTemplate = handler.command
-    .replace(/"(\$\{CLAUDE_PLUGIN_ROOT\}[^"]*?)"/g, (_m, p1: string) => p1.replace('${CLAUDE_PLUGIN_ROOT}', '${__piPluginRoot}'))
-    .replace(/\$\{CLAUDE_PLUGIN_ROOT\}/g, '${__piPluginRoot}');
+  // Build __cmdStr without template-literal injection: JSON.stringify the raw command,
+  // then use runtime .replace() for the plugin-root substitution.
+  const hasPluginRoot = PIMONO_PLUGIN_ROOT_RE.test(handler.command);
+  PIMONO_PLUGIN_ROOT_RE.lastIndex = 0;
+
+  let cmdExpr: string;
+  if (hasPluginRoot) {
+    const sentinelCmd = handler.command.replace(PIMONO_PLUGIN_ROOT_RE, '__PLUGIN_ROOT__');
+    PIMONO_PLUGIN_ROOT_RE.lastIndex = 0;
+    cmdExpr = `${JSON.stringify(sentinelCmd)}.replace(/__PLUGIN_ROOT__/g, __piPluginRoot)`;
+  } else {
+    cmdExpr = JSON.stringify(handler.command);
+  }
+
   const lines: string[] = [
     `// [${event}] command handler (executed via execSync)`,
     `const { execSync: __execSync } = await import('node:child_process');`,
-    `const __cmdStr = \`${cmdTemplate}\`;`,
+    `const __cmdStr = ${cmdExpr};`,
     `let __cmdRaw = '';`,
     `try {`,
     `  __cmdRaw = __execSync(__cmdStr, {`,
     `    encoding: 'utf8',`,
-    `    shell: true,`,
     `    env: { ...process.env, CLAUDE_PLUGIN_ROOT: __piPluginRoot },`,
     `  });`,
     `} catch (__e: any) {`,
