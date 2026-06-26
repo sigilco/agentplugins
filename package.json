@@ -1,6 +1,5 @@
 {
   "name": "agentplugins",
-  "version": "0.2.0",
   "description": "Write AI agent plugins once, ship to any harness. Unifying library for Claude Code, Codex, OpenCode, Gemini, Copilot CLI, Kimi, and Pi Mono.",
   "private": true,
   "type": "module",
@@ -11,8 +10,8 @@
     "test": "pnpm -r test",
     "clean": "pnpm -r clean",
     "typecheck": "pnpm -r exec tsc --noEmit",
-    "build:docs": "pnpm --filter agentplugins-docs build",
-    "dev:docs": "pnpm --filter agentplugins-docs dev",
+    "build:docs": "pnpm --filter ./docs build",
+    "dev:docs": "pnpm --filter ./docs dev",
     "release": "pnpm --filter './packages/**' build && changeset publish",
     "version": "changeset version",
     "build:binaries": "bash scripts/build-binaries.sh"

@@ -28,8 +28,9 @@ Legend:
 | `subagentStop` | ✅ | ✅ | ⚠️ | ✅ | Same as above; Pi `stop`↔`subagentStop` collision fixed in v0.3.0 |
 | `tools[]` (first-class) | ⚠️ | ⚠️ | ✅ | ✅ | WARN emitted; use `mcpServers` for Claude/Codex (Tier-1 universal tool path) |
 | `stop` / `continueWith` | ⚠️ | ⚠️ | ⚠️ | ⚠️ | New primitive — v0.4.0; all-Tier-1 design |
-| Native-entry passthrough | n/a (JSON) | n/a (JSON) | ⚠️ | ⚠️ | `nativeEntry` escape hatch — v0.4.0 |
+| Native-entry passthrough | n/a (JSON) | n/a (JSON) | ⚠️ | ⚠️ | `nativeEntry` escape hatch — v0.4.0; OpenCode native modules must be `.ts` (file-drop path, no config.json edits needed) |
 | `spawnChild` subprocess | ✅ via cmd | ✅ via cmd | ⚠️ | ⚠️ | Primitive set — v0.4.0 |
+| Inline hook handlers | ✅ auto-wrap | ✅ auto-wrap | ✅ | ✅ | Codex/Kimi: auto-wrapped as Node.js command scripts — v0.4.0 |
 
 ## Tier-2 footnotes
 
@@ -41,7 +42,7 @@ Legend:
 | `tools[]` | ✅ | ✅ | ❌ |
 | `mcpServers` | ❌ | ❌ | ❌ |
 
-Kimi `hooks` remain in `UNSUPPORTED_HOOKS` (`packages/adapter-kimi/src/index.ts`); tracked here, not blocking v0.3.0.
+Kimi supported hooks: `preToolUse`, `userPromptSubmit`, `sessionStart`, `notification`, `permissionRequest`. Inline handlers auto-wrapped as Node.js command scripts (v0.4.0).
 
 ## Decision tree for authors
 

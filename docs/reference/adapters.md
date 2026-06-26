@@ -120,6 +120,15 @@ dist/opencode/
 OpenCode runs on Bun, so inline handlers run in-process with no startup overhead. Prefer inline handlers when targeting OpenCode.
 :::
 
+#### OpenCode registration model
+
+OpenCode auto-discovers any `.ts` file dropped in `~/.config/opencode/plugins/` — no `config.json` edits required. Both paths use this:
+
+- **Codegen (universal plugins)**: adapter emits `plugin.ts` → linked as `<name>.ts` in the plugins dir.
+- **Native modules (hand-crafted)**: ship the file as `.ts` (ESM; valid TypeScript). `agentplugins install` symlinks it from the store into the plugins dir, preserving `import.meta.url` so relative `require`/`import` paths resolve correctly.
+
+If a native module is shipped as `.mjs`, `agentplugins` links it under a `.ts` name automatically and emits a WARN. Rename the source to `.ts` to silence it. `.js` files are left as-is with a WARN (ambiguous CJS/ESM — not auto-normalized).
+
 ### pimono
 
 Emits a Pi Mono extension as a TypeScript module plus a `package.json`:

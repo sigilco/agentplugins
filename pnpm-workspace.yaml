@@ -1,6 +1,6 @@
 packages:
   - 'packages/*'
   - 'plugins/*'
-  - 'docs-site'
+  - 'docs'
 allowBuilds:
   esbuild: true

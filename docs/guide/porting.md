@@ -123,6 +123,14 @@ nativeEntry: {
 
 This file is copied verbatim into the dist and has full access to the harness's own SDK.
 
+**OpenCode native module rule:**
+
+OpenCode auto-discovers only `.ts` files dropped in `~/.config/opencode/plugins/`. Ship all native OpenCode modules as `.ts` (ESM syntax is valid TypeScript; Bun runs it natively without type-checking). Sibling files (hooks, helpers) resolve correctly because `agentplugins install` symlinks the module back into the plugin store — `import.meta.url` resolves to the store path, so relative `require`/`import` paths work without copies.
+
+You do not need to edit `~/.config/opencode/config.json`. The `.ts` file-drop is sufficient.
+
+If you ship a `.mjs` source, `agentplugins` automatically links it under a `.ts` name (safety net) but emits a WARN. Rename the source to `.ts` to silence it.
+
 ---
 
 ## Step 4 — TUI-only features (acceptable degradation)

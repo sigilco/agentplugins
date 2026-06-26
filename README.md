@@ -37,6 +37,22 @@ Verify installation:
 agentplugins doctor
 ```
 
+## Available Plugins
+
+Community plugins install with one command — see the [Ecosystem page](https://agentplugins.pages.dev/guide/ecosystem) for the full list:
+
+| Plugin | Description |
+|---|---|
+| [agentplugins-autoresearch](https://github.com/sigilco/agentplugins-autoresearch) | Autonomous experiment/optimization loop. |
+| [agentplugins-goal](https://github.com/sigilco/agentplugins-goal) | Autonomous goal-completion loop across Tier-1. |
+| [agentplugins-ponytail](https://github.com/sigilco/agentplugins-ponytail) | Lazy senior dev mode — minimal working solutions. |
+| [agentplugins-caveman](https://github.com/sigilco/agentplugins-caveman) | Ultra-compressed token-savvy communication. |
+| [agentplugins-btw](https://github.com/sigilco/agentplugins-btw) | Parallel side-thread thoughts. |
+
+```bash
+agentplugins add sigilco/agentplugins-ponytail
+```
+
 ## Quick Start
 
 ### Install a Plugin
@@ -177,7 +193,7 @@ pnpm typecheck      # Type-check all packages
 pnpm build:binaries
 
 # Docs site
-cd docs-site && pnpm install && pnpm dev
+cd docs && pnpm install && pnpm dev
 ```
 
 ## Architecture
