@@ -151,6 +151,9 @@ jobs:
     needs: [release-npm, build-binaries]
     if: needs.release-npm.outputs.published == 'true'
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
     permissions:
       contents: write
     steps:
@@ -193,3 +196,96 @@ jobs:
           prerelease: ${{ contains(steps.version.outputs.version, '-') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ─── Job 4: Update Homebrew tap ─────────────────────────────────────────────
+  update-homebrew-tap:
+    name: Update Homebrew Tap
+    needs: [release-npm, github-release]
+    if: needs.release-npm.outputs.published == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout tap repository
+        uses: actions/checkout@v4
+        with:
+          repository: sigilco/homebrew-tap-agentplugins
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-tap-agentplugins
+
+      - name: Download release assets
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          pattern: binary-*
+          merge-multiple: true
+
+      - name: Compute tarball SHA256s
+        id: shas
+        working-directory: release-assets
+        run: |
+          echo "darwin-arm64=$(sha256sum agentplugins-aarch64-apple-darwin.tar.gz | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+          echo "darwin-x64=$(sha256sum agentplugins-x86_64-apple-darwin.tar.gz | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+          echo "linux-arm64=$(sha256sum agentplugins-aarch64-unknown-linux-gnu.tar.gz | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+          echo "linux-x64=$(sha256sum agentplugins-x86_64-unknown-linux-gnu.tar.gz | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+
+      - name: Update formula
+        env:
+          VERSION: ${{ needs.github-release.outputs.version }}
+          TAG: ${{ needs.github-release.outputs.tag }}
+          SHA256_DARWIN_ARM64: ${{ steps.shas.outputs.darwin-arm64 }}
+          SHA256_DARWIN_X64: ${{ steps.shas.outputs.darwin-x64 }}
+          SHA256_LINUX_ARM64: ${{ steps.shas.outputs.linux-arm64 }}
+          SHA256_LINUX_X64: ${{ steps.shas.outputs.linux-x64 }}
+        run: |
+          mkdir -p homebrew-tap-agentplugins/Formula
+          cat > homebrew-tap-agentplugins/Formula/agentplugins.rb <<EOF
+          class Agentplugins < Formula
+            desc "Write AI agent plugins once, ship to any harness"
+            homepage "https://github.com/sigilco/agentplugins"
+            version "\${VERSION}"
+
+            on_macos do
+              on_arm do
+                url "https://github.com/sigilco/agentplugins/releases/download/\${TAG}/agentplugins-aarch64-apple-darwin.tar.gz"
+                sha256 "\${SHA256_DARWIN_ARM64}"
+              end
+              on_intel do
+                url "https://github.com/sigilco/agentplugins/releases/download/\${TAG}/agentplugins-x86_64-apple-darwin.tar.gz"
+                sha256 "\${SHA256_DARWIN_X64}"
+              end
+            end
+
+            on_linux do
+              on_arm do
+                url "https://github.com/sigilco/agentplugins/releases/download/\${TAG}/agentplugins-aarch64-unknown-linux-gnu.tar.gz"
+                sha256 "\${SHA256_LINUX_ARM64}"
+              end
+              on_intel do
+                url "https://github.com/sigilco/agentplugins/releases/download/\${TAG}/agentplugins-x86_64-unknown-linux-gnu.tar.gz"
+                sha256 "\${SHA256_LINUX_X64}"
+              end
+            end
+
+            def install
+              bin.install "agentplugins-aarch64-apple-darwin" => "agentplugins" if Hardware::CPU.arm? && OS.mac?
+              bin.install "agentplugins-x86_64-apple-darwin" => "agentplugins" if Hardware::CPU.intel? && OS.mac?
+              bin.install "agentplugins-aarch64-unknown-linux-gnu" => "agentplugins" if Hardware::CPU.arm? && OS.linux?
+              bin.install "agentplugins-x86_64-unknown-linux-gnu" => "agentplugins" if Hardware::CPU.intel? && OS.linux?
+            end
+
+            test do
+              assert_match "\${VERSION}", shell_output("#{bin}/agentplugins --version")
+              assert_match "Usage", shell_output("#{bin}/agentplugins --help")
+            end
+          end
+          EOF
+
+      - name: Commit and push formula
+        working-directory: homebrew-tap-agentplugins
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/agentplugins.rb
+          git diff --cached --quiet || git commit -m "chore: bump agentplugins to \${{ needs.github-release.outputs.tag }}"
+          git push
