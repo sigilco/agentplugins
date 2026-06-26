@@ -24,6 +24,11 @@ import {
 } from 'node:fs';
 import { execSync } from 'node:child_process';
 
+// ponytail: module-level buffer; reset at the start of each top-level store op (install/remove/update)
+const __linkErrors: string[] = [];
+export function recordLinkError(msg: string): void { __linkErrors.push(msg); }
+export function flushLinkErrors(): string[] { const e = __linkErrors.splice(0); return e; }
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface AgentPathEntry {
@@ -465,10 +470,7 @@ export function installPlugin(
 
   // Remove existing if present
   if (existsSync(storePath)) {
-    // Unlink existing symlinks first
-    for (const agent of getDetectedAgents()) {
-      unlinkPluginSymlink(opts.name, agent);
-    }
+    unlinkAll(opts.name, detectAgents());
     rmSync(storePath, { recursive: true, force: true });
   }
 
@@ -507,6 +509,13 @@ export function installPlugin(
     // Flat per-skill links into skills-compat and all agent skillPaths
     const skillLinks = linkPluginSkills(opts.name, agents);
     symlinks.push(...skillLinks);
+  }
+
+  const errs = flushLinkErrors();
+  if (errs.length > 0) {
+    console.warn(`[agentplugins] WARN: ${errs.length} link(s) failed during install of "${opts.name}":`);
+    for (const e of errs) console.warn(`  - ${e}`);
+    process.exitCode = 1;
   }
 
   return { meta, symlinks };
@@ -548,6 +557,21 @@ export function addPluginFromSource(source: string): InstallResult | null {
   });
 }
 
+/** Fully unlink every link type for a plugin across all agents */
+export function unlinkAll(name: string, agents: readonly DetectedAgent[]): void {
+  for (const agent of agents) {
+    unlinkCompiledPlugin(name, agent);
+    unlinkPluginSymlink(name, agent);
+    unlinkNativeArtifacts(name, agent);
+  }
+  unlinkPluginSkills(name, agents as DetectedAgent[]);
+  // Also remove old-style whole-dir skills-compat link
+  const skillsLink = join(getSkillsCompatPath(), name);
+  if (isSymlink(skillsLink)) {
+    try { unlinkSync(skillsLink); } catch { /* ignore */ }
+  }
+}
+
 /** Remove a plugin: unlink all symlinks, delete from store */
 export function removePlugin(name: string): void {
   const storePath = getPluginStorePath(name);
@@ -556,20 +580,7 @@ export function removePlugin(name: string): void {
   }
 
   const allAgents = detectAgents();
-
-  // Unlink compiled links, native artifact links, and old whole-dir skill symlinks from all agents
-  for (const agent of allAgents) {
-    unlinkCompiledPlugin(name, agent);
-    unlinkPluginSymlink(name, agent);
-    unlinkNativeArtifacts(name, agent);
-  }
-
-  // Unlink per-skill flat links (new-style) and old-style whole-dir skills-compat link
-  unlinkPluginSkills(name, allAgents);
-  const skillsLink = join(getSkillsCompatPath(), name);
-  if (isSymlink(skillsLink)) {
-    try { unlinkSync(skillsLink); } catch { /* ignore */ }
-  }
+  unlinkAll(name, allAgents);
 
   // Remove from store
   rmSync(storePath, { recursive: true, force: true });
@@ -717,6 +728,13 @@ export function updatePlugin(name: string): PluginMeta {
   unlinkPluginSkills(name, agents);
   linkPluginSkills(name, agents);
 
+  const errs = flushLinkErrors();
+  if (errs.length > 0) {
+    console.warn(`[agentplugins] WARN: ${errs.length} link(s) failed during update of "${name}":`);
+    for (const e of errs) console.warn(`  - ${e}`);
+    process.exitCode = 1;
+  }
+
   return updatedMeta;
 }
 
@@ -778,7 +796,7 @@ export function linkCompiledPlugin(pluginName: string, agent: DetectedAgent): Sy
         try {
           symlinkSync(srcPath, linkPath, 'file');
           results.push({ agent: agent.name, agentDisplayName: agent.displayName, linkPath, targetPath: srcPath, valid: existsSync(srcPath) });
-        } catch { /* skip — best-effort */ }
+        } catch (err) { recordLinkError(`${linkPath} → ${srcPath} (${agent.name}, artifact)`); }
       }
     }
     return results;
@@ -808,7 +826,7 @@ export function linkCompiledPlugin(pluginName: string, agent: DetectedAgent): Sy
   try {
     symlinkSync(targetPath, linkPath, agent.pluginPathMode === 'dir' ? 'dir' : 'file');
     results.push({ agent: agent.name, agentDisplayName: agent.displayName, linkPath, targetPath, valid: existsSync(targetPath) });
-  } catch { /* skip */ }
+  } catch (err) { recordLinkError(`${linkPath} → ${targetPath} (${agent.name})`); }
 
   return results;
 }
@@ -845,7 +863,7 @@ export function linkNativeArtifacts(pluginName: string, agent: DetectedAgent): S
       try {
         symlinkSync(src, dst, lstatSync(src).isDirectory() ? 'dir' : 'file');
         results.push({ agent: agent.name, agentDisplayName: agent.displayName, linkPath: dst, targetPath: src, valid: existsSync(src) });
-      } catch { /* best-effort */ }
+      } catch (err) { recordLinkError(`${dst} → ${src} (${agent.name}, native artifact)`); }
     }
   }
   return results;
@@ -924,8 +942,8 @@ export function symlinkPlugin(pluginName: string, agent: DetectedAgent): Symlink
   // Create symlink (relative for portability)
   try {
     symlinkSync(targetPath, linkPath, 'dir');
-  } catch {
-    // If symlink fails (e.g., permissions on Windows), return null
+  } catch (err) {
+    recordLinkError(`${linkPath} → ${targetPath} (${agent.name})`);
     return null;
   }
 
@@ -995,7 +1013,7 @@ export function linkPluginSkills(pluginName: string, agents: DetectedAgent[]): S
     try {
       symlinkSync(skillDirPath, compatLink, 'dir');
       results.push({ agent: 'skills-compat', agentDisplayName: 'Skills.sh compat', linkPath: compatLink, targetPath: skillDirPath, valid: true });
-    } catch { /* best-effort */ }
+    } catch (err) { recordLinkError(`${compatLink} → ${skillDirPath} (skills-compat)`); }
 
     // Per-agent skillPath links (skip compiled-artifact harnesses — they have their own skill discovery)
     for (const agent of agents) {
@@ -1008,7 +1026,7 @@ export function linkPluginSkills(pluginName: string, agents: DetectedAgent[]): S
       try {
         symlinkSync(skillDirPath, agentSkillLink, 'dir');
         results.push({ agent: agent.name, agentDisplayName: agent.displayName, linkPath: agentSkillLink, targetPath: skillDirPath, valid: true });
-      } catch { /* best-effort */ }
+      } catch (err) { recordLinkError(`${agentSkillLink} → ${skillDirPath} (${agent.name}, skill)`); }
     }
   }
 
