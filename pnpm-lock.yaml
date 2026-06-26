@@ -374,6 +374,9 @@ importers:
       '@agentplugins/compile':
         specifier: workspace:*
         version: link:../compile
+      '@agentplugins/security':
+        specifier: workspace:*
+        version: link:../security
     devDependencies:
       '@types/node':
         specifier: ^20.0.0

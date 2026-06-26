@@ -6,7 +6,8 @@
  *
  * Distribution commands:
  *   agentplugins add <github-url>       # Install a plugin to the store + all agents
- *   agentplugins remove <name>          # Remove a plugin
+ *   agentplugins setup <name>             # Run an installed plugin's setup script
+ *   agentplugins remove <name>            # Remove a plugin
  *   agentplugins list                   # List installed plugins
  *   agentplugins update [name]          # Update plugin(s) from source
  *   agentplugins info <name>            # Show plugin details
@@ -30,6 +31,7 @@ import { init } from './commands/init.js';
 import { lint } from './commands/lint.js';
 import { preview } from './commands/preview.js';
 import { add } from './commands/add.js';
+import { setup } from './commands/setup.js';
 import { remove } from './commands/remove.js';
 import { list } from './commands/list.js';
 import { update } from './commands/update.js';
@@ -45,11 +47,26 @@ const cli = cac('agentplugins');
 
 cli
   .command('add <source>', 'Install a plugin from GitHub to the store + all agents')
-  .action(async (source: string) => {
+  .option('-y, --yes', 'Skip the setup trust prompt (still denylist-gated)')
+  .option('--no-setup', 'Do not run any setup script after install')
+  .action(async (source: string, options) => {
     try {
-      await add({ source });
+      await add({ source, yes: options.yes, noSetup: options.setup === false });
     } catch (err) {
       console.error(chalk.red('Add failed:'), err instanceof Error ? err.message : String(err));
+      process.exit(1);
+    }
+  });
+
+cli
+  .command('setup <name>', "Run an installed plugin's setup script (re-runnable)")
+  .option('-f, --force', 'Re-prompt even if the setup command is unchanged/trusted')
+  .option('-y, --yes', 'Skip the trust prompt (still denylist-gated)')
+  .action(async (name: string, options) => {
+    try {
+      await setup({ name, force: options.force, yes: options.yes });
+    } catch (err) {
+      console.error(chalk.red('Setup failed:'), err instanceof Error ? err.message : String(err));
       process.exit(1);
     }
   });

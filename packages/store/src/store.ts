@@ -9,6 +9,7 @@
 import { homedir } from 'node:os';
 import { join, basename } from 'node:path';
 import { sanitizeName } from '@agentplugins/compile';
+import type { SetupRecord } from './setup.js';
 import {
   existsSync,
   readFileSync,
@@ -70,6 +71,8 @@ export interface PluginMeta {
   manifestPath: string;
   /** Plugin version from manifest */
   version: string;
+  /** Trust-on-first-use record for the plugin's `setup` command (v0.5.0+). */
+  setup?: SetupRecord;
 }
 
 export interface DetectedAgent {

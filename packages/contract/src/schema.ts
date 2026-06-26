@@ -321,6 +321,17 @@ export const PluginManifestSchema = z.object({
   /** @experimental No enforcement path exists yet; treat as documentation only. */
   sidecar: SidecarSchema.optional(),
   integrity: z.string().optional(),
+
+  /**
+   * Shell command run from the plugin root once after install; re-runnable via
+   * `agentplugins setup <name>`. Subject to trust-on-first-use + the lifecycle
+   * script policy (hard denylist always blocks; default-deny prompt otherwise).
+   *
+   * Distinct from the universal `hooks.setup` lifecycle hook — this is a plain
+   * command string (e.g. `bash install.sh`, `node postinstall.mjs`), not a hook
+   * handler. Author owns interpreter/idempotency.
+   */
+  setup: z.string().min(1).optional(),
 });
 
 /**

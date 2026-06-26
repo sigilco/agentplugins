@@ -19,11 +19,14 @@ import {
 import { join } from 'node:path';
 import { existsSync, rmSync } from 'node:fs';
 import { compile } from './build.js';
+import { runSetupFlow } from './setup.js';
 import { verifyIntegrity, evaluateManifestScripts } from '@agentplugins/security';
 import type { PluginManifest } from '@agentplugins/core';
 
 export interface AddOptions {
   source: string;
+  yes?: boolean;
+  noSetup?: boolean;
 }
 
 export async function add(options: AddOptions): Promise<void> {
@@ -149,6 +152,15 @@ export async function add(options: AddOptions): Promise<void> {
       console.log(chalk.gray(`   ${s.agentDisplayName}: ${s.linkPath}`));
     }
   }
+
+  await runSetupFlow({
+    name,
+    pluginDir: tempDir,
+    manifest: manifestResult.manifest,
+    yes: options.yes,
+    noSetup: options.noSetup,
+  });
+
   console.log();
 }
 

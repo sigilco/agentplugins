@@ -2016,6 +2016,10 @@
         },
         "integrity": {
           "type": "string"
+        },
+        "setup": {
+          "type": "string",
+          "minLength": 1
         }
       },
       "required": [

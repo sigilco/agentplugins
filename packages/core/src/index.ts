@@ -93,6 +93,16 @@ export {
   getSymlinks,
   getPluginDistPath,
   runDoctor,
+  unlinkAll,
+  recordLinkError,
+  flushLinkErrors,
+  validateCloneUrl,
+  resolveSetupCommand,
+  hashSetupCommand,
+  gateSetupCommand,
+  runSetupCommand,
+  readSetupRecord,
+  writeSetupRecord,
 } from '@agentplugins/store';
 export type {
   AgentPathEntry,
@@ -105,6 +115,11 @@ export type {
   InstallResult,
   DoctorResult,
   DoctorIssue,
+  SetupRecord,
+  SetupSource,
+  ResolvedSetup,
+  RunSetupOptions,
+  RunSetupResult,
 } from '@agentplugins/store';
 
 // ─── definePlugin helper ──────────────────────────────────────────────────────
