@@ -201,4 +201,4 @@ Codegen is still useful for plugin authors who want to maintain one source-of-tr
 4. **Mise core plugin timing**: ship at v0.2.0 or v0.3.0?
 5. **JSON-only manifest or YAML/TOML too?**: **Recommendation**: JSON-only at v0.2.0.
 
-See `.agents/plans/2026-06-14-v0.2.0-distribution-pivot.md` for the full implementation plan, including tasks, code, and acceptance criteria.
+Implementation details and per-milestone tasks are tracked in the GitHub issue tracker: [Project 14](https://github.com/users/espetro/projects/14/views/1).

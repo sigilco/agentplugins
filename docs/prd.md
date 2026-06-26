@@ -41,13 +41,13 @@ AgentPlugins solves the fragmentation problem in AI agent plugin development. Pl
 
 A plugin capability must deliver the same functionality across all four Tier-1 harnesses — at the functionality level, not the TUI level. We do not ship a feature that works on only one harness.
 
-Five operating principles (see [`.agents/plans/2026-06-25-tier1-parity-roadmap.md`](.agents/plans/2026-06-25-tier1-parity-roadmap.md) for full detail):
+Five operating principles:
 
 1. **Tier-1 parity is the bar.** Same functionality across Claude Code, Codex, OpenCode, Pi Mono. TUI-grade fidelity (overlays, widgets) is the only allowed degradation.
 2. **Codegen first, guided per-harness fallback second.** Where universal codegen can express a capability across all Tier-1, do that. Where a harness lacks the native primitive, check whether all Tier-1 can support it via a custom (escape-hatch) method, and if so guide the author — rather than dropping the feature.
 3. **Keep a compat matrix.** The living [Tier-1 Capability Matrix](../docs-site/reference/compat-matrix.md) (published at `/reference/compat-matrix`) records what's universal-codegen, guided-per-harness, and genuinely unsupported. It's the contract for "same functionality, different plumbing."
 4. **Lean, no global SDK.** Primitives express intent, not mechanism; each adapter owns its own plumbing. The escape hatch lets power users write native code against each harness's SDK.
-5. **Community plugins are ground-up rewrites on agentplugins**, not mechanical ports. They drive primitive discovery, but every primitive must serve all Tier-1, never one plugin.
+5. **Multi-platform by default, platform-specific code allowed.** AgentPlugins gives plugin authors the foundations to distribute their plugin across all Tier-1 harnesses (Claude Code, Codex, OpenCode, Pi Mono). Authors are not forced to support every harness — they may target a single harness or ship harness-specific behavior (e.g., custom logging for one harness) when another harness lacks a needed primitive. The end goal is a distribution platform and utilities so authors can make a plugin usable in other harnesses without porting or rewriting the implementation. Think React Native or Rust: multi-platform by default, platform-specific code when you need it.
 
 ## Target Audience
 
@@ -63,29 +63,16 @@ Five operating principles (see [`.agents/plans/2026-06-25-tier1-parity-roadmap.m
 - Benefit from easy onboarding of cross-platform plugins
 - Can integrate AgentPlugins adapter support into platform documentation
 
-## v0.1.0 Scope
+## v1 Scope (WIP)
 
-### Core Components
-1. **@agentplugins/core** — Universal plugin manifest types and validation
-2. **CLI** (`agentplugins` binary) — build, validate, and test plugins
-3. **7 Platform Adapters** — compile universal format to:
-   - Claude Code (9 files: plugin.json, hooks.json, skills, MCP configs)
-   - OpenCode (2 files: TypeScript plugin + config)
-   - Codex (2 files)
-   - Copilot (3 files)
-   - Gemini (3 files)
-   - Kimi (4 files)
-   - Pi Mono (1 file: TypeScript extension module)
-4. **example-logger Plugin** — reference implementation compiling to all 7 platforms
-5. **Documentation** — README, getting started, adapter specs, examples
+_Draft — this section reflects the current product direction and will be finalized ahead of the v1 release._
 
-### Out of Scope for v0.1.0
-- Plugin registry / marketplace
-- Interactive plugin scaffolding (`agentplugins init`)
-- Multi-language support (TypeScript only)
-- Runtime plugin loading / hot-reload
-- Browser-based plugin editor
-- Advanced debugging tooling
+- **Distribution-first CLI** — `agentplugins add <github-url>` installs a plugin once; the universal store (`~/.agents/plugins/<name>/`) fans out via symlinks to every detected agent harness.
+- **Skills.sh compatibility** — plugins exposing `SKILL.md` are first-class citizens; our CLI reads both AgentPlugins and Skills.sh layouts.
+- **JSON Schema** — `@agentplugins/schema` package + hosted JSON Schema (`agentplugins.dev/schema/v1.json`) for editor autocomplete and self-documenting manifests.
+- **Tier-1 parity primitives** — every shipped capability works across Claude Code, Codex, OpenCode, and Pi Mono. The [Tier-1 Capability Matrix](../docs-site/reference/compat-matrix.md) is the living contract.
+- **Security & audit guardrails** — `agentplugins audit` scores supply-chain risk (OSV, Scorecard, npm provenance); safe-fetch SSRF guard; lifecycle script policy.
+- **Public launch** — registry, docs site, examples, and a stable v1 manifest format.
 
 ## Success Criteria
 
@@ -108,45 +95,13 @@ Five operating principles (see [`.agents/plans/2026-06-25-tier1-parity-roadmap.m
 
 ## Roadmap
 
-### v0.1.0 (June 2026) — shipped
-- Core types + CLI + 7 platform adapters
-- example-logger plugin compiling to all 7 platforms
-- Public npm release under `@agentplugins/*`
+The roadmap is maintained as a living board in [GitHub Project 14](https://github.com/users/espetro/projects/14/views/1). Individual milestones, tasks, and their statuses are tracked there rather than in prose here.
 
-### v0.2.0 (Distribution MVP) — shipped
-- **Distribution-first pivot**: `agentplugins add <github-url>` → universal store + symlink fanout to every detected agent
-- 5 install channels: native binary, npm, Homebrew, curl, Mise (UBI backend day one)
-- `~/.agents/plugins/<name>/` is the source of truth; per-agent dirs are symlinks
-- Skills.sh compatibility (read `SKILL.md`, scan `~/.agents/skills/`)
-- Bun-compiled native binaries for 8 targets → GitHub Releases
-- `@agentplugins/schema` package + hosted JSON Schema at `agentplugins.dev/schema/v1.json`
-- VitePress landing page
+### Shipped releases
 
-### v0.3.0 (Tier-1 Parity Wins + First Community Rewrites) — in progress
-- Philosophy: Tier-1 parity principles (this doc §"Tier-1 Functional Parity") + living compat matrix
-- **3.1** Subagent lifecycle parity across Tier-1 (Pi `stop`↔`subagentStop` fix; OpenCode guided per-harness or matrix gap)
-- **3.2** `mcpServers` documented as universal tool mechanism; `tools[]` scoped to opencode/pimono; WARN on others
-- **3.3** Spec/schema/core sync: handler-type drift, `userConfig`/`settings` dupe, stale dep pins
-- **3.4** Compat matrix artifact seeded and maintained
-- **3.5** Community rewrites #1 & #2: `agentplugins-caveman` + `agentplugins-ponytail` (sibling repos)
-- **3.6** Ecosystem page + "Rewriting for tier-1 parity" guide
-- Also: Epic #24 (`feat/v0.3.0-p0-portability`) — JSON-manifest compat ingestor + `audit` + security guardrails
-
-See [`.agents/plans/2026-06-25-tier1-parity-roadmap.md`](.agents/plans/2026-06-25-tier1-parity-roadmap.md) and [`.agents/plans/2026-06-24-v0.3.0-p0-portability.md`](.agents/plans/2026-06-24-v0.3.0-p0-portability.md).
-
-### v0.4.0 (Tier-1 Authoring Primitives + Remaining Rewrites)
-- **4.1** `continueWith` on `stop` result — autonomous loop across all Tier-1 (headline primitive)
-- **4.2** Native-entry passthrough (`nativeEntry`) — escape hatch for code-emitting adapters
-- **4.3** Subprocess primitive set (`spawnChild()` + `agentCommand`/`agentCwd` in HookContext)
-- **4.4** `userConfig` runtime adapter overrides (resilience layer over 4.2)
-- **4.5** Community rewrites #3–#5: `agentplugins-goal` (4.1), `agentplugins-btw` (4.2), `agentplugins-flow` (4.2+4.3)
-
-### v1.0.0 (Public Launch)
-- All 7 canonical adapters fully tested
-- Public launch (registry, docs site, examples)
-- Security warning at install time (Gen/Socket/Snyk scoring)
-
-See `docs/plan.md` for the full strategic context and `.agents/plans/2026-06-14-v0.2.0-distribution-pivot.md` for the v0.2.0 implementation plan.
+- **v0.1.0** (June 2026) — Core types + CLI + 7 platform adapters + example-logger plugin. Public npm release under `@agentplugins/*`.
+- **v0.2.0** — Distribution pivot: `agentplugins add`, universal store + symlink fanout, 5 install channels, Skills.sh compatibility, JSON Schema, VitePress landing page.
+- **v0.3.0** — Tier-1 parity wins (3.1–3.6), compat ingestor, security guardrails, community rewrites. See `CHANGELOG.md` at repo root for details.
 
 ## Technical Architecture
 
