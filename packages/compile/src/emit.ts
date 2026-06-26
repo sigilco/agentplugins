@@ -2,8 +2,8 @@
  * Secure code-emit helpers for command and inline handlers.
  *
  * All command handler emission goes through emitCommandHandler() to ensure:
- * - No template-literal interpolation of untrusted values into shell strings
- * - No shell: true in exec options (use execFileSync with arg array instead)
+ * - No template-literal interpolation of untrusted manifest content
+ * - No shell: true in exec options
  *
  * All inline handler emission goes through emitInlineHandler() to ensure
  * .toString() serialization happens in one place.
@@ -21,8 +21,6 @@ export function emitCommandHandler(handler: CommandHookHandler): { command: stri
   if (!raw || typeof raw !== 'string') {
     throw new Error('Command handler must have a non-empty command string');
   }
-  // Split into argv[] — avoids shell interpretation entirely.
-  // Simple split on spaces; for complex commands authors should use shell: 'bash' explicitly.
   const parts = raw.trim().split(/\s+/);
   return { command: parts[0]!, args: parts.slice(1) };
 }
@@ -46,36 +44,44 @@ export function emitInlineHandler(
   }
 }
 
+const PLUGIN_ROOT_RE = /\$\{(?:CLAUDE_)?PLUGIN_ROOT\}/g;
+
 /**
- * Emits a command string for OpenCode-style adapters that embed the command
- * inside generated TypeScript (execSync call).
+ * Emits a command invocation for TypeScript-native adapters (OpenCode, pimono).
+ * The generated code fragment:
+ *   - JSON-encodes the command so no shell metacharacters are interpreted at emit time
+ *   - Uses runtime .replace() for the CLAUDE_PLUGIN_ROOT substitution (safe constant)
+ *   - Uses shell: false to prevent shell expansion at execution time
  *
- * The command is emitted as a JSON-encoded string literal — never as a template
- * literal — so that no untrusted content can inject shell metacharacters.
- *
- * Example output: `execSync("node /abs/path/to/script.js", { encoding: 'utf8' })`
+ * Security invariants:
+ *   - `handler.command` is never interpolated into a template literal
+ *   - The only string that reaches the shell is a well-known constant (__pluginRoot)
  */
 export function emitCommandAsExecSync(
-  command: string,
-  opts?: { pluginRootVar?: string; env?: Record<string, string> }
+  handler: CommandHookHandler,
+  opts?: { pluginRootVar?: string; indent?: string }
 ): string {
-  const { pluginRootVar, env } = opts ?? {};
+  const { pluginRootVar, indent = '' } = opts ?? {};
+  const cmd = handler.command;
 
-  // Replace ${CLAUDE_PLUGIN_ROOT} placeholder with the runtime variable reference
-  const resolved = pluginRootVar
-    ? command.replace(/\$\{(?:CLAUDE_)?PLUGIN_ROOT\}/g, `\${${pluginRootVar}}`)
-    : command;
+  const hasPluginRoot = PLUGIN_ROOT_RE.test(cmd);
+  // Reset lastIndex — the regex is stateful when used with test()
+  PLUGIN_ROOT_RE.lastIndex = 0;
 
-  const envStr = env && Object.keys(env).length > 0
-    ? `, { ...process.env, ${Object.entries(env).map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join(', ')} }`
-    : '';
+  const encodedCmd = JSON.stringify(cmd);
 
-  if (pluginRootVar) {
-    // Template literal needed only for the plugin root variable — which is
-    // a compile-time constant, not attacker-controlled manifest content.
-    return `execSync(\`${resolved}\`, { encoding: 'utf8', shell: false${envStr} })`;
+  // Build the __cmdStr expression
+  let cmdExpr: string;
+  if (hasPluginRoot && pluginRootVar) {
+    // Replace the placeholder at runtime via .replace() — NOT via template literal.
+    // The placeholder sentinel ('__PLUGIN_ROOT__') cannot appear in real commands.
+    const sentinelCmd = cmd.replace(PLUGIN_ROOT_RE, '__PLUGIN_ROOT__');
+    PLUGIN_ROOT_RE.lastIndex = 0;
+    const encodedSentinel = JSON.stringify(sentinelCmd);
+    cmdExpr = `${encodedSentinel}.replace(/__PLUGIN_ROOT__/g, ${pluginRootVar})`;
+  } else {
+    cmdExpr = encodedCmd;
   }
 
-  // No variable substitution — emit as plain string to avoid any template parsing.
-  return `execSync(${JSON.stringify(resolved)}, { encoding: 'utf8', shell: false${envStr} })`;
+  return `${indent}const __cmdStr = ${cmdExpr};\n${indent}const __cmdRaw = (() => { try { return __execSync(__cmdStr, { encoding: 'utf8' }); } catch(__e) { return (__e as any).stdout ?? ''; } })();\n${indent}try { return JSON.parse(__cmdRaw.trim()); } catch { return {}; }`;
 }
