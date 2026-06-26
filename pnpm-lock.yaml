@@ -127,6 +127,9 @@ importers:
 
   packages/adapter-opencode:
     dependencies:
+      '@agentplugins/compile':
+        specifier: workspace:*
+        version: link:../compile
       '@agentplugins/core':
         specifier: workspace:*
         version: link:../core
@@ -180,6 +183,12 @@ importers:
       '@agentplugins/adapter-pimono':
         specifier: workspace:*
         version: link:../adapter-pimono
+      '@agentplugins/compile':
+        specifier: workspace:*
+        version: link:../compile
+      '@agentplugins/contract':
+        specifier: workspace:*
+        version: link:../contract
       '@agentplugins/core':
         specifier: workspace:*
         version: link:../core

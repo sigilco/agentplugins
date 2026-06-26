@@ -20,7 +20,9 @@
     "access": "public"
   },
   "dependencies": {
+    "@agentplugins/contract": "workspace:*",
     "@agentplugins/core": "workspace:*",
+    "@agentplugins/compile": "workspace:*",
     "@agentplugins/ingest": "workspace:*",
     "@agentplugins/schema": "workspace:*",
     "@agentplugins/security": "workspace:*",
