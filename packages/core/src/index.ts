@@ -4,7 +4,7 @@
  * Public API is unchanged. Internals have moved to sub-packages:
  * - @agentplugins/contract  — manifest schema + all types
  * - @agentplugins/compile   — codegen kernel, lint, validation, sanitizers
- * - @agentplugins/store     — install / link / registry (A4, coming next)
+ * - @agentplugins/store     — install / link / registry (extracted in v0.5.0)
  */
 
 // ─── Types from contract ──────────────────────────────────────────────────────
@@ -57,7 +57,7 @@ export { validateUniversal, validateForPlatform } from './validation.js';
 export { lint, lintManifest } from './lint.js';
 export type { LintIssue, LintRule } from './lint.js';
 
-// ─── Store re-exports (still in core/store.ts pending A4) ────────────────────
+// ─── Store re-exports (from @agentplugins/store) ─────────────────────────────
 
 export {
   AGENT_PATHS,
@@ -93,7 +93,7 @@ export {
   getSymlinks,
   getPluginDistPath,
   runDoctor,
-} from './store.js';
+} from '@agentplugins/store';
 export type {
   AgentPathEntry,
   PluginMeta,
@@ -105,7 +105,7 @@ export type {
   InstallResult,
   DoctorResult,
   DoctorIssue,
-} from './store.js';
+} from '@agentplugins/store';
 
 // ─── definePlugin helper ──────────────────────────────────────────────────────
 

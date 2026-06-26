@@ -270,6 +270,9 @@ importers:
       '@agentplugins/contract':
         specifier: workspace:*
         version: link:../contract
+      '@agentplugins/store':
+        specifier: workspace:*
+        version: link:../store
       zod:
         specifier: ^3.25.76
         version: 3.25.76
@@ -355,6 +358,22 @@ importers:
       '@agentplugins/schema':
         specifier: workspace:*
         version: link:../schema
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.41
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.1.4
+        version: 3.2.6(@types/debug@4.1.13)(@types/node@20.19.41)
+
+  packages/store:
+    dependencies:
+      '@agentplugins/compile':
+        specifier: workspace:*
+        version: link:../compile
     devDependencies:
       '@types/node':
         specifier: ^20.0.0

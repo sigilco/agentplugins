@@ -1,7 +1,7 @@
 {
-  "name": "@agentplugins/core",
-  "version": "0.4.0",
-  "description": "Core types, validation, and plugin registry for AgentPlugins",
+  "name": "@agentplugins/store",
+  "version": "0.5.0",
+  "description": "Universal plugin store for AgentPlugins — install, link, and registry fs operations for ~/.agents/plugins/<name>/",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -9,18 +9,13 @@
     ".": {
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
-    },
-    "./adapter": {
-      "import": "./dist/adapter.js",
-      "types": "./dist/adapter.d.ts"
     }
   },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "test": "vitest",
-    "test:run": "vitest run __tests__/placeholder.test.ts"
+    "test": "vitest run --passWithNoTests"
   },
   "files": [
     "dist",
@@ -31,22 +26,20 @@
   },
   "keywords": [
     "agentplugins",
-    "ai",
-    "plugin",
-    "core"
+    "store",
+    "install",
+    "link",
+    "plugin"
   ],
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/sigilco/agentplugins.git",
-    "directory": "packages/core"
+    "directory": "packages/store"
   },
   "homepage": "https://agentplugins.pages.dev/",
   "dependencies": {
-    "@agentplugins/contract": "workspace:*",
-    "@agentplugins/compile": "workspace:*",
-    "@agentplugins/store": "workspace:*",
-    "zod": "^3.25.76"
+    "@agentplugins/compile": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
