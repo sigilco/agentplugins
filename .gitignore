@@ -46,7 +46,8 @@ coverage/
 
 # Documentation generation
 storybook-static/
-.vitepress/
+docs/.vitepress/cache/
+docs/.vitepress/dist/
 
 # Misc
 *.local
