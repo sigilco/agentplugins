@@ -17,7 +17,7 @@ export default definePlugin({
 Use `definePlugin` for editor autocomplete and compile-time validation. You can also author the manifest as static JSON (`agentplugins.json`) — both forms are supported.
 
 ::: tip
-Add `"$schema": "__DOCS_SITE__/schema/v1.json"` to JSON manifests for editor autocomplete in VS Code, JetBrains, and any JSON-Schema-aware editor. See the [JSON Schema reference](/reference/schema).
+Add `"$schema": "https://raw.githubusercontent.com/sigilco/agentplugins/main/spec/v1/manifest.schema.json"` to JSON manifests for editor autocomplete in VS Code, JetBrains, and any JSON-Schema-aware editor. See the [JSON Schema reference](/reference/schema).
 :::
 
 ## Required fields

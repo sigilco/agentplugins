@@ -96,7 +96,6 @@ The path registry is published as a machine-readable JSON document:
 
 | Source | URL |
 |---|---|
-| Hosted | `__DOCS_SITE__/schema/v1/agent-paths.json` |
 | Raw (GitHub) | `https://raw.githubusercontent.com/sigilco/agentplugins/main/spec/v1/agent-paths.json` |
 
 ```json
