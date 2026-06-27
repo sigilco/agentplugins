@@ -1,13 +1,15 @@
 ---
-title: Rewriting for Tier-1 Parity
-description: How to port an existing plugin to the AgentPlugins universal manifest with functional parity across all Tier-1 harnesses.
+title: Porting an Existing Plugin
+description: Port an existing per-harness plugin to the AgentPlugins universal manifest with functional parity across Tier-1 harnesses.
 ---
 
-# Rewriting for Tier-1 Parity
+# Porting an Existing Plugin
 
-This guide walks through porting an existing per-harness plugin to AgentPlugins so it delivers the **same functionality** across all four Tier-1 harnesses: Claude Code, Codex, OpenCode, and Pi Mono.
+This guide walks through porting an existing per-harness plugin to AgentPlugins so it delivers the **same functionality** everywhere — universal codegen first, per-harness escape hatch only when a capability has no universal primitive.
 
-> **Rule:** A capability must work across all Tier-1 harnesses at the functionality level — not necessarily with identical TUI chrome, but the same underlying behaviour.
+::: info Tier-1 parity is the bar
+The four Tier-1 harnesses are **Claude Code, Codex, OpenCode, and Pi Mono**. A capability must work across all four at the *functionality* level — not necessarily with identical TUI chrome, but the same underlying behaviour. See the [Tier-1 Capability Matrix](/reference/compat-matrix) for the per-capability verdict.
+:::
 
 ---
 
@@ -26,7 +28,7 @@ For each capability in your existing plugin, work through this tree:
 
 3. Is the gap TUI-grade fidelity only (overlays, widgets)?
    YES → acceptable degradation; note in compat matrix; ship it
-   NO  → open a primitive proposal (v0.4.0+ scope; don't block the rewrite)
+   NO  → open a primitive proposal (don't block the port)
 ```
 
 ---
@@ -85,6 +87,15 @@ agentplugins build
 agentplugins validate
 ```
 
+### Authoring primitives available in the manifest
+
+These ship as of v0.4.0+ — reach for them before falling back to per-harness code:
+
+- **`continueWith`** — chain a follow-up prompt into the session via the `stop` hook (per-session cap of 20; lint-guarded).
+- **`nativeEntry` / `nativeCopies`** — pass non-JS artifacts (binaries, hand-written TS) through to a specific harness.
+- **`adapterOverrides`** — override a single adapter's output per-harness (`manifest.adapterOverrides.opencode` / `.pimono`); paths are sanitized against the plugin root.
+- **`capabilities: ['subprocess']`** — declares a capability so the build-time lint rules don't flag subprocess patterns in your command handlers.
+
 ---
 
 ## Step 3 — Guided per-harness (escape hatch)
@@ -109,12 +120,12 @@ hooks: {
 
 The WARN emitted on `agentplugins validate` for OpenCode points here. Record the gap in the [compat matrix](/reference/compat-matrix).
 
-**Per-harness fallback pattern (v0.4.0+):**
+**Per-harness fallback via `nativeEntry`:**
 
-Once `nativeEntry` lands (4.2), you can provide a hand-written TS file for code-emitting adapters:
+Provide a hand-written TS file for code-emitting adapters:
 
 ```typescript
-// agentplugins.config.ts (v0.4.0+)
+// agentplugins.config.ts
 nativeEntry: {
   pimono: './src/pimono-native.ts',
   opencode: './src/opencode-native.ts',
@@ -137,13 +148,40 @@ If you ship a `.mjs` source, `agentplugins` automatically links it under a `.ts`
 
 Overlays, side panels, and interactive widgets that use Pi's TUI system (`@earendil-works/pi-tui`) are Pi-only by nature. This is the **one allowed degradation** category:
 
-- Implement the TUI feature on Pi via `nativeEntry` (v0.4.0+)
-- On other Tier-1: omit the widget; the underlying functionality (data, hooks, state) must still work
-- Record in compat matrix as "TUI fidelity — Pi only"
+- Implement the TUI feature on Pi via `nativeEntry`.
+- On other Tier-1: omit the widget; the underlying functionality (data, hooks, state) must still work.
+- Record in compat matrix as "TUI fidelity — Pi only".
 
 ---
 
-## Step 5 — Verify parity
+## Step 5 — Security & setup on install
+
+When you (or your users) run `agentplugins add <your-plugin>`, the install flow does a few things automatically that affect how you should ship your port. You don't need to do anything for most of these — just be aware.
+
+::: tip Setup scripts (optional)
+If your plugin needs a one-shot install step (generate a config, fetch a model, seed data), declare a top-level **`setup`** command in the manifest:
+
+```json
+{ "name": "my-plugin", "version": "1.0.0", "setup": "./scripts/install.sh" }
+```
+
+After `agentplugins add`, the CLI prompts for trust and runs it. `agentplugins setup my-plugin` re-runs it later. If you don't declare `setup`, the CLI auto-detects `install.sh` → `setup.sh` → `postinstall.mjs` → `postinstall.js` (first hit). This is **distinct from the `hooks.setup` lifecycle hook**, which fires on session setup.
+:::
+
+Trust is on-first-use: the command plus the contents of any referenced script are hashed (sha256) and recorded in `.agentplugins-meta.json`. A matching hash re-runs silently next time; a changed hash re-prompts.
+
+**What's always enforced on install** (no opt-out — these protect the user):
+
+- **Hard denylist** blocks pipe-to-shell and destructive commands (`curl|sh`, `wget|sh`, `npx --yes`, `rm -rf /`, `chmod 777`, `eval`, `base64 -d|sh`) even if the user passes `--yes` or has trusted the plugin before.
+- **Integrity check** — if you declare `manifest.integrity`, the cloned source is verified against it before linking.
+- **Clone URL is validated** to `https://github.com/...` (GitHub-only) before fetch; redirects are re-checked against private-IP / allow-lists (SSRF guard).
+- **Symlink-safe** — install only `unlinkSync`s existing entries; it never `rmSync`s user files.
+
+Flags the user controls: `--yes` (skip the prompt, still denylist-gated), `--no-setup` (skip setup on `add`), and `AGENTPLUGINS_SETUP_SCRIPTS=0` (hard kill-switch).
+
+---
+
+## Step 6 — Verify parity
 
 For each Tier-1 harness:
 
@@ -167,14 +205,14 @@ Confirm the **same observable behaviour** on all four: same hooks fire, same com
 
 ## What stays out
 
-- **Universal orchestration runtime** — don't build one. Subagent spawning = per-harness primitives (v0.4.0) + userland provider protocol.
+- **Universal orchestration runtime** — don't build one. Subagent spawning = per-harness primitives + userland provider protocol.
 - **Mechanical ports** — don't translate existing config files 1:1. Rewrite on the manifest; let adapters generate the platform-native output.
-- **v0.4.0 primitives** — `continueWith` and `nativeEntry` are not yet released. If your plugin needs them, note the gap and open a primitive proposal.
 
 ---
 
 ## See also
 
-- [Ecosystem](/guide/ecosystem) — plugins already rewritten for Tier-1 parity
+- [Ecosystem](/guide/ecosystem) — plugins already ported for Tier-1 parity
 - [Tier-1 Capability Matrix](/reference/compat-matrix) — full capability table
 - [Creating Plugins](/guide/creating-plugins) — authoring guide from scratch
+- [JSON Schema](/reference/schema) — manifest schema for editor autocomplete
