@@ -2,13 +2,24 @@ import { defineConfig } from 'vitepress'
 import llmstxt from 'vitepress-plugin-llms'
 import { groupIconMdPlugin, groupIconVitePlugin } from 'vitepress-plugin-group-icons'
 import { withMermaid } from 'vitepress-plugin-mermaid'
-import { readFileSync, existsSync } from 'fs'
+import { readFileSync, existsSync, mkdirSync, copyFileSync } from 'fs'
 import { resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DOCS_SITE = process.env.DOCS_SITE ?? 'https://agentplugins.pages.dev'
 const GITHUB_SITE = 'https://github.com/sigilco/agentplugins'
+
+// Serve scripts/install.sh at the site root (agentplugins.pages.dev/install.sh)
+// by mirroring it into docs/public/ at config load. scripts/install.sh is the
+// single source of truth; docs/public/ is generated, never hand-maintained.
+try {
+  const publicDir = resolve(__dirname, '../public')
+  mkdirSync(publicDir, { recursive: true })
+  copyFileSync(resolve(__dirname, '../../scripts/install.sh'), resolve(publicDir, 'install.sh'))
+} catch (err) {
+  console.warn('[agentplugins docs] could not mirror install.sh into public/:', err)
+}
 
 export default withMermaid(defineConfig({
   title: 'AgentPlugins',

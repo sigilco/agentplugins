@@ -48,6 +48,7 @@ coverage/
 storybook-static/
 docs/.vitepress/cache/
 docs/.vitepress/dist/
+docs/public/
 
 # Misc
 *.local
