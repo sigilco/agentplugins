@@ -2,6 +2,27 @@
 
 All notable changes to this project are documented in this file.
 
+## v0.5.0 — @agentplugins/store + Setup Scripts
+
+### New package
+- **`@agentplugins/store`** — plugin install / link / update / detect lifecycle extracted from `core` into its own package. `installPlugin`, `updatePlugin`, `detectAgents`, symlink management (`linkCompiledPlugin`, `linkPluginSkills`, `linkNativeArtifacts`), `validateCloneUrl`, and the new setup-script runtime all live here. `@agentplugins/core` re-exports the public surface as a facade; existing imports through `@agentplugins/core` are unaffected. (Registry logic stays in `core` — it owns adapter registration, not store state.)
+
+### Features
+- **Setup scripts (mossy-koala)** — a plugin can declare a `setup` command (single string) in its manifest. After `agentplugins add`, the CLI prompts for trust and runs it; `agentplugins setup <name>` re-runs it later.
+  - **Trust-on-first-use:** the command plus the contents of any referenced script are hashed (sha256) and persisted in `.agentplugins-meta.json`. A matching hash re-runs silently on subsequent invocations; a changed hash re-prompts.
+  - **Auto-detect fallback:** when no `setup` field is declared, the CLI looks for `install.sh` → `setup.sh` → `postinstall.mjs` → `postinstall.js` (first hit) and treats it as lower-trust (`source: 'detected'`).
+  - **Hard denylist always blocks** — `curl|sh`, `wget|sh`, `npx --yes`, `rm -rf /`, `chmod 777`, `eval`, `base64 -d|sh`. Cannot be overridden by `--yes` or prior trust.
+  - **Flags & kill-switch:** `--yes` skips the prompt but still gates on the denylist; `--no-setup` skips setup entirely on `add`; `AGENTPLUGINS_SETUP_SCRIPTS=0` is a hard kill-switch.
+  - Schema: top-level `setup: z.string().min(1).optional()` on the manifest. This is distinct from the `hooks.setup` lifecycle hook.
+
+### Test coverage (B22)
+- 51 new tests in `@agentplugins/store`: `linkPluginSkills` (15), `linkNativeArtifacts` incl. the `.mjs → .ts` rename (20), multi-artifact `linkCompiledPlugin` (16).
+- 9 new CLI e2e tests: setup flow (kill-switch, deny, TOFU silent re-run, hash-change re-prompt), `setup` command, `add --no-setup`.
+
+### Internal
+- `@agentplugins/core` depends on `@agentplugins/store` (`workspace:*`); `@agentplugins/store` depends on `@agentplugins/compile` (for `sanitizeName`) and `@agentplugins/security` (for the denylist gate).
+- `adapter-codex` / `adapter-kimi` `peerDependencies` bumped `^0.4.0` → `^0.5.0` (kept in lockstep per the changeset quirk documented in `.changeset/README.md`).
+
 ## v0.4.0 — Architecture Re-shape + Hardening
 
 ### Architecture

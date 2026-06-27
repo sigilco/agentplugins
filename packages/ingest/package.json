@@ -1,6 +1,6 @@
 {
   "name": "@agentplugins/ingest",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Format ingestors for importing community plugins from Claude Code, Codex, and Skills.sh into AgentPlugins v1 manifests.",
   "type": "module",
   "main": "./dist/index.js",

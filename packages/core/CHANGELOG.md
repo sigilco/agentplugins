@@ -1,5 +1,11 @@
 # @agentplugins/core
 
+## 0.5.0
+
+### Minor Changes
+
+- Re-exports the public surface of the new **`@agentplugins/store`** package (added as a `workspace:*` dependency). Store now owns `installPlugin`, `updatePlugin`, `detectAgents`, symlink management, `validateCloneUrl`, and the setup-script runtime (`resolveSetupCommand`, `hashSetupCommand`, `gateSetupCommand`, `runSetupCommand`, `readSetupRecord`, `writeSetupRecord`). `core` remains a facade — existing imports through `@agentplugins/core` are unchanged.
+
 ## 0.4.0
 
 ### Minor Changes
