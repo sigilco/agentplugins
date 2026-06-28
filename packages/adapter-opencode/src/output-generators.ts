@@ -212,6 +212,9 @@ export function generateAgentFiles(manifest: PluginManifest): FileOutput[] {
     if (agent.tools && agent.tools.length > 0) {
       lines.push(`tools: [${agent.tools.join(", ")}]`);
     }
+    if (agent.model) {
+      lines.push(`model: ${agent.model}`);
+    }
     lines.push("---", "", agent.prompt ?? "", "");
     const content = lines.join("\n");
     return { path: `agent/${agent.name}.md`, content };
