@@ -1793,6 +1793,15 @@
               },
               "filePath": {
                 "type": "string"
+              },
+              "model": {
+                "type": "string"
+              },
+              "fallbackModels": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
               }
             },
             "required": [

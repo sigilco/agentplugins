@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PluginManifestSchema, TargetPlatformSchema, ALL_TARGETS } from '../src/index.js';
+import { PluginManifestSchema, TargetPlatformSchema, ALL_TARGETS, AgentDefinitionSchema } from '../src/index.js';
 
 describe('PluginManifestSchema (single source of truth)', () => {
   it('accepts a minimal valid manifest', () => {
@@ -33,5 +33,41 @@ describe('PluginManifestSchema (single source of truth)', () => {
       sidecar: { command: 'node server.js' },
     });
     expect(parsed.sidecar?.command).toBe('node server.js');
+  });
+});
+
+describe('AgentDefinitionSchema — model fields', () => {
+  it('accepts agent with no model (optional)', () => {
+    const parsed = AgentDefinitionSchema.parse({ name: 'explorer' });
+    expect(parsed.model).toBeUndefined();
+    expect(parsed.fallbackModels).toBeUndefined();
+  });
+
+  it('accepts agent with model set', () => {
+    const parsed = AgentDefinitionSchema.parse({ name: 'oracle', model: 'claude-opus-4-8' });
+    expect(parsed.model).toBe('claude-opus-4-8');
+  });
+
+  it('accepts agent with fallbackModels', () => {
+    const parsed = AgentDefinitionSchema.parse({
+      name: 'fixer',
+      model: 'claude-sonnet-4-6',
+      fallbackModels: ['glm-5.2', 'kimi-k2'],
+    });
+    expect(parsed.fallbackModels).toEqual(['glm-5.2', 'kimi-k2']);
+  });
+
+  it('accepts agents[] on PluginManifest with model', () => {
+    const parsed = PluginManifestSchema.parse({
+      name: 'teams-roster',
+      version: '0.1.0',
+      description: 'test',
+      agents: [
+        { name: 'orchestrator', model: 'claude-opus-4-8', fallbackModels: ['glm-5.2'] },
+        { name: 'explorer' },
+      ],
+    });
+    expect(parsed.agents?.[0].model).toBe('claude-opus-4-8');
+    expect(parsed.agents?.[1].model).toBeUndefined();
   });
 });

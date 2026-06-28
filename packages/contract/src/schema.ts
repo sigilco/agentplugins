@@ -73,6 +73,8 @@ export const AgentDefinitionSchema = z.object({
   prompt: z.string().optional(),
   tools: z.array(z.string()).optional(),
   filePath: z.string().optional(),
+  model: z.string().optional(),
+  fallbackModels: z.array(z.string()).optional(),
 });
 export type AgentDefinition = z.infer<typeof AgentDefinitionSchema>;
 
