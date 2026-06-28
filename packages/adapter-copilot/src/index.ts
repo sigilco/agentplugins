@@ -325,20 +325,14 @@ function validateHandler(
 
   switch (handler.type as string) {
     case "command": {
-      const cmd = handler.config as {
+      // Support both copilot-specific format (handler.config.script/shell) and
+      // universal contract format (handler.command directly on the handler object).
+      const cmd = (handler.config ?? handler) as {
         shell?: string;
         script?: string;
         command?: string;
       };
-      if (!cmd.shell) {
-        issues.push(
-          issue(
-            Severity.ERROR,
-            `Command handler must specify "shell" (e.g. "bash" or "powershell").`,
-            `${handlerPath}.config.shell`
-          )
-        );
-      } else if (!["bash", "powershell"].includes(cmd.shell)) {
+      if (cmd.shell && !["bash", "powershell"].includes(cmd.shell)) {
         issues.push(
           issue(
             Severity.WARNING,
@@ -571,8 +565,8 @@ function compileHookEntry(
   // Resolve the handler path / URL / template
   switch (handler.type as string) {
     case "command": {
-      const cfg = handler.config as {
-        shell: string;
+      const cfg = (handler.config ?? handler) as {
+        shell?: string;
         script?: string;
         command?: string;
       };
@@ -853,11 +847,12 @@ class CopilotAdapter implements PlatformAdapter {
           const entry = compileHookEntry(uHook, hookDef);
 
           if ((handler.type as string) === "command") {
-            const cfg = handler.config as {
-              shell: string;
+            const rawCfg = (handler.config ?? handler) as {
+              shell?: string;
               script?: string;
               command?: string;
             };
+            const cfg = { shell: "bash", ...rawCfg };
 
             // Generate a wrapper script for this hook
             const scriptName = `hook-${hookName}.${
