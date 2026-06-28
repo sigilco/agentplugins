@@ -14,6 +14,14 @@ hero:
       text: GitHub
       link: https://github.com/sigilco/agentplugins
 
+heroAlt:
+  title: "Free & open source"
+  tagline: "AgentPlugins is Apache 2.0 licensed and will always be free and open source. Sponsorship keeps it that way."
+  actions:
+    - theme: brand
+      text: Become a Sponsor
+      link: https://buy.polar.sh/polar_cl_Mv1gdlG7bw3I70EC9IHtfeSHJj4PEKvA7JAUz23CFhj
+
 features:
   - title: "Manage any AI harness plugin"
     details: "Install any GitHub plugin with `agentplugins add`. Symlinks to all detected agents automatically."
