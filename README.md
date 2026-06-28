@@ -4,6 +4,12 @@
 
 AgentPlugins is a plugin manager for AI agent harnesses. Install a plugin once — it's symlinked into Claude, Codex, Copilot, Gemini, Kimi, OpenCode, and Pi Mono automatically. Includes a codegen toolkit for authors who want to write once and compile to all platforms.
 
+<p align="left">
+  <a href="https://buy.polar.sh/polar_cl_Mv1gdlG7bw3I70EC9IHtfeSHJj4PEKvA7JAUz23CFhj">
+    <img src="https://img.shields.io/badge/Sponsor%20AgentPlugins-%E2%9D%A4-3c82f6?style=for-the-badge&logo=heart&logoColor=white" alt="Sponsor AgentPlugins on Polar.sh">
+  </a>
+</p>
+
 ```bash
 agentplugins add user/awesome-plugin
 # → Clones, parses manifest, symlinks to every detected agent
@@ -217,6 +223,12 @@ For codegen (power users):
 ```
 Manifest → Core (validate + compile) → Adapters → Platform-native output
 ```
+
+<p align="left">
+  <a href="https://buy.polar.sh/polar_cl_Mv1gdlG7bw3I70EC9IHtfeSHJj4PEKvA7JAUz23CFhj">
+    <img src="https://img.shields.io/badge/Sponsor%20AgentPlugins-%E2%9D%A4-3c82f6?style=for-the-badge&logo=heart&logoColor=white" alt="Sponsor AgentPlugins on Polar.sh">
+  </a>
+</p>
 
 ## License
 
