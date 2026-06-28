@@ -24,6 +24,7 @@ Legend:
 | `commands` | ✅ | ✅ | ✅ | ✅ | Universal codegen |
 | `mcpServers` | ✅ | ✅ | ✅ | ✅ | **Recommended universal tool path** |
 | `agents[]` | ✅ | ✅ | ✅ | ✅ | Universal codegen |
+| `agents[].model` | ✅ | ⚠️ | ✅ | ⚠️ | Claude + OpenCode: emits `model:` frontmatter when set. Codex/Pi Mono: no per-agent file concept; model unset → harness default |
 | `subagentStart` | ✅ | ✅ | ⚠️ | ✅ | OpenCode: no native event; emits WARN; guided path: intercept via `preToolUse` for subagent tool |
 | `subagentStop` | ✅ | ✅ | ⚠️ | ✅ | Same as above; Pi `stop`↔`subagentStop` collision fixed in v0.3.0 |
 | `tools[]` (first-class) | ⚠️ | ⚠️ | ✅ | ✅ | WARN emitted; use `mcpServers` for Claude/Codex (Tier-1 universal tool path) |
