@@ -15,8 +15,8 @@ import {
   type PluginManifest,
   type CompileOptions as AdapterCompileOptions,
 } from '@agentplugins/core';
-import { sanitizeJoin, lint, type LintIssue } from '@agentplugins/compile';
-import { createApp } from '@agentplugins/pipeline';
+import { sanitizeJoin, lint, registerEmitter, type LintIssue } from '@agentplugins/compile';
+import { createApp, createBuildCtx, createTargetCtx, AbortError } from '@agentplugins/pipeline';
 import type { App, Plugin } from '@agentplugins/pipeline';
 import type { LoadedConfig } from '../config.js';
 
@@ -69,6 +69,11 @@ async function buildApp(userPlugins: Plugin[] = []): Promise<App> {
     app.use(plugin);
   }
 
+  // Register custom code emitters into the global codegen registry
+  for (const [, emitter] of app.emitters) {
+    registerEmitter(emitter as Parameters<typeof registerEmitter>[0]);
+  }
+
   return app;
 }
 
@@ -98,6 +103,8 @@ export interface CompileOptions {
   pluginRoot?: string;
   /** User-provided pipeline plugins from defineConfig. */
   plugins?: Plugin[];
+  /** Pre-built app; skips buildApp() when provided (used by build() to avoid double-init). */
+  _app?: App;
 }
 
 /**
@@ -106,11 +113,21 @@ export interface CompileOptions {
  * Returns per-target results.
  */
 export async function compile(options: CompileOptions): Promise<CompileResult[]> {
-  const { manifest, write = false, outDir, silent = false, pluginRoot, plugins = [] } = options;
+  const { write = false, outDir, silent = false, pluginRoot, plugins = [] } = options;
+  const app = options._app ?? await buildApp(plugins);
+
+  // Run preValidate + transformIR lifecycle hooks; use possibly mutated manifest
+  const buildCtx = createBuildCtx({
+    manifest: options.manifest,
+    targets: (resolveTargets(options.targets, options.manifest.targets) as string[]),
+    outDir,
+    pluginRoot,
+  });
+  await app.runBuild(buildCtx);
+  const manifest = buildCtx.manifest;
+
   const targetList = resolveTargets(options.targets, manifest.targets);
   const results: CompileResult[] = [];
-
-  const app = await buildApp(plugins);
 
   for (const target of targetList) {
     const adapter = app.adapters.get(target);
@@ -133,18 +150,30 @@ export async function compile(options: CompileOptions): Promise<CompileResult[]>
     try {
       const output = adapter.compile(manifest, { pluginRoot } as AdapterCompileOptions);
 
+      // Run postEmit hooks; plugins can append/rewrite files
+      const targetCtx = createTargetCtx({ manifest, target, pluginRoot });
+      for (const file of output.files) targetCtx.addFile(file);
+      for (const w of output.warnings) targetCtx.addWarning(w);
+      if (output.nativeCopies) {
+        for (const copy of output.nativeCopies) targetCtx.addNativeCopy(copy);
+      }
+      if (output.postInstall) {
+        for (const step of output.postInstall) targetCtx.addPostInstall(step);
+      }
+      await app.runTarget(targetCtx);
+
       if (write && outDir) {
         const targetDir = join(resolve(outDir), target);
         await rm(targetDir, { recursive: true, force: true });
         await mkdir(targetDir, { recursive: true });
-        for (const file of output.files) {
+        for (const file of targetCtx.files) {
           const filePath = join(targetDir, file.path);
           await mkdir(resolve(filePath, '..'), { recursive: true });
           await writeFile(filePath, file.content, 'utf-8');
         }
-        if (output.nativeCopies && pluginRoot) {
+        if (targetCtx.nativeCopies.length > 0 && pluginRoot) {
           const resolvedRoot = resolve(pluginRoot);
-          for (const copy of output.nativeCopies) {
+          for (const copy of targetCtx.nativeCopies) {
             const srcPath = sanitizeJoin(resolvedRoot, copy.from);
             const dstPath = sanitizeJoin(targetDir, copy.to);
             await mkdir(resolve(dstPath, '..'), { recursive: true });
@@ -155,23 +184,24 @@ export async function compile(options: CompileOptions): Promise<CompileResult[]>
       }
 
       if (!silent) {
-        console.log(chalk.green(`   ✓ Built ${output.files.length} file${output.files.length > 1 ? 's' : ''}`));
-        if (output.warnings.length > 0) {
-          for (const w of output.warnings) console.log(chalk.yellow(`   ⚠ ${w}`));
+        console.log(chalk.green(`   ✓ Built ${targetCtx.files.length} file${targetCtx.files.length > 1 ? 's' : ''}`));
+        if (targetCtx.warnings.length > 0) {
+          for (const w of targetCtx.warnings) console.log(chalk.yellow(`   ⚠ ${w}`));
         }
-        if (output.postInstall) {
-          console.log(chalk.cyan(`   ⓘ ${output.postInstall.join('\n   ⓘ ')}`));
+        if (targetCtx.postInstall.length > 0) {
+          console.log(chalk.cyan(`   ⓘ ${targetCtx.postInstall.join('\n   ⓘ ')}`));
         }
       }
 
       results.push({
         target,
-        files: output.files,
-        warnings: output.warnings || [],
-        postInstall: output.postInstall,
+        files: targetCtx.files,
+        warnings: targetCtx.warnings,
+        postInstall: targetCtx.postInstall.length > 0 ? targetCtx.postInstall : undefined,
         skipped: false,
       });
     } catch (err) {
+      if (err instanceof AbortError) throw err;
       const msg = err instanceof Error ? err.message : String(err);
       if (!silent) console.log(chalk.red(`   ✗ Build failed for ${target}: ${msg}`));
       results.push({ target, files: [], warnings: [], skipped: true, error: msg });
@@ -205,26 +235,30 @@ export async function build(options: BuildOptions): Promise<void> {
   console.log(chalk.gray(`Targets: ${targetList.join(', ')}`));
   console.log(chalk.gray(`Output: ${resolve(outDir)}\n`));
 
-  // Universal validation
+  // Build the pipeline app once — reused for validation, lint, and compile
+  const app = await buildApp(config.plugins ?? []);
+  const knownTargets = [...ALL_TARGETS, ...app.adapters.keys()];
+
+  // Universal validation — custom adapter targets are not spuriously warned
   console.log(chalk.blue('🔍 Running universal validation...'));
-  const universalIssues = validateUniversal(manifest);
+  const universalIssues = validateUniversal(manifest, { knownTargets });
   printIssues(universalIssues);
   const hasErrors = universalIssues.some(i => i.severity === 'error');
   if (hasErrors) {
     throw new Error('Universal validation failed. Fix errors before building.');
   }
 
-  // Lint
+  // Lint — includes any lint rules from defineConfig plugins
   console.log(chalk.blue('🔍 Running lint...'));
   const inlineSources = await collectInlineSources(manifest, config.root);
-  const lintIssues = lint({ manifest, inlineHandlerSource: inlineSources });
+  const lintIssues = lint({ manifest, inlineHandlerSource: inlineSources, extraRules: [...app.lintRules] });
   printLintIssues(lintIssues);
   const lintErrors = lintIssues.filter(i => i.severity === 'error');
   if (options.strict && lintErrors.length > 0) {
     throw new Error(`Strict mode: ${lintErrors.length} lint error(s) found.`);
   }
 
-  // Compile + write
+  // Compile + write (pass pre-built app to avoid rebuilding)
   const results = await compile({
     manifest,
     targets: targetList,
@@ -232,6 +266,7 @@ export async function build(options: BuildOptions): Promise<void> {
     outDir,
     pluginRoot: config.root,
     plugins: config.plugins,
+    _app: app,
   });
 
   // Strict mode: fail on warnings

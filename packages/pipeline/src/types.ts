@@ -112,5 +112,6 @@ export interface App {
   /** All registered emitters from plugins. */
   readonly emitters: ReadonlyMap<string, CodeEmitter>;
   runBuild(ctx: BuildCtx): Promise<void>;
+  runTarget(ctx: TargetCtx): Promise<void>;
   runInstall(ctx: InstallCtx): Promise<void>;
 }
