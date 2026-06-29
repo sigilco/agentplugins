@@ -408,6 +408,9 @@ importers:
       '@agentplugins/compile':
         specifier: workspace:*
         version: link:../compile
+      '@agentplugins/pipeline':
+        specifier: workspace:*
+        version: link:../pipeline
       '@agentplugins/security':
         specifier: workspace:*
         version: link:../security

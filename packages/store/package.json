@@ -40,6 +40,7 @@
   "homepage": "https://agentplugins.pages.dev/",
   "dependencies": {
     "@agentplugins/compile": "workspace:*",
+    "@agentplugins/pipeline": "workspace:*",
     "@agentplugins/security": "workspace:*"
   },
   "devDependencies": {

@@ -9,3 +9,4 @@
 
 export * from './store.js';
 export * from './setup.js';
+export * from './plugin.js';
