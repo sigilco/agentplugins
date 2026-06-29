@@ -118,7 +118,7 @@ import type { LintRule } from '@agentplugins/pipeline'
 const requireLicenseRule: LintRule = {
   id: 'require-license',
   description: 'All plugins in this org must declare a license',
-  check(ctx) {
+  run(ctx) {
     if (!ctx.manifest.license) {
       return [{
         severity: 'error',
