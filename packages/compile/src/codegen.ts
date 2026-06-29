@@ -212,16 +212,24 @@ export const GoEmitter: CodeEmitter = {
   },
 };
 
-const EMITTERS: Record<EmitLanguage, CodeEmitter> = {
-  typescript: TypeScriptEmitter,
-  javascript: JavaScriptEmitter,
-  go: GoEmitter,
-};
+const EMITTERS: Map<string, CodeEmitter> = new Map([
+  ['typescript', TypeScriptEmitter],
+  ['javascript', JavaScriptEmitter],
+  ['go', GoEmitter],
+]);
 
-export function getEmitter(language: EmitLanguage): CodeEmitter {
-  const emitter = EMITTERS[language];
+export function registerEmitter(emitter: CodeEmitter): void {
+  EMITTERS.set(emitter.language, emitter);
+}
+
+export function getEmitter(language: EmitLanguage | string): CodeEmitter {
+  const emitter = EMITTERS.get(language);
   if (!emitter) {
     throw new Error(`Unknown emit language: ${String(language)}`);
   }
   return emitter;
+}
+
+export function getRegisteredEmitters(): ReadonlyMap<string, CodeEmitter> {
+  return EMITTERS;
 }

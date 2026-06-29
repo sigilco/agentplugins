@@ -49,6 +49,8 @@ export type { WrapperOptions } from './hook-wrapper.js';
 export {
   extractCompiledHooks,
   getEmitter,
+  registerEmitter,
+  getRegisteredEmitters,
   TypeScriptEmitter,
   JavaScriptEmitter,
   GoEmitter,
