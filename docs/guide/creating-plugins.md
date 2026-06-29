@@ -26,7 +26,7 @@ You'll be prompted for:
 
 | Template | What you get |
 |---|---|
-| `minimal` | Bare manifest + `SKILL.md`. Good starting point. |
+| `minimal` | Bare manifest. Good starting point. |
 | `logger` | A plugin that logs every hook event to `${PLUGIN_DATA}/log.jsonl`. |
 | `security-guard` | A `preToolUse` block-list for dangerous commands. |
 | `formatter` | A `postToolUse` hook that runs your formatter of choice. |
@@ -41,10 +41,13 @@ Pick `minimal` if you're not sure — you can add hooks later.
 
 ✓ Created my-plugin/
   my-plugin/agentplugins.config.ts
-  my-plugin/SKILL.md
-  my-plugin/hooks/
+  my-plugin/package.json
+  my-plugin/tsconfig.json
+  my-plugin/.gitignore
   my-plugin/README.md
 ```
+
+Hooks, skills, and commands are declared inline in `agentplugins.config.ts` — there is no separate `SKILL.md` or `hooks/` directory in the scaffold. Open `agentplugins.config.ts` to start editing.
 
 ## 2. Write hooks
 
