@@ -71,6 +71,8 @@ export {
   getDetectedAgents,
   normalizeSource,
   extractRepoName,
+  parseSubdir,
+  parseBranch,
   initStore,
   cloneRepo,
   pullRepo,
@@ -103,6 +105,8 @@ export {
   runSetupCommand,
   readSetupRecord,
   writeSetupRecord,
+  securityPlugin,
+  SECURITY_META_KEYS,
 } from '@agentplugins/store';
 export type {
   AgentPathEntry,

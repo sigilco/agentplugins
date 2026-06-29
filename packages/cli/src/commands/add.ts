@@ -10,17 +10,20 @@ import {
   initStore,
   normalizeSource,
   extractRepoName,
+  parseSubdir,
+  parseBranch,
   cloneRepo,
   findManifestInDir,
   installPlugin,
   getDetectedAgents,
   getStorePath,
+  securityPlugin,
 } from '@agentplugins/core';
 import { join } from 'node:path';
 import { existsSync, rmSync } from 'node:fs';
 import { compile } from './build.js';
 import { runSetupFlow } from './setup.js';
-import { verifyIntegrity, evaluateManifestScripts } from '@agentplugins/security';
+import { createApp, createInstallCtx, AbortError } from '@agentplugins/pipeline';
 import type { PluginManifest } from '@agentplugins/core';
 
 export interface AddOptions {
@@ -30,6 +33,8 @@ export interface AddOptions {
 }
 
 export async function add(options: AddOptions): Promise<void> {
+  const subdir = parseSubdir(options.source);
+  const branch = parseBranch(options.source);
   const source = normalizeSource(options.source);
   const repoName = extractRepoName(source);
 
@@ -46,7 +51,7 @@ export async function add(options: AddOptions): Promise<void> {
   console.log(chalk.blue('Cloning repository...'));
   let commit: string;
   try {
-    commit = cloneRepo(source, tempDir);
+    commit = cloneRepo(source, tempDir, branch);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error(chalk.red(`\nFailed to clone: ${msg}`));
@@ -55,12 +60,15 @@ export async function add(options: AddOptions): Promise<void> {
   }
   console.log(chalk.gray(`Commit: ${commit}`));
 
+  // Resolve subdir — for monorepo tree URLs, look inside the subdirectory
+  const pluginDir = subdir ? join(tempDir, subdir) : tempDir;
+
   // Find manifest — try JSON/SKILL.md first
-  let manifestResult = findManifestInDir(tempDir);
+  let manifestResult = findManifestInDir(pluginDir);
 
   // Fallback: try TypeScript config via jiti
   if (!manifestResult) {
-    manifestResult = await tryTsConfig(tempDir);
+    manifestResult = await tryTsConfig(pluginDir);
   }
 
   if (!manifestResult) {
@@ -78,28 +86,23 @@ export async function add(options: AddOptions): Promise<void> {
   console.log(chalk.cyan(`\nPlugin: ${name} v${version}`));
   console.log(chalk.gray(`Manifest: ${manifestResult.path} (${manifestResult.type})`));
 
-  // B17: verify pinned integrity (opt-in — only if manifest has integrity field)
-  const integrity = manifestResult.manifest['integrity'] as string | undefined;
-  if (integrity && integrity.length > 0) {
-    const { match, reason } = verifyIntegrity(tempDir, integrity);
-    if (!match) {
-      console.error(chalk.red(`\nIntegrity check failed: ${reason}`));
+  // Security: run pinned integrity check + script policy via pipeline
+  const installApp = createApp().use(securityPlugin);
+  const installCtx = createInstallCtx({
+    pluginName: name,
+    installDir: tempDir,
+    manifest: manifestResult.manifest as unknown as PluginManifest,
+    meta: {},
+  });
+  try {
+    await installApp.runInstall(installCtx);
+  } catch (err) {
+    if (err instanceof AbortError) {
+      console.error(chalk.red(`\n${err.message}`));
       rmSync(tempDir, { recursive: true, force: true });
       process.exit(1);
     }
-  }
-
-  // B18: evaluate lifecycle script policy
-  const scriptCheck = evaluateManifestScripts(manifestResult.manifest, name);
-  if (!scriptCheck.ok) {
-    for (const issue of scriptCheck.issues) {
-      const tag = issue.decision === 'deny' ? chalk.red('[error]') : chalk.yellow('[review]');
-      console.error(`  ${tag} ${issue.dependency} (${issue.phase}): ${issue.command}`);
-      for (const r of issue.reasons) console.error(chalk.gray(`         ${r}`));
-    }
-    console.error(chalk.red('\nRefusing to install: lifecycle script policy violation'));
-    rmSync(tempDir, { recursive: true, force: true });
-    process.exit(1);
+    throw err;
   }
 
   // Detect agents
@@ -116,14 +119,14 @@ export async function add(options: AddOptions): Promise<void> {
   if (compilableAgents.length > 0) {
     const targets = compilableAgents.map((a) => a.name);
     console.log(chalk.blue(`\nCompiling for ${targets.join(', ')}...`));
-    const distDir = join(tempDir, '.agentplugins-dist');
+    const distDir = join(pluginDir, '.agentplugins-dist');
     try {
       await compile({
         manifest: manifestResult.manifest as unknown as PluginManifest,
         targets: targets as any,
         write: true,
         outDir: distDir,
-        pluginRoot: tempDir,
+        pluginRoot: pluginDir,
         silent: false,
       });
     } catch (err) {
@@ -140,6 +143,7 @@ export async function add(options: AddOptions): Promise<void> {
     commit,
     manifestPath: manifestResult.path,
     version,
+    ...(subdir ? { subdir } : {}),
   });
 
   // Summary
@@ -155,7 +159,7 @@ export async function add(options: AddOptions): Promise<void> {
 
   await runSetupFlow({
     name,
-    pluginDir: tempDir,
+    pluginDir,
     manifest: manifestResult.manifest,
     yes: options.yes,
     noSetup: options.noSetup,
