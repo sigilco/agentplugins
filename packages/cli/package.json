@@ -24,6 +24,7 @@
     "@agentplugins/contract": "workspace:*",
     "@agentplugins/core": "workspace:*",
     "@agentplugins/compile": "workspace:*",
+    "@agentplugins/pipeline": "workspace:*",
     "@agentplugins/ingest": "workspace:*",
     "@agentplugins/schema": "workspace:*",
     "@agentplugins/security": "workspace:*",

@@ -204,6 +204,9 @@ importers:
       '@agentplugins/ingest':
         specifier: workspace:*
         version: link:../ingest
+      '@agentplugins/pipeline':
+        specifier: workspace:*
+        version: link:../pipeline
       '@agentplugins/schema':
         specifier: workspace:*
         version: link:../schema

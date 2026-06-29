@@ -16,7 +16,53 @@ import {
   type CompileOptions as AdapterCompileOptions,
 } from '@agentplugins/core';
 import { sanitizeJoin, lint, type LintIssue } from '@agentplugins/compile';
+import { createApp } from '@agentplugins/pipeline';
+import type { App } from '@agentplugins/pipeline';
 import type { LoadedConfig } from '../config.js';
+
+// ─── Target resolution ────────────────────────────────────────────────────────
+
+function resolveTargets(
+  cliTargets: string[] | undefined,
+  manifestTargets: string[] | undefined
+): TargetPlatform[] {
+  return (cliTargets ?? manifestTargets ?? ALL_TARGETS) as TargetPlatform[];
+}
+
+// ─── Builtin adapter app ──────────────────────────────────────────────────────
+
+interface AdapterSpec {
+  platform: TargetPlatform;
+  pkg: string;
+  exportName: string;
+}
+
+const BUILTIN_ADAPTER_SPECS: AdapterSpec[] = [
+  { platform: 'claude',    pkg: '@agentplugins/adapter-claude',    exportName: 'createClaudeAdapter' },
+  { platform: 'codex',     pkg: '@agentplugins/adapter-codex',     exportName: 'createCodexAdapter' },
+  { platform: 'copilot',   pkg: '@agentplugins/adapter-copilot',   exportName: 'createCopilotAdapter' },
+  { platform: 'gemini',    pkg: '@agentplugins/adapter-gemini',    exportName: 'createGeminiAdapter' },
+  { platform: 'kimi',      pkg: '@agentplugins/adapter-kimi',      exportName: 'createKimiAdapter' },
+  { platform: 'opencode',  pkg: '@agentplugins/adapter-opencode',  exportName: 'createOpenCodeAdapter' },
+  { platform: 'pimono',    pkg: '@agentplugins/adapter-pimono',    exportName: 'createPiMonoAdapter' },
+];
+
+async function buildBuiltinApp(): Promise<App> {
+  const app = createApp();
+  for (const { platform, pkg, exportName } of BUILTIN_ADAPTER_SPECS) {
+    try {
+      // @ts-ignore — loaded dynamically at runtime
+      const mod = await import(pkg);
+      const factory = mod[exportName] as (() => ReturnType<typeof mod[typeof exportName]>) | undefined;
+      if (typeof factory === 'function') {
+        app.use({ name: platform, adapter: factory() });
+      }
+    } catch {
+      // Adapter package not installed — skip silently
+    }
+  }
+  return app;
+}
 
 // ─── Compile (extracted for reuse by preview) ──────────────────────────────
 
@@ -44,36 +90,6 @@ export interface CompileOptions {
   pluginRoot?: string;
 }
 
-type AdapterFactory = () => { compile: (manifest: any, options?: AdapterCompileOptions) => any };
-
-async function getAdapterFactory(target: TargetPlatform): Promise<AdapterFactory> {
-  switch (target) {
-    case 'claude':
-      // @ts-ignore - adapter loaded dynamically at runtime
-      return (await import('@agentplugins/adapter-claude')).createClaudeAdapter;
-    case 'codex':
-      // @ts-ignore - adapter loaded dynamically at runtime
-      return (await import('@agentplugins/adapter-codex')).createCodexAdapter;
-    case 'copilot':
-      // @ts-ignore - adapter loaded dynamically at runtime
-      return (await import('@agentplugins/adapter-copilot')).createCopilotAdapter;
-    case 'gemini':
-      // @ts-ignore - adapter loaded dynamically at runtime
-      return (await import('@agentplugins/adapter-gemini')).createGeminiAdapter;
-    case 'kimi':
-      // @ts-ignore - adapter loaded dynamically at runtime
-      return (await import('@agentplugins/adapter-kimi')).createKimiAdapter;
-    case 'opencode':
-      // @ts-ignore - adapter loaded dynamically at runtime
-      return (await import('@agentplugins/adapter-opencode')).createOpenCodeAdapter;
-    case 'pimono':
-      // @ts-ignore - adapter loaded dynamically at runtime
-      return (await import('@agentplugins/adapter-pimono')).createPiMonoAdapter;
-    default:
-      throw new Error(`Unknown target: ${target}`);
-  }
-}
-
 /**
  * Run the compilation pipeline for one or more targets.
  * If `write` is true, files are written to `outDir/<target>/`.
@@ -81,14 +97,14 @@ async function getAdapterFactory(target: TargetPlatform): Promise<AdapterFactory
  */
 export async function compile(options: CompileOptions): Promise<CompileResult[]> {
   const { manifest, write = false, outDir, silent = false, pluginRoot } = options;
-  const targetList = (options.targets || manifest.targets || ALL_TARGETS) as TargetPlatform[];
+  const targetList = resolveTargets(options.targets, manifest.targets);
   const results: CompileResult[] = [];
 
+  const app = await buildBuiltinApp();
+
   for (const target of targetList) {
-    let factory: AdapterFactory;
-    try {
-      factory = await getAdapterFactory(target);
-    } catch {
+    const adapter = app.adapters.get(target);
+    if (!adapter) {
       results.push({ target, files: [], warnings: [], skipped: true });
       continue;
     }
@@ -105,8 +121,7 @@ export async function compile(options: CompileOptions): Promise<CompileResult[]>
     }
 
     try {
-      const adapter = factory();
-      const output = adapter.compile(manifest, { pluginRoot });
+      const output = adapter.compile(manifest, { pluginRoot } as AdapterCompileOptions);
 
       if (write && outDir) {
         const targetDir = join(resolve(outDir), target);
@@ -168,7 +183,7 @@ export interface BuildOptions {
 export async function build(options: BuildOptions): Promise<void> {
   const { config, outDir } = options;
   const manifest = config.manifest;
-  const targetList = (options.targets || manifest.targets || ALL_TARGETS) as TargetPlatform[];
+  const targetList = resolveTargets(options.targets as TargetPlatform[] | undefined, manifest.targets);
 
   console.log(chalk.bold('\n🌉 AgentPlugins Build\n'));
   console.log(chalk.gray(`Plugin: ${manifest.name} v${manifest.version}`));
