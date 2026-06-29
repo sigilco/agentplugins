@@ -282,6 +282,9 @@ importers:
       '@agentplugins/contract':
         specifier: workspace:*
         version: link:../contract
+      '@agentplugins/pipeline':
+        specifier: workspace:*
+        version: link:../pipeline
       '@agentplugins/store':
         specifier: workspace:*
         version: link:../store

@@ -34,6 +34,7 @@ export {
   loadAllAdapters,
   getRegisteredPlatforms,
   registerBuiltinAdapters,
+  getRegistryApp,
 } from './registry.js';
 
 // Hook Wrapper Generation

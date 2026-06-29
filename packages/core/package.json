@@ -45,6 +45,7 @@
   "dependencies": {
     "@agentplugins/contract": "workspace:*",
     "@agentplugins/compile": "workspace:*",
+    "@agentplugins/pipeline": "workspace:*",
     "@agentplugins/store": "workspace:*",
     "zod": "^3.25.76"
   },
