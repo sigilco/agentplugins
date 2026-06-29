@@ -238,6 +238,9 @@ importers:
       '@agentplugins/contract':
         specifier: workspace:*
         version: link:../contract
+      '@agentplugins/pipeline':
+        specifier: workspace:*
+        version: link:../pipeline
     devDependencies:
       '@types/node':
         specifier: ^20.0.0

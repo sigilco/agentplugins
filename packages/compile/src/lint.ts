@@ -18,6 +18,8 @@ export interface LintIssue {
 export interface LintContext {
   manifest: PluginManifest;
   inlineHandlerSource?: string[];
+  /** Extra rules appended to the global registry for this lint run only. */
+  extraRules?: LintRule[];
 }
 
 export interface LintRule {
@@ -340,7 +342,8 @@ export function getLintRules(): LintRule[] {
 
 export function lint(ctx: LintContext): LintIssue[] {
   const issues: LintIssue[] = [];
-  for (const rule of registry) {
+  const rules = ctx.extraRules ? [...registry, ...ctx.extraRules] : registry;
+  for (const rule of rules) {
     issues.push(...rule.run(ctx));
   }
   return issues;

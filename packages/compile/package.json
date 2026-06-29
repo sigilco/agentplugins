@@ -33,7 +33,8 @@
   },
   "homepage": "https://agentplugins.pages.dev/",
   "dependencies": {
-    "@agentplugins/contract": "workspace:*"
+    "@agentplugins/contract": "workspace:*",
+    "@agentplugins/pipeline": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
