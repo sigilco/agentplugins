@@ -425,6 +425,18 @@ importers:
         specifier: ^3.1.4
         version: 3.2.6(@types/debug@4.1.13)(@types/node@20.19.41)
 
+  plugins/example-custom-adapter:
+    devDependencies:
+      '@agentplugins/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
+      '@agentplugins/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      typescript:
+        specifier: ^5.5.0
+        version: 5.9.3
+
   plugins/example-logger:
     devDependencies:
       '@agentplugins/cli':
