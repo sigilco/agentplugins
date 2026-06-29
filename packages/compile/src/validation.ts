@@ -21,7 +21,11 @@ import {
 const KEBAB_CASE_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const SEMVER_RE = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
 
-export function validateUniversal(plugin: PluginManifest): ValidationIssue[] {
+export function validateUniversal(
+  plugin: PluginManifest,
+  opts?: { knownTargets?: readonly string[] }
+): ValidationIssue[] {
+  const knownTargets = opts?.knownTargets ?? (ALL_TARGETS as string[]);
   const issues: ValidationIssue[] = [];
 
   // ─── name ─────────────────────────────────────────────────────────────────
@@ -71,7 +75,7 @@ export function validateUniversal(plugin: PluginManifest): ValidationIssue[] {
   // ─── targets ──────────────────────────────────────────────────────────────
   if (plugin.targets) {
     for (const target of plugin.targets) {
-      if (!(ALL_TARGETS as string[]).includes(target)) {
+      if (!(knownTargets as string[]).includes(target)) {
         issues.push({
           severity: Severity.WARNING,
           field: 'targets',
