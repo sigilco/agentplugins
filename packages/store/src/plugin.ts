@@ -6,8 +6,9 @@
  * pipeline — power users may remove or reorder it via defineConfig.
  */
 
+import { existsSync } from 'node:fs';
 import type { Plugin, InstallCtx } from '@agentplugins/pipeline';
-import { hashDirectory, evaluateScriptPolicy, DEFAULT_POLICY } from '@agentplugins/security';
+import { hashDirectory, verifyIntegrity, evaluateScriptPolicy, DEFAULT_POLICY } from '@agentplugins/security';
 import { resolveSetupCommand, gateSetupCommand } from './setup.js';
 
 /** Abort keys written to InstallCtx.meta by securityPlugin middleware. */
@@ -17,12 +18,30 @@ export const SECURITY_META_KEYS = {
 } as const;
 
 /**
+ * Middleware: verifies the install directory against the manifest's pinned
+ * integrity field. Aborts if the hash does not match.
+ */
+async function pinnedIntegrityMiddleware(ctx: InstallCtx, next: () => Promise<void>): Promise<void> {
+  const manifest = ctx.manifest as unknown as Record<string, unknown>;
+  const integrity = manifest['integrity'] as string | undefined;
+
+  if (integrity && integrity.length > 0) {
+    const { match, reason } = verifyIntegrity(ctx.installDir, integrity);
+    if (!match) {
+      ctx.abort(`Integrity check failed: ${reason ?? 'hash mismatch'}`);
+    }
+  }
+
+  await next();
+}
+
+/**
  * Middleware: hashes the install directory and stores the result in ctx.meta.
  * Does not abort — callers may inspect ctx.meta[SECURITY_META_KEYS.integrity]
  * to decide whether to block.
  */
 async function integrityMiddleware(ctx: InstallCtx, next: () => Promise<void>): Promise<void> {
-  if (ctx.installDir) {
+  if (ctx.installDir && existsSync(ctx.installDir)) {
     const hash = hashDirectory(ctx.installDir);
     ctx.meta[SECURITY_META_KEYS.integrity] = hash;
   }
@@ -94,9 +113,11 @@ export const securityPlugin: Plugin = {
   name: '@agentplugins/security-gate',
 
   onInstall: async (ctx, next) => {
-    await integrityMiddleware(ctx, async () => {
-      await scriptPolicyMiddleware(ctx, async () => {
-        await dependencyScriptMiddleware(ctx, next);
+    await pinnedIntegrityMiddleware(ctx, async () => {
+      await integrityMiddleware(ctx, async () => {
+        await scriptPolicyMiddleware(ctx, async () => {
+          await dependencyScriptMiddleware(ctx, next);
+        });
       });
     });
   },
