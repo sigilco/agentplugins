@@ -77,7 +77,7 @@ describe("E2E: example-logger manifest compilation", () => {
     const tsFile = output.files.find((f) => f.path.endsWith(".ts"));
 
     expect(tsFile).toBeDefined();
-    expect(tsFile?.path).toBe("agentplugins-example-logger.ts");
+    expect(tsFile?.path).toBe("plugins/agentplugins-example-logger.ts");
     expect(tsFile?.content).toContain("export default");
     expect(tsFile?.content).toContain("async function");
 

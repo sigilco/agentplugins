@@ -10,22 +10,31 @@ import {
   initStore,
   normalizeSource,
   extractRepoName,
+  parseSubdir,
+  parseBranch,
   cloneRepo,
   findManifestInDir,
   installPlugin,
   getDetectedAgents,
   getStorePath,
-  getSkillsCompatPath,
-  getPluginStorePath,
+  securityPlugin,
 } from '@agentplugins/core';
 import { join } from 'node:path';
-import { existsSync, rmSync, mkdirSync, symlinkSync, unlinkSync } from 'node:fs';
+import { existsSync, rmSync } from 'node:fs';
+import { compile } from './build.js';
+import { runSetupFlow } from './setup.js';
+import { createApp, createInstallCtx, AbortError } from '@agentplugins/pipeline';
+import type { PluginManifest } from '@agentplugins/core';
 
 export interface AddOptions {
   source: string;
+  yes?: boolean;
+  noSetup?: boolean;
 }
 
 export async function add(options: AddOptions): Promise<void> {
+  const subdir = parseSubdir(options.source);
+  const branch = parseBranch(options.source);
   const source = normalizeSource(options.source);
   const repoName = extractRepoName(source);
 
@@ -42,7 +51,7 @@ export async function add(options: AddOptions): Promise<void> {
   console.log(chalk.blue('Cloning repository...'));
   let commit: string;
   try {
-    commit = cloneRepo(source, tempDir);
+    commit = cloneRepo(source, tempDir, branch);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error(chalk.red(`\nFailed to clone: ${msg}`));
@@ -51,12 +60,15 @@ export async function add(options: AddOptions): Promise<void> {
   }
   console.log(chalk.gray(`Commit: ${commit}`));
 
+  // Resolve subdir — for monorepo tree URLs, look inside the subdirectory
+  const pluginDir = subdir ? join(tempDir, subdir) : tempDir;
+
   // Find manifest — try JSON/SKILL.md first
-  let manifestResult = findManifestInDir(tempDir);
+  let manifestResult = findManifestInDir(pluginDir);
 
   // Fallback: try TypeScript config via jiti
   if (!manifestResult) {
-    manifestResult = await tryTsConfig(tempDir);
+    manifestResult = await tryTsConfig(pluginDir);
   }
 
   if (!manifestResult) {
@@ -66,11 +78,32 @@ export async function add(options: AddOptions): Promise<void> {
     process.exit(1);
   }
 
-  const name = manifestResult.manifest['name'] as string;
+  const rawName = manifestResult.manifest['name'] as string;
+  // Strip npm scope prefix (@scope/name → name) for use as a filesystem-safe plugin identifier
+  const name = rawName.replace(/^@[^/]+\//, '');
   const version = (manifestResult.manifest['version'] as string) || '0.0.0';
 
   console.log(chalk.cyan(`\nPlugin: ${name} v${version}`));
   console.log(chalk.gray(`Manifest: ${manifestResult.path} (${manifestResult.type})`));
+
+  // Security: run pinned integrity check + script policy via pipeline
+  const installApp = createApp().use(securityPlugin);
+  const installCtx = createInstallCtx({
+    pluginName: name,
+    installDir: tempDir,
+    manifest: manifestResult.manifest as unknown as PluginManifest,
+    meta: {},
+  });
+  try {
+    await installApp.runInstall(installCtx);
+  } catch (err) {
+    if (err instanceof AbortError) {
+      console.error(chalk.red(`\n${err.message}`));
+      rmSync(tempDir, { recursive: true, force: true });
+      process.exit(1);
+    }
+    throw err;
+  }
 
   // Detect agents
   const agents = getDetectedAgents();
@@ -81,28 +114,57 @@ export async function add(options: AddOptions): Promise<void> {
     console.log(chalk.gray(`Detected ${agents.length} agent${agents.length > 1 ? 's' : ''}: ${agents.map((a) => a.displayName).join(', ')}`));
   }
 
-  // Install
+  // Compile for harnesses that load compiled artifacts (opencode, pimono)
+  const compilableAgents = agents.filter((a) => a.pluginPath);
+  if (compilableAgents.length > 0) {
+    const targets = compilableAgents.map((a) => a.name);
+    console.log(chalk.blue(`\nCompiling for ${targets.join(', ')}...`));
+    const distDir = join(pluginDir, '.agentplugins-dist');
+    try {
+      await compile({
+        manifest: manifestResult.manifest as unknown as PluginManifest,
+        targets: targets as any,
+        write: true,
+        outDir: distDir,
+        pluginRoot: pluginDir,
+        silent: false,
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.log(chalk.yellow(`\n⚠  Compilation failed: ${msg}`));
+      console.log(chalk.gray('Plugin will be installed without compiled artifacts.'));
+    }
+  }
+
+  // Install (also creates per-skill flat links via installPlugin → linkPluginSkills)
   const result = installPlugin(tempDir, {
     source,
     name,
     commit,
     manifestPath: manifestResult.path,
     version,
+    ...(subdir ? { subdir } : {}),
   });
-
-  // Also symlink to skills-compat for Skills.sh
-  symlinkToSkillsCompat(name);
 
   // Summary
   console.log(chalk.green(`\n✅ Installed ${name} v${version}`));
   console.log(chalk.gray(`   Store: ${getStorePath()}/${name}`));
 
   if (result.symlinks.length > 0) {
-    console.log(chalk.gray('\nSymlinked to:'));
+    console.log(chalk.gray('\nInstalled to:'));
     for (const s of result.symlinks) {
       console.log(chalk.gray(`   ${s.agentDisplayName}: ${s.linkPath}`));
     }
   }
+
+  await runSetupFlow({
+    name,
+    pluginDir,
+    manifest: manifestResult.manifest,
+    yes: options.yes,
+    noSetup: options.noSetup,
+  });
+
   console.log();
 }
 
@@ -133,17 +195,3 @@ async function tryTsConfig(dir: string): Promise<{ path: string; manifest: Recor
   return null;
 }
 
-/** Symlink plugin to ~/.agents/skills/ for Skills.sh compatibility */
-function symlinkToSkillsCompat(name: string): void {
-  const skillsPath = join(getSkillsCompatPath(), name);
-  const targetPath = getPluginStorePath(name);
-  try {
-    mkdirSync(getSkillsCompatPath(), { recursive: true });
-    if (existsSync(skillsPath)) {
-      try { unlinkSync(skillsPath); } catch { /* ignore */ }
-    }
-    symlinkSync(targetPath, skillsPath, 'dir');
-  } catch {
-    // Non-fatal — skills compat is best-effort
-  }
-}

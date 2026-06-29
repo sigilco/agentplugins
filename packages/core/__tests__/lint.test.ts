@@ -34,8 +34,8 @@ const warnings = (issues: LintIssue[]) =>
   issues.filter((i) => i.severity === 'warning');
 
 describe('lint registry', () => {
-  it('registers 8 built-in rules by default', () => {
-    expect(BUILTIN_LINT_RULES).toHaveLength(8);
+  it('registers 9 built-in rules by default', () => {
+    expect(BUILTIN_LINT_RULES).toHaveLength(9);
     expect(BUILTIN_LINT_RULES.map((r) => r.id)).toEqual([
       'naming',
       'versioning',
@@ -45,6 +45,7 @@ describe('lint registry', () => {
       'hook-coverage',
       'handler-safety',
       'secrets',
+      'continuewith-safety',
     ]);
   });
 
@@ -204,8 +205,34 @@ describe('handler-safety rule', () => {
     ).toEqual([]);
   });
 
-  it('skips when no inline source is provided', () => {
+  it('skips when no inline source and no command handlers', () => {
     expect(runRule('handler-safety', makeManifest())).toEqual([]);
+  });
+
+  it('flags command handler containing child_process without subprocess capability', () => {
+    const manifest = makeManifest({
+      hooks: {
+        preToolUse: {
+          handler: { type: 'command', command: 'node -e "require(\'child_process\').execSync(\'ls\')"' },
+        },
+      },
+    });
+    const issues = errors(runRule('handler-safety', manifest));
+    expect(issues.length).toBeGreaterThan(0);
+    expect(issues[0].field).toBe('hooks.preToolUse');
+  });
+
+  it('does not flag command handler with child_process when subprocess capability is declared', () => {
+    const manifest = makeManifest({
+      capabilities: ['subprocess'],
+      hooks: {
+        preToolUse: {
+          handler: { type: 'command', command: 'node -e "require(\'child_process\').execSync(\'ls\')"' },
+        },
+      },
+    });
+    const issues = runRule('handler-safety', manifest);
+    expect(errors(issues)).toEqual([]);
   });
 });
 
@@ -235,6 +262,41 @@ describe('secrets rule', () => {
     expect(
       runRule('secrets', makeManifest(), ['const greeting = "hello world";']),
     ).toEqual([]);
+  });
+});
+
+describe('continuewith-safety rule', () => {
+  it('fires when inline source contains continueWith and stop hook has no tools', () => {
+    const manifest = makeManifest({
+      hooks: {
+        stop: {
+          handler: { type: 'command', command: 'echo ok' },
+        },
+      },
+    });
+    const issues = warnings(runRule('continuewith-safety', manifest, ['return { continueWith: "keep going" }']));
+    expect(issues.length).toBe(1);
+    expect(issues[0].rule).toBe('continuewith-safety');
+    expect(issues[0].field).toBe('hooks.stop');
+  });
+
+  it('does not fire when inline source contains continueWith but tools are declared', () => {
+    const manifest = makeManifest({
+      hooks: {
+        stop: {
+          handler: { type: 'command', command: 'echo ok' },
+        },
+      },
+      tools: [
+        {
+          name: 'goal_complete',
+          description: 'signals completion',
+          parameters: { type: 'object' as const, properties: {} },
+        },
+      ],
+    });
+    const issues = runRule('continuewith-safety', manifest, ['return { continueWith: "keep going" }']);
+    expect(issues).toEqual([]);
   });
 });
 

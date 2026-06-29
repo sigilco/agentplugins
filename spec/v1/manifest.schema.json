@@ -166,6 +166,44 @@
         "restart": { "enum": ["always", "on-failure", "no"], "default": "no" }
       }
     },
+    "adapterOverrides": {
+      "type": "object",
+      "description": "Per-harness runtime adapter override paths. At runtime the generated code tries to import() the specified file; if found it replaces the built-in adapter logic. Only meaningful for code-emitting adapters (pimono, opencode). Paths are relative to the plugin root.",
+      "additionalProperties": false,
+      "properties": {
+        "pimono": {
+          "type": "string",
+          "description": "Relative path to a TS module whose default export replaces the pimono generated factory"
+        },
+        "opencode": {
+          "type": "string",
+          "description": "Relative path to a TS module whose default export replaces the opencode generated plugin"
+        }
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "description": "Explicit capability opt-ins for otherwise-restricted operations. Recognised values: 'subprocess' (unlocks child_process usage in the lint rule).",
+      "items": {
+        "type": "string",
+        "enum": ["subprocess"]
+      }
+    },
+    "nativeEntry": {
+      "type": "object",
+      "description": "Escape hatch: supply a hand-written native file for a code-emitting adapter. When set, the adapter copies the file verbatim into dist/<target>/ instead of running codegen. Paths are relative to the plugin root.",
+      "additionalProperties": false,
+      "properties": {
+        "pimono": {
+          "type": "string",
+          "description": "Relative path to a TS file loaded verbatim by the pimono adapter"
+        },
+        "opencode": {
+          "type": "string",
+          "description": "Relative path to a TS file loaded verbatim by the opencode adapter"
+        }
+      }
+    },
     "integrity": {
       "type": "string",
       "pattern": "^sha256:[a-f0-9]{64}$",

@@ -34,6 +34,7 @@ export {
   loadAllAdapters,
   getRegisteredPlatforms,
   registerBuiltinAdapters,
+  getRegistryApp,
 } from './registry.js';
 
 // Hook Wrapper Generation
@@ -48,6 +49,8 @@ export type { WrapperOptions } from './hook-wrapper.js';
 export {
   extractCompiledHooks,
   getEmitter,
+  registerEmitter,
+  getRegisteredEmitters,
   TypeScriptEmitter,
   JavaScriptEmitter,
   GoEmitter,

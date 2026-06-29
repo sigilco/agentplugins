@@ -1,45 +1,33 @@
 /**
- * AgentPlugins — OpenCode Adapter buildHandlerInvocation()
+ * AgentPlugins — OpenCode Adapter handler invocation codegen
  *
- * Generates the TypeScript code that invokes a handler inside an OpenCode
- * hook function.
- *
- * This module extracts handler invocation generation from the main adapter
- * to enable TDD and better separation of concerns.
- *
- * Key bug fixed: inline handlers previously used `ctx` directly, which is
- * undefined in event hook scope. The context variable must be passed as a
- * parameter to buildHandlerInvocation.
+ * Generates TypeScript code that invokes a handler inside an OpenCode hook.
+ * Routes through @agentplugins/compile's emitCommandAsExecSync() to prevent
+ * template-literal injection and shell:true in command handlers.
  */
 
 import type {
   HookHandler,
   InlineHookHandler,
-  CommandHookHandler,
   HttpHookHandler,
+  CommandHookHandler,
 } from "@agentplugins/core";
-import type {
-  UniversalHookName,
-} from "@agentplugins/core/adapter";
+import type { UniversalHookName } from "@agentplugins/core/adapter";
+import { emitCommandAsExecSync } from "@agentplugins/compile";
 
-/**
- * The standard indentation used for code inside hook functions.
- * OpenCode uses 8 spaces for inner body indentation.
- */
 const INDENT = "        ";
 
 /**
- * Builds the TypeScript code that invokes a handler within an OpenCode hook.
+ * Generates TypeScript code that invokes a handler within an OpenCode hook.
  *
  * @param handler - The handler to invoke (inline, command, or http)
  * @param hookName - The universal hook name (for comments)
  * @param contextVar - The context variable name to pass (e.g., "args", "event")
- * @returns TypeScript code string that invokes the handler
  */
 export function buildHandlerInvocation(
   handler: HookHandler,
   hookName: UniversalHookName,
-  contextVar: string
+  contextVar: string = 'ctx'
 ): string {
   switch (handler.type) {
     case "inline": {
@@ -58,27 +46,27 @@ export function buildHandlerInvocation(
 
     case "command": {
       const ch = handler as CommandHookHandler;
+      const execLine = emitCommandAsExecSync(ch, {
+        pluginRootVar: "__pluginRoot",
+        indent: `${INDENT}  `,
+      });
       return [
-        `${INDENT}// [${hookName}] command handler (wrapped via Bun.$)`,
-        `${INDENT}try {`,
-        `${INDENT}  const proc = Bun.$\`${ch.command}\`;`,
-        `${INDENT}  const stdout = await proc.text();`,
-        `${INDENT}  return stdout;`,
-        `${INDENT}} catch (error) {`,
-        `${INDENT}  console.error(\`[${hookName}] command handler error:\`, error);`,
-        `${INDENT}  throw error;`,
-        `${INDENT}}`,
+        `${INDENT}// [${hookName}] command handler`,
+        `${INDENT}const { execSync: __execSync } = await import('node:child_process');`,
+        execLine,
       ].join("\n");
     }
 
     case "http": {
       const hh = handler as HttpHookHandler;
+      const urlLiteral = JSON.stringify(hh.url);
+      const headersLiteral = JSON.stringify(hh.headers ?? {});
       return [
-        `${INDENT}// [${hookName}] HTTP handler (wrapped via fetch)`,
+        `${INDENT}// [${hookName}] HTTP handler`,
         `${INDENT}try {`,
-        `${INDENT}  const response = await fetch("${hh.url}", {`,
+        `${INDENT}  const response = await fetch(${urlLiteral}, {`,
         `${INDENT}    method: "POST",`,
-        `${INDENT}    headers: ${JSON.stringify(hh.headers ?? {})},`,
+        `${INDENT}    headers: ${headersLiteral},`,
         `${INDENT}    body: JSON.stringify(${contextVar}),`,
         `${INDENT}  });`,
         `${INDENT}  return response.json();`,

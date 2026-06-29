@@ -4,29 +4,18 @@
  * Maps universal AgentPlugins hooks to OpenCode hook names and generates
  * the TypeScript code for hook handlers.
  *
- * Bug fixes in this module:
- * 1. Event hooks: Handler now receives `{ event }` instead of undefined `ctx`
- * 2. Tool hooks: Handler receives `{ input, output }` instead of ignoring args
+ * buildHandlerInvocation is imported from handler-invocation.ts (single copy).
  */
 
 import type {
   HookDefinition,
   UniversalHookName,
 } from '@agentplugins/core/adapter';
-import type {
-  HookHandler,
-  InlineHookHandler,
-  CommandHookHandler,
-  HttpHookHandler,
-} from '@agentplugins/core';
+import { buildHandlerInvocation } from './handler-invocation.js';
+export { buildHandlerInvocation };
 
-// ─── Public Exports ────────────────────────────────────────────────────────────
+// ─── Hook mapping table ───────────────────────────────────────────────────────
 
-/**
- * Maps universal hook names to their OpenCode equivalents.
- * OpenCode uses a single "event" hook for session/turn events with type discrimination.
- * This is Partial because OpenCode only supports 8 of the 19 universal hooks.
- */
 export const HOOK_MAPPING: Partial<Record<UniversalHookName, string>> = {
   sessionStart: 'event',
   sessionEnd: 'event',
@@ -38,20 +27,12 @@ export const HOOK_MAPPING: Partial<Record<UniversalHookName, string>> = {
   stop: 'event',
 };
 
-/**
- * Conditions for event-type hooks that need conditional branching on event.type.
- * Only event hooks (sessionStart, sessionEnd, stop) have type conditions.
- * Notification is unconditional.
- */
 export const EVENT_TYPE_CONDITIONS: Record<string, string> = {
   sessionStart: 'event.type === "session.created"',
   sessionEnd: 'event.type === "session.deleted"',
   stop: 'event.type === "session.idle"',
 };
 
-/**
- * Hooks that are implemented via the generic "event" handler with type branching.
- */
 export const EVENT_HOOKS: readonly UniversalHookName[] = [
   'sessionStart',
   'sessionEnd',
@@ -59,61 +40,52 @@ export const EVENT_HOOKS: readonly UniversalHookName[] = [
   'stop',
 ];
 
-// ─── buildEventHookBlock ─────────────────────────────────────────────────────
+// ─── buildEventHookBlock ──────────────────────────────────────────────────────
 
-/**
- * Builds the "event" hook block that conditionally routes to the correct
- * universal handler based on `event.type`.
- *
- * BUG FIX: Previously generated code called `handler(ctx)` where `ctx` was
- * undefined. Now correctly passes `{ event }` as the context since OpenCode's
- * event hooks receive `{ event }` as the parameter.
- *
- * @param registrations - Array of hook registrations to generate branches for
- * @returns Generated TypeScript code for the event hook
- */
 export function buildEventHookBlock(
   registrations: { hook: UniversalHookName; def: HookDefinition }[]
 ): string {
   const branches: string[] = [];
 
+  // ponytail: per-session cap to prevent runaway continueWith loops; expose via manifest field if tunability needed
+  const hasStop = registrations.some(r => r.hook === 'stop');
+  const preamble = hasStop
+    ? `      let __continueWithCount = 0;\n`
+    : '';
+
   for (const reg of registrations) {
     const condition = EVENT_TYPE_CONDITIONS[reg.hook];
     if (!condition) {
-      // Unconditional event hook (notification) - no if statement
-      branches.push(buildHandlerInvocation(reg.def.handler, reg.hook));
+      branches.push(buildHandlerInvocation(reg.def.handler, reg.hook, '{ event }'));
       continue;
     }
-    const handlerBody = buildHandlerInvocation(reg.def.handler, reg.hook);
-    branches.push(`      if (${condition}) {\n${handlerBody}\n      }`);
+    const handlerBody = buildHandlerInvocation(reg.def.handler, reg.hook, '{ event }');
+
+    if (reg.hook === 'stop') {
+      branches.push(
+        `      if (${condition}) {\n` +
+        `        const __stopResult = await (async () => {\n` +
+        `${handlerBody}\n` +
+        `        })();\n` +
+        `        if (__stopResult?.continueWith) {\n` +
+        `          if (++__continueWithCount > 20) {\n` +
+        `            return { ...__stopResult, continueWith: undefined };\n` +
+        `          }\n` +
+        `          await ctx.session?.sendMessage?.(__stopResult.continueWith);\n` +
+        `        }\n` +
+        `        return __stopResult;\n` +
+        `      }`
+      );
+    } else {
+      branches.push(`      if (${condition}) {\n${handlerBody}\n      }`);
+    }
   }
 
-  // BUG FIX: Use `(ctx)` instead of `({ event })` so ctx is defined in scope.
-  // OpenCode passes { event } but we need to build a proper HookContext.
-  // For now, pass { event } since that's what the universal handler expects.
-  return [
-    `    event: async (ctx) => {`,
-    `      const { event } = ctx;`,
-    branches.join('\n'),
-    `    }`,
-  ].join('\n');
+  return preamble + branches.join('\n');
 }
 
-// ─── buildHookArgs ───────────────────────────────────────────────────────────
+// ─── buildHookArgs ────────────────────────────────────────────────────────────
 
-/**
- * Builds the argument list for a given OpenCode hook function signature.
- *
- * OpenCode hook signatures:
- * - tool.execute.before/after: `(input, output)` - tool input and result
- * - permission.ask: `(request)` - permission request object
- * - experimental.session.compacting: `(session)` - session object
- * - event: handled separately via buildEventHookBlock
- *
- * @param ocHook - The OpenCode hook name
- * @param _universalHook - The universal hook name (for future extensibility)
- * @returns Comma-separated argument string for the hook function signature
- */
 export function buildHookArgs(
   ocHook: string,
   _universalHook: UniversalHookName
@@ -121,7 +93,6 @@ export function buildHookArgs(
   switch (ocHook) {
     case 'tool.execute.before':
     case 'tool.execute.after':
-      // Tool hooks receive input (tool arguments) and output (execution result)
       return 'input, output';
     case 'permission.ask':
       return 'request';
@@ -130,110 +101,4 @@ export function buildHookArgs(
     default:
       return 'ctx';
   }
-}
-
-// ─── buildHandlerInvocation ──────────────────────────────────────────────────
-
-/**
- * Generates the TypeScript code that invokes a handler inside an OpenCode
- * hook function.
- *
- * BUG FIX: For event hooks, the handler is now called with `{ event }`
- * instead of undefined `ctx`. For tool hooks, the handler receives
- * `{ input, output }` as the context object.
- *
- * @param handler - The handler definition to generate invocation for
- * @param hookName - The universal hook name (for comments)
- * @param ocHook - The OpenCode hook name (optional, for context-aware handling)
- * @returns Generated TypeScript code for the handler invocation
- */
-export function buildHandlerInvocation(
-  handler: HookHandler,
-  hookName: UniversalHookName,
-  ocHook?: string
-): string {
-  const indent = '        ';
-
-  switch (handler.type) {
-    case 'inline': {
-      const ih = handler as InlineHookHandler;
-      // BUG FIX: For event hooks, pass { event } instead of undefined ctx.
-      // For tool hooks, pass { input, output } instead of ignoring these args.
-      // For other hooks, use ctx.
-      const contextArg = getContextArg(ocHook);
-      return [
-        `${indent}// [${hookName}] inline handler`,
-        `${indent}const result = await (${ih.handler.toString()})(${contextArg});`,
-        `${indent}return result;`,
-      ].join('\n');
-    }
-
-    case 'command': {
-      const ch = handler as CommandHookHandler;
-      return [
-        `${indent}// [${hookName}] command handler (wrapped via Bun.$)`,
-        `${indent}const proc = Bun.$\`${ch.command}\`;`,
-        `${indent}const stdout = await proc.text();`,
-        `${indent}return stdout;`,
-      ].join('\n');
-    }
-
-    case 'http': {
-      const hh = handler as HttpHookHandler;
-      return [
-        `${indent}// [${hookName}] HTTP handler (wrapped via fetch)`,
-        `${indent}const response = await fetch("${hh.url}", {`,
-        `${indent}  method: "POST",`,
-        `${indent}  headers: ${JSON.stringify(hh.headers ?? {})},`,
-        `${indent}  body: JSON.stringify(ctx),`,
-        `${indent}});`,
-        `${indent}return response.json();`,
-      ].join('\n');
-    }
-
-    default: {
-      return `${indent}throw new Error("Unsupported handler type: ${(handler as { type: string }).type}");`;
-    }
-  }
-}
-
-// ─── Helper Functions ─────────────────────────────────────────────────────────
-
-/**
- * Determines the context argument to pass to a handler based on the hook type.
- *
- * BUG FIX: Previously always passed `ctx` which was undefined for event hooks.
- * Now correctly passes the appropriate context object based on the OpenCode hook.
- *
- * - Event hooks (ocHook === 'event'): pass `{ event }` since OpenCode provides the event
- * - Tool hooks (ocHook starts with 'tool.'): pass `{ input, output }` with tool data
- * - Permission hooks: pass `{ request }` for permission requests
- * - Session hooks: pass `{ session }` for session data
- * - Fallback: pass `ctx` for generic hooks
- */
-function getContextArg(ocHook?: string): string {
-  if (!ocHook) return 'ctx';
-
-  if (ocHook === 'event') {
-    // Event hooks: OpenCode passes { event }, so we pass { event } to handler
-    return '{ event }';
-  }
-
-  if (ocHook === 'tool.execute.before' || ocHook === 'tool.execute.after') {
-    // Tool hooks: OpenCode passes { input, output }, pass as context
-    // The universal handler expects HookContext, so we provide a compatible object
-    return '{ input, output }';
-  }
-
-  if (ocHook === 'permission.ask') {
-    // Permission hooks: pass the request object
-    return '{ request }';
-  }
-
-  if (ocHook === 'experimental.session.compacting') {
-    // Session hooks: pass the session object
-    return '{ session }';
-  }
-
-  return 'ctx';
 }

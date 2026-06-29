@@ -11,6 +11,7 @@
 import {
   type PluginManifest,
   type TargetPlatform,
+  type CompileOptions,
 } from "@agentplugins/core";
 
 import {
@@ -30,7 +31,7 @@ import {
   buildHookArgs,
 } from "./hook-mapping";
 import { buildHandlerInvocation } from "./handler-invocation";
-import { generatePluginFile, generateManifest } from "./output-generators";
+import { generatePluginFile, generateManifest, generateCommandFiles, generateAgentFiles } from "./output-generators";
 
 /**
  * The 8 hooks supported by OpenCode.
@@ -75,7 +76,7 @@ class OpenCodeAdapter implements PlatformAdapter {
    * using Bun's shell API (`$`) so that they appear as inline functions to
    * the OpenCode runtime.
    */
-  readonly supportedHandlers: readonly HandlerType[] = ["inline"];
+  readonly supportedHandlers: readonly HandlerType[] = ["inline", "command"];
 
   /** Path to manifest file (relative to plugin root). */
   readonly manifestPath = "opencode.json";
@@ -94,7 +95,18 @@ class OpenCodeAdapter implements PlatformAdapter {
   /**
    * Compiles the universal plugin into platform-specific output.
    */
-  compile(plugin: PluginManifest): AdapterOutput {
+  compile(plugin: PluginManifest, options?: CompileOptions): AdapterOutput {
+    // Native-entry passthrough: skip codegen entirely
+    if (plugin.nativeEntry?.opencode) {
+      return {
+        files: [],
+        manifest: { name: plugin.name, version: plugin.version },
+        warnings: [],
+        issues: [],
+        nativeCopies: [{ from: plugin.nativeEntry.opencode, to: `${plugin.name}.ts` }],
+      };
+    }
+
     // Run validation first
     const validateFn = createValidate();
     const issues = validateFn(plugin);
@@ -130,8 +142,10 @@ class OpenCodeAdapter implements PlatformAdapter {
 
     // Generate output files
     const files = [
-      generatePluginFile(plugin, hookCodeMap),
+      generatePluginFile(plugin, hookCodeMap, options?.pluginRoot),
       generateManifest(plugin, hookCodeMap),
+      ...generateCommandFiles(plugin),
+      ...generateAgentFiles(plugin),
     ];
 
     return {

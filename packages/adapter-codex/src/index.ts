@@ -35,6 +35,9 @@ import type {
   PluginManifest,
   TargetPlatform,
   Skill,
+  InlineHookHandler,
+  HookContext,
+  HookResult,
 } from "@agentplugins/core";
 
 import { Severity } from "@agentplugins/core";
@@ -47,6 +50,11 @@ import type {
   UniversalHookName,
   HandlerType,
   HookDefinition,
+} from "@agentplugins/core/adapter";
+
+import {
+  generateHookWrapper,
+  generateHandlersModule,
 } from "@agentplugins/core/adapter";
 
 // ---------------------------------------------------------------------------
@@ -71,8 +79,8 @@ export const SUPPORTED_HOOKS: readonly UniversalHookName[] = [
   "stop",
 ];
 
-/** Only command handlers (stdin/stdout JSON protocol) are supported on Codex. */
-export const SUPPORTED_HANDLERS: readonly HandlerType[] = ["command"];
+/** Supported handler types on Codex; inline handlers are auto-wrapped as command scripts. */
+export const SUPPORTED_HANDLERS: readonly HandlerType[] = ["command", "inline"];
 
 export const MANIFEST_PATH = ".codex-plugin/plugin.json";
 export const MANIFEST_FORMAT = "json" as const;
@@ -128,13 +136,19 @@ function validateHook(
     return issues;
   }
 
-  // Codex only supports "command" handlers (JSON stdin/stdout)
-  if (hook.handler && hook.handler.type !== "command") {
+  if (hook.handler && hook.handler.type === "inline") {
+    issues.push({
+      severity: Severity.INFO,
+      message: `Hook "${hookName}" inline handler will be auto-wrapped as a Codex command script.`,
+      field: `hooks.${hookName}.handler`,
+      suggestion: `For better performance, use a "command" handler instead.`,
+    });
+  } else if (hook.handler && hook.handler.type !== "command") {
     issues.push({
       severity: Severity.ERROR,
-      message: `Codex only supports "command" handlers. Hook "${hookName}" specifies type "${hook.handler.type}".`,
+      message: `Codex only supports "command" and "inline" handlers. Hook "${hookName}" specifies type "${hook.handler.type}".`,
       field: `hooks.${hookName}.handler.type`,
-      suggestion: `Use a command handler instead of an inline handler.`,
+      suggestion: `Use a command or inline handler.`,
     });
   }
 
@@ -276,6 +290,35 @@ export class CodexPlatformAdapter implements PlatformAdapter {
   readonly manifestPath: string = MANIFEST_PATH;
   readonly manifestFormat: "json" | "toml" = MANIFEST_FORMAT;
 
+  private inlineWrappers = new Map<string, { hookName: string }>();
+
+  private hashId(input: string): string {
+    let hash = 0;
+    for (let i = 0; i < input.length; i++) {
+      const char = input.charCodeAt(i);
+      hash = (hash << 5) - hash + char;
+      hash |= 0;
+    }
+    return Math.abs(hash).toString(36).slice(0, 6);
+  }
+
+  private extractInlineHandlers(
+    plugin: PluginManifest
+  ): Map<string, (ctx: HookContext) => Promise<HookResult>> {
+    const handlers = new Map<string, (ctx: HookContext) => Promise<HookResult>>();
+    if (!plugin.hooks) return handlers;
+    for (const [name, def] of Object.entries(plugin.hooks)) {
+      const hookName = name as UniversalHookName;
+      if (!def || def.handler.type !== 'inline') continue;
+      const inlineHandler = def.handler as InlineHookHandler;
+      if (typeof inlineHandler.handler === 'function') {
+        const wrapperId = `__inline_${hookName}_${this.hashId(hookName)}`;
+        handlers.set(wrapperId, inlineHandler.handler);
+      }
+    }
+    return handlers;
+  }
+
   /**
    * Validate a plugin manifest for Codex compatibility.
    *
@@ -321,6 +364,7 @@ export class CodexPlatformAdapter implements PlatformAdapter {
    * @returns {@link AdapterOutput} with files, manifest, warnings, and post-install notes
    */
   compile(plugin: PluginManifest): AdapterOutput {
+    this.inlineWrappers.clear();
     const files: FileOutput[] = [];
     const warnings: string[] = [];
     const hookEntries: Record<string, unknown>[] = [];
@@ -338,17 +382,42 @@ export class CodexPlatformAdapter implements PlatformAdapter {
 
         const entry = buildCodexHookEntry(hookName, hookDef);
 
-        // Command handler - use directly
         if (hookDef.handler.type === 'command') {
           entry.command = hookDef.handler.command;
           hookEntries.push(entry);
+        } else if (hookDef.handler.type === 'inline') {
+          const wrapperId = `__inline_${hookName}_${this.hashId(hookName)}`;
+          this.inlineWrappers.set(wrapperId, { hookName });
+          entry.command = `node "\${PLUGIN_ROOT}/hooks/${wrapperId}.js"`;
+          hookEntries.push(entry);
         } else {
-          // Inline handlers can't be compiled for Codex - they require serialization
           warnings.push(
-            `Hook "${hookName}": inline handlers are not supported on Codex. Use command handlers instead.`
+            `Hook "${hookName}": handler type "${hookDef.handler.type}" is not supported on Codex – skipped.`
           );
         }
       }
+    }
+
+    // --- Inline handler wrapper scripts ---
+    if (this.inlineWrappers.size > 0) {
+      const inlineHandlers = this.extractInlineHandlers(plugin);
+      files.push({
+        path: 'hooks/__agentplugins_handlers__.js',
+        content: generateHandlersModule(inlineHandlers),
+      });
+      for (const [wrapperId, { hookName }] of this.inlineWrappers.entries()) {
+        files.push({
+          path: `hooks/${wrapperId}.js`,
+          content: generateHookWrapper('./__agentplugins_handlers__.js', {
+            platform: 'codex',
+            hookName,
+            wrapperId,
+          }),
+        });
+      }
+      warnings.push(
+        `${this.inlineWrappers.size} inline handler(s) wrapped as command scripts. Requires Node.js at runtime.`
+      );
     }
 
     // --- Skills ---

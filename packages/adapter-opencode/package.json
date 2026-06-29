@@ -1,6 +1,6 @@
 {
   "name": "@agentplugins/adapter-opencode",
-  "version": "0.3.0",
+  "version": "0.5.0",
   "description": "OpenCode platform adapter for AgentPlugins - generates OpenCode-compatible plugins from universal manifests",
   "type": "module",
   "main": "./dist/index.js",
@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@agentplugins/core": "workspace:*",
+    "@agentplugins/compile": "workspace:*",
     "zod": "^3.22.0"
   },
   "devDependencies": {
@@ -36,6 +37,12 @@
     "access": "public"
   },
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sigilco/agentplugins.git",
+    "directory": "packages/adapter-opencode"
+  },
+  "homepage": "https://agentplugins.pages.dev/",
   "keywords": [
     "agentplugins",
     "opencode",

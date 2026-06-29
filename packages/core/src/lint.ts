@@ -30,12 +30,22 @@ const KEBAB_CASE_RE = /^[a-z][a-z0-9-]*$/;
 const SEMVER_RE =
   /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
 
-const SAFETY_PATTERNS: RegExp[] = [
+/** Patterns always blocked — no capability unlocks these. */
+const ALWAYS_BLOCKED_PATTERNS: RegExp[] = [
   /\beval\s*\(/,
-  /require\s*\(\s*['"]child_process['"]\s*\)/,
-  /\bchild_process\b/,
   /fs\.unlink(Sync)?\s*\(/,
   /\bprocess\.exit\s*\(/,
+];
+
+/** Patterns blocked unless `capabilities: ['subprocess']` is declared. */
+const SUBPROCESS_PATTERNS: RegExp[] = [
+  /require\s*\(\s*['"]child_process['"]\s*\)/,
+  /\bchild_process\b/,
+];
+
+const SAFETY_PATTERNS: RegExp[] = [
+  ...ALWAYS_BLOCKED_PATTERNS,
+  ...SUBPROCESS_PATTERNS,
 ];
 
 const SECRET_PATTERNS: RegExp[] = [
@@ -186,24 +196,57 @@ const hookCoverageRule: LintRule = {
 
 const handlerSafetyRule: LintRule = {
   id: 'handler-safety',
-  description: 'Inline handler source must not contain dangerous patterns',
-  run: ({ inlineHandlerSource }) => {
-    if (!inlineHandlerSource || inlineHandlerSource.length === 0) return [];
+  description: 'Handler source (inline and command) must not contain dangerous patterns',
+  run: ({ manifest, inlineHandlerSource }) => {
+    const hasSubprocessCapability = manifest.capabilities?.includes('subprocess') ?? false;
+    const activePatterns = hasSubprocessCapability
+      ? ALWAYS_BLOCKED_PATTERNS
+      : SAFETY_PATTERNS;
+
     const issues: LintIssue[] = [];
-    for (const source of inlineHandlerSource) {
-      for (const pattern of SAFETY_PATTERNS) {
-        const match = pattern.exec(source);
-        if (match) {
-          issues.push({
-            rule: 'handler-safety',
-            severity: 'error',
-            field: 'hooks.<handler>',
-            message: `Handler source contains dangerous pattern "${match[0]}"`,
-            suggestion: 'Remove or sandbox the dangerous code',
-          });
+
+    // Scan inline handler source strings
+    if (inlineHandlerSource) {
+      for (const source of inlineHandlerSource) {
+        for (const pattern of activePatterns) {
+          const match = pattern.exec(source);
+          if (match) {
+            issues.push({
+              rule: 'handler-safety',
+              severity: 'error',
+              field: 'hooks.<handler>',
+              message: `Handler source contains dangerous pattern "${match[0]}"`,
+              suggestion: SUBPROCESS_PATTERNS.some((p) => p.test(match[0]))
+                ? 'Declare capabilities: [\'subprocess\'] in your manifest and sandbox subprocess calls carefully'
+                : 'Remove or sandbox the dangerous code',
+            });
+          }
         }
       }
     }
+
+    // Scan command-handler command strings
+    if (manifest.hooks) {
+      for (const [name, def] of Object.entries(manifest.hooks)) {
+        if (def && def.handler.type === 'command') {
+          for (const pattern of activePatterns) {
+            const match = pattern.exec(def.handler.command);
+            if (match) {
+              issues.push({
+                rule: 'handler-safety',
+                severity: 'error',
+                field: `hooks.${name}`,
+                message: `Handler source contains dangerous pattern "${match[0]}"`,
+                suggestion: SUBPROCESS_PATTERNS.some((p) => p.test(match[0]))
+                  ? 'Declare capabilities: [\'subprocess\'] in your manifest and sandbox subprocess calls carefully'
+                  : 'Remove or sandbox the dangerous code',
+              });
+            }
+          }
+        }
+      }
+    }
+
     return issues;
   },
 };
@@ -244,6 +287,35 @@ const secretsRule: LintRule = {
   },
 };
 
+const continueWithSafetyRule: LintRule = {
+  id: 'continuewith-safety',
+  description: 'Plugins using continueWith on the stop hook should declare an exit-condition tool',
+  run: ({ manifest, inlineHandlerSource }) => {
+    const hasStopHook = !!manifest.hooks?.stop;
+    if (!hasStopHook) return [];
+
+    const handler = manifest.hooks?.stop?.handler;
+    // Detect continueWith usage: in command handler text OR in inline handler source
+    const usesContinueWith =
+      (handler?.type === 'command' && handler.command.includes('continueWith')) ||
+      (inlineHandlerSource?.some((s) => s.includes('continueWith')) ?? false);
+
+    if (!usesContinueWith) return [];
+
+    const hasTools = !!manifest.tools && manifest.tools.length > 0;
+    if (!hasTools) {
+      return [{
+        rule: 'continuewith-safety',
+        severity: 'warning',
+        field: 'hooks.stop',
+        message: 'stop hook appears to use continueWith but no exit-condition tools are declared — this can cause runaway loops',
+        suggestion: 'Add a tool (e.g. goal_complete) that the agent calls to halt the loop',
+      }];
+    }
+    return [];
+  },
+};
+
 export const BUILTIN_LINT_RULES: LintRule[] = [
   namingRule,
   versioningRule,
@@ -253,6 +325,7 @@ export const BUILTIN_LINT_RULES: LintRule[] = [
   hookCoverageRule,
   handlerSafetyRule,
   secretsRule,
+  continueWithSafetyRule,
 ];
 
 let registry: LintRule[] = [...BUILTIN_LINT_RULES];

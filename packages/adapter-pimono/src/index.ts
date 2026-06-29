@@ -26,10 +26,12 @@ import {
   type PluginManifest,
   type TargetPlatform,
   type HookHandler,
+  type CommandHookHandler,
   type ToolDefinition,
   type InlineHookHandler,
   type HookContext,
   type HookResult,
+  type CompileOptions,
   Severity,
 } from "@agentplugins/core";
 
@@ -41,6 +43,13 @@ import {
   type HandlerType,
   type FileOutput,
 } from "@agentplugins/core/adapter";
+
+import { sanitizeJoin } from "@agentplugins/compile";
+
+/** Last path segment — ponytail: avoids a node:path dev-dependency in generated dts. */
+function basename(p: string): string {
+  return p.replace(/\\/g, "/").split("/").pop() || p;
+}
 
 // ── Local type extensions (to bridge gaps with core types) ───────────────────
 
@@ -202,6 +211,16 @@ function safeIdent(name: string): string {
   return /^\d/.test(cleaned) ? `_${cleaned}` : cleaned;
 }
 
+/** Resolve a manifest path safely; clamps traversal attempts to the plugin root. */
+function resolveHandlerSource(source: string, pluginRoot?: string): string {
+  if (!pluginRoot) return source;
+  try {
+    return sanitizeJoin(pluginRoot, source);
+  } catch {
+    return sanitizeJoin(pluginRoot, basename(source));
+  }
+}
+
 /* ────────────────────────────────────────────────────────────────────────────
    Validation
    ──────────────────────────────────────────────────────────────────────────── */
@@ -254,6 +273,11 @@ function validatePlugin(plugin: PluginManifest): ValidationIssue[] {
 
       if (hookHandler.type === "inline") {
         // Inline handlers are fully supported — they become pi.on(event, async (ctx) => { … })
+        continue;
+      }
+
+      if (hookHandler.type === "command") {
+        // Command handlers are wrapped via execSync so the shell script runs inside the Pi process.
         continue;
       }
 
@@ -330,6 +354,19 @@ function validatePlugin(plugin: PluginManifest): ValidationIssue[] {
     }
   }
 
+  // ── mcpServers ──
+  if (plugin.mcpServers && Object.keys(plugin.mcpServers).length > 0) {
+    issues.push({
+      severity: Severity.WARNING,
+      field: "mcpServers",
+      message:
+        `Pi Mono has no built-in MCP support — "mcpServers" will not be emitted for this target. ` +
+        `Use first-class "tools[]" (emitted natively via pi.registerTool()) or bridge an MCP server ` +
+        `through a Pi extension via "nativeEntry.pimono". ` +
+        `See docs/guide/porting#mcp-on-pi for the guided pattern.`,
+    });
+  }
+
   return issues;
 }
 
@@ -384,6 +421,53 @@ function generateInlineHandlerBody(
 }
 
 /**
+ * Generate handler code for a "command" type handler.
+ *
+ * Pi Mono extensions run in Node.js, so we wrap the shell command via
+ * execSync. The CLAUDE_PLUGIN_ROOT env var is set to __piPluginRoot so hook
+ * scripts can locate sibling files regardless of cwd. Stdout is parsed as
+ * JSON and returned; parse failures return an empty object.
+ *
+ * @param handler - The command handler definition.
+ * @param event   - The Pi Mono event name (for logging).
+ * @returns TypeScript source string for the handler body.
+ */
+const PIMONO_PLUGIN_ROOT_RE = /\$\{(?:CLAUDE_)?PLUGIN_ROOT\}/g;
+
+function generateCommandHandlerBody(handler: CommandHookHandler, event: string): string {
+  // Build __cmdStr without template-literal injection: JSON.stringify the raw command,
+  // then use runtime .replace() for the plugin-root substitution.
+  const hasPluginRoot = PIMONO_PLUGIN_ROOT_RE.test(handler.command);
+  PIMONO_PLUGIN_ROOT_RE.lastIndex = 0;
+
+  let cmdExpr: string;
+  if (hasPluginRoot) {
+    const sentinelCmd = handler.command.replace(PIMONO_PLUGIN_ROOT_RE, '__PLUGIN_ROOT__');
+    PIMONO_PLUGIN_ROOT_RE.lastIndex = 0;
+    cmdExpr = `${JSON.stringify(sentinelCmd)}.replace(/__PLUGIN_ROOT__/g, __piPluginRoot)`;
+  } else {
+    cmdExpr = JSON.stringify(handler.command);
+  }
+
+  const lines: string[] = [
+    `// [${event}] command handler (executed via execSync)`,
+    `const { execSync: __execSync } = await import('node:child_process');`,
+    `const __cmdStr = ${cmdExpr};`,
+    `let __cmdRaw = '';`,
+    `try {`,
+    `  __cmdRaw = __execSync(__cmdStr, {`,
+    `    encoding: 'utf8',`,
+    `    env: { ...process.env, CLAUDE_PLUGIN_ROOT: __piPluginRoot },`,
+    `  });`,
+    `} catch (__e: any) {`,
+    `  __cmdRaw = __e.stdout ?? '';`,
+    `}`,
+    `try { return JSON.parse(__cmdRaw.trim()); } catch { return {}; }`,
+  ];
+  return lines.join("\n    ");
+}
+
+/**
  * Generate a handler for a "reference" type handler.
  *
  * Since Pi Mono expects inline functions, we generate a thin async wrapper
@@ -393,13 +477,13 @@ function generateInlineHandlerBody(
  * @param handler - The reference handler definition.
  * @returns TypeScript source string for the wrapper.
  */
-function generateReferenceHandler(handler: HandlerReference): string {
+function generateReferenceHandler(handler: HandlerReference, pluginRoot?: string): string {
   const { target, source } = handler;
   const lines: string[] = [];
 
   if (source) {
     // Dynamic import for ESM compatibility.
-    lines.push(`const mod = await import(${tsStringLiteral(source)});`);
+    lines.push(`const mod = await import(${tsStringLiteral(resolveHandlerSource(source, pluginRoot))});`);
     lines.push(`const fn = mod[${tsStringLiteral(target)}] ?? mod.default;`);
   } else {
     // Assume the target is available in the global/module scope.
@@ -423,22 +507,55 @@ function generateReferenceHandler(handler: HandlerReference): string {
  */
 function generateEventRegistration(
   event: string,
-  handler: HookHandler | HandlerReference
+  handler: HookHandler | HandlerReference,
+  pluginRoot?: string
 ): string[] {
   const lines: string[] = [];
   lines.push(`// ${event}`);
-  lines.push(`pi.on(${tsStringLiteral(event)}, async (ctx) => {`);
 
-  if ((handler as HandlerReference).type === "reference") {
-    lines.push(`  ${generateReferenceHandler(handler as HandlerReference).replace(/\n/g, "\n  ")}`);
+  const isStopEvent = event === "agent.AgentEnd";
+
+  const handlerType = (handler as { type?: string }).type;
+
+  if (isStopEvent) {
+    // stop hook: capture result so we can handle continueWith
+    lines.push(`pi.on(${tsStringLiteral(event)}, async (ctx) => {`);
+    lines.push(`  let __result;`);
+    if (handlerType === "reference") {
+      lines.push(`  __result = await (async (ctx) => {`);
+      lines.push(`    ${generateReferenceHandler(handler as HandlerReference, pluginRoot).replace(/\n/g, "\n    ")}`);
+      lines.push(`  })(ctx);`);
+    } else if (handlerType === "command") {
+      lines.push(`  __result = await (async (ctx) => {`);
+      lines.push(`    ${generateCommandHandlerBody(handler as CommandHookHandler, event).replace(/\n/g, "\n    ")}`);
+      lines.push(`  })(ctx);`);
+    } else {
+      lines.push(`  __result = await (async (ctx) => {`);
+      lines.push(`    ${generateInlineHandlerBody(handler as InlineHookHandlerExt, event).replace(/\n/g, "\n    ")}`);
+      lines.push(`  })(ctx);`);
+    }
+    lines.push(`  if (__result?.continueWith) {`);
+    lines.push(`    if (++__continueWithCount > __MAX_CONTINUE_WITH) {`);
+    lines.push(`      return { ...__result, continueWith: undefined };`);
+    lines.push(`    }`);
+    lines.push(`    await pi.sendUserMessage(__result.continueWith);`);
+    lines.push(`  }`);
+    lines.push(`  return __result;`);
+    lines.push(`});`);
   } else {
-    // Default to inline (including cases where type is omitted).
-    lines.push(
-      `  ${generateInlineHandlerBody(handler as InlineHookHandlerExt, event).replace(/\n/g, "\n  ")}`
-    );
+    lines.push(`pi.on(${tsStringLiteral(event)}, async (ctx) => {`);
+    if (handlerType === "reference") {
+      lines.push(`  ${generateReferenceHandler(handler as HandlerReference, pluginRoot).replace(/\n/g, "\n  ")}`);
+    } else if (handlerType === "command") {
+      lines.push(`  ${generateCommandHandlerBody(handler as CommandHookHandler, event).replace(/\n/g, "\n  ")}`);
+    } else {
+      lines.push(
+        `  ${generateInlineHandlerBody(handler as InlineHookHandlerExt, event).replace(/\n/g, "\n  ")}`
+      );
+    }
+    lines.push(`});`);
   }
 
-  lines.push(`});`);
   return lines;
 }
 
@@ -450,7 +567,7 @@ function generateEventRegistration(
  * @param tools - Array of plugin tools.
  * @returns Lines of TypeScript source.
  */
-function generateToolRegistrations(tools: ToolDefinition[]): string[] {
+function generateToolRegistrations(tools: ToolDefinition[], pluginRoot?: string): string[] {
   const lines: string[] = [];
 
   for (const tool of tools) {
@@ -476,8 +593,9 @@ function generateToolRegistrations(tools: ToolDefinition[]): string[] {
     lines.push(`  handler: async (args) => {`);
     // @ts-expect-error - adapter extends handler with source/target properties
     if ((tool.handler as unknown)?.source) {
+      const source = (tool.handler as unknown as { source?: string }).source ?? "";
       // @ts-expect-error
-      lines.push(`    const mod = await import(${tsStringLiteral((tool.handler as unknown as { source?: string }).source ?? "")});`);
+      lines.push(`    const mod = await import(${tsStringLiteral(resolveHandlerSource(source, pluginRoot))});`);
       // @ts-expect-error
       lines.push(`    return mod[${tsStringLiteral((tool.handler as unknown as { target?: string }).target ?? "default")}](args);`);
     // @ts-expect-error
@@ -502,7 +620,7 @@ function generateToolRegistrations(tools: ToolDefinition[]): string[] {
  * @param commands - Array of plugin commands.
  * @returns Lines of TypeScript source.
  */
-function generateCommandRegistrations(commands: PluginCommand[]): string[] {
+function generateCommandRegistrations(commands: PluginCommand[], pluginRoot?: string): string[] {
   const lines: string[] = [];
 
   for (const cmd of commands) {
@@ -527,7 +645,7 @@ function generateCommandRegistrations(commands: PluginCommand[]): string[] {
     }
     lines.push(`  run: async (ctx, args) => {`);
     if (cmd.handler?.source) {
-      lines.push(`    const mod = await import(${tsStringLiteral(cmd.handler.source)});`);
+      lines.push(`    const mod = await import(${tsStringLiteral(resolveHandlerSource(cmd.handler.source, pluginRoot))});`);
       lines.push(`    return mod[${tsStringLiteral(cmd.handler.target ?? "default")}](ctx, args);`);
     } else if (cmd.handler?.target) {
       lines.push(`    return ${safeIdent(cmd.handler.target)}(ctx, args);`);
@@ -549,7 +667,8 @@ function generateCommandRegistrations(commands: PluginCommand[]): string[] {
  * @returns Lines of TypeScript source.
  */
 function generateShortcutRegistrations(
-  shortcuts: NonNullable<PluginManifest["shortcuts"]>
+  shortcuts: NonNullable<PluginManifest["shortcuts"]>,
+  pluginRoot?: string
 ): string[] {
   const lines: string[] = [];
 
@@ -569,7 +688,7 @@ function generateShortcutRegistrations(
         // Named action reference.
         lines.push(`    return ${safeIdent(sc.action)}(ctx);`);
       } else if (sc.action.source) {
-        lines.push(`    const mod = await import(${tsStringLiteral(sc.action.source)});`);
+        lines.push(`    const mod = await import(${tsStringLiteral(resolveHandlerSource(sc.action.source, pluginRoot))});`);
         lines.push(`    return mod[${tsStringLiteral(sc.action.target ?? "default")}](ctx);`);
       } else if (sc.action.target) {
         lines.push(`    return ${safeIdent(sc.action.target)}(ctx);`);
@@ -592,7 +711,8 @@ function generateShortcutRegistrations(
  * @returns Lines of TypeScript source.
  */
 function generateFlagRegistrations(
-  flags: NonNullable<PluginManifest["flags"]>
+  flags: NonNullable<PluginManifest["flags"]>,
+  pluginRoot?: string
 ): string[] {
   const lines: string[] = [];
 
@@ -614,7 +734,7 @@ function generateFlagRegistrations(
     }
     lines.push(`  handler: async (ctx, value) => {`);
     if (flag.handler?.source) {
-      lines.push(`    const mod = await import(${tsStringLiteral(flag.handler.source)});`);
+      lines.push(`    const mod = await import(${tsStringLiteral(resolveHandlerSource(flag.handler.source, pluginRoot))});`);
       lines.push(`    return mod[${tsStringLiteral(flag.handler.target ?? "default")}](ctx, value);`);
     } else if (flag.handler?.target) {
       lines.push(`    return ${safeIdent(flag.handler.target)}(ctx, value);`);
@@ -647,7 +767,19 @@ function generateFlagRegistrations(
  * @param plugin - The plugin manifest to compile.
  * @returns AdapterOutput with generated files and metadata.
  */
-function compilePlugin(plugin: PluginManifest): AdapterOutput {
+function compilePlugin(plugin: PluginManifest, options?: CompileOptions): AdapterOutput {
+  const pluginRoot = options?.pluginRoot;
+  // ── Native-entry passthrough: skip codegen entirely ──
+  if (plugin.nativeEntry?.pimono) {
+    return {
+      files: [],
+      manifest: plugin,
+      warnings: [],
+      issues: [],
+      nativeCopies: [{ from: plugin.nativeEntry.pimono, to: 'index.ts' }],
+    };
+  }
+
   const files: FileOutput[] = [];
 
   // ── Determine if this is a multi-file extension ──
@@ -655,12 +787,10 @@ function compilePlugin(plugin: PluginManifest): AdapterOutput {
 
   // If any handler references an external source file, we treat it as multi-file.
   if (plugin.hooks) {
-    for (const handler of Object.values(plugin.hooks)) {
-      if (handler.type === "reference" && handler.source) {
-        isMultiFile = true;
-        break;
-      }
-      if (handler.type === "inline" && handler.source) {
+    for (const hookDef of Object.values(plugin.hooks)) {
+      const h = (hookDef as { handler?: unknown }).handler as { type?: string; source?: string } | undefined;
+      if (!h) continue;
+      if ((h.type === "reference" || h.type === "inline") && h.source) {
         isMultiFile = true;
         break;
       }
@@ -722,13 +852,14 @@ function compilePlugin(plugin: PluginManifest): AdapterOutput {
   // Import ExtensionAPI type.
   tsLines.push(`import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";`);
 
+  const overridePath = plugin.adapterOverrides?.pimono;
+
   // If multi-file with source references, collect dynamic import paths.
   const dynamicImports = new Set<string>();
   if (plugin.hooks) {
-    for (const handler of Object.values(plugin.hooks)) {
-      if ("source" in handler && handler.source) {
-        dynamicImports.add(handler.source);
-      }
+    for (const hookDef of Object.values(plugin.hooks)) {
+      const h = (hookDef as { handler?: unknown }).handler as { type?: string; source?: string } | undefined;
+      if (h?.source) dynamicImports.add(h.source);
     }
   }
   if (plugin.tools) {
@@ -741,6 +872,21 @@ function compilePlugin(plugin: PluginManifest): AdapterOutput {
       if (cmd.handler?.source) dynamicImports.add(cmd.handler.source);
     }
   }
+  if (plugin.shortcuts) {
+    for (const sc of plugin.shortcuts) {
+      if (typeof sc.action !== "string" && sc.action?.source) {
+        dynamicImports.add(sc.action.source);
+      }
+    }
+  }
+  if (plugin.flags) {
+    for (const flag of plugin.flags) {
+      if (flag.handler?.source) dynamicImports.add(flag.handler.source);
+    }
+  }
+  if (overridePath) {
+    dynamicImports.add(overridePath);
+  }
 
   if (dynamicImports.size > 0) {
     tsLines.push(``);
@@ -749,28 +895,61 @@ function compilePlugin(plugin: PluginManifest): AdapterOutput {
 
   tsLines.push(``);
 
-  // Default factory function.
+  // Default factory function (async when adapterOverrides is set).
   tsLines.push(`/**`);
   tsLines.push(` * Pi Mono extension factory.`);
   tsLines.push(` *`);
   tsLines.push(` * @param pi - The ExtensionAPI instance provided by the Pi Mono runtime.`);
   tsLines.push(` */`);
-  tsLines.push(`export default function(pi: ExtensionAPI) {`);
+  tsLines.push(`export default async function(pi: ExtensionAPI) {`);
+  if (dynamicImports.size > 0) {
+    tsLines.push(`  console.warn('[agentplugins] Plugin loads external handler modules — only install plugins you trust');`);
+  }
+  if (overridePath) {
+    const safeOverride = resolveHandlerSource(overridePath, pluginRoot);
+    tsLines.push(`  // Runtime adapter override — tries user file first, falls back to codegen.`);
+    if (pluginRoot) {
+      tsLines.push(`  console.warn('[agentplugins] Loading adapter override from ' + ${JSON.stringify(safeOverride)} + ' — only install overrides from plugins you trust');`);
+    }
+    tsLines.push(`  try {`);
+    tsLines.push(`    const overrideMod = await import(${tsStringLiteral(safeOverride)});`);
+    tsLines.push(`    if (typeof overrideMod.default === 'function') {`);
+    tsLines.push(`      return overrideMod.default(pi);`);
+    tsLines.push(`    }`);
+    tsLines.push(`  } catch {`);
+    tsLines.push(`    pi.logger?.warn?.("[${plugin.name}] adapterOverrides.pimono not found — using generated implementation");`);
+    tsLines.push(`  }`);
+    tsLines.push(``);
+  }
   tsLines.push(`  // Extension entry point — register all hooks, tools, commands, etc.`);
   tsLines.push(`  pi.logger?.info?.("[${plugin.name}] Extension loaded on ${DISPLAY_NAME}");`);
   tsLines.push(``);
 
+  // Emit __piPluginRoot helper when any hook uses a command handler.
+  const hasCommandHandlers = plugin.hooks
+    ? Object.values(plugin.hooks).some((h) => (h as { handler?: { type?: string } }).handler?.type === 'command')
+    : false;
+  if (hasCommandHandlers) {
+    tsLines.push(`  // Directory of this extension file — used to resolve CLAUDE_PLUGIN_ROOT for command handlers.`);
+    tsLines.push(`  const __piPluginRoot = new URL('.', import.meta.url).pathname.replace(/\\/$/, '');`);
+    tsLines.push(``);
+  }
+
   // ── Hooks ──
   if (plugin.hooks && Object.keys(plugin.hooks).length > 0) {
     tsLines.push(`  /* ── Lifecycle Hooks ── */`);
-    for (const [hookName, handler] of Object.entries(plugin.hooks)) {
+    // ponytail: per-session cap to prevent runaway continueWith loops; expose via manifest field if tunability needed
+    tsLines.push(`  let __continueWithCount = 0;`);
+    tsLines.push(`  const __MAX_CONTINUE_WITH = 20;`);
+    for (const [hookName, hookDef] of Object.entries(plugin.hooks)) {
       const event = HOOK_TO_EVENT[hookName as UniversalHookName];
       if (!event) {
         tsLines.push(`  // WARNING: No Pi Mono event for hook "${hookName}" — skipping`);
         tsLines.push(``);
         continue;
       }
-      const regLines = generateEventRegistration(event, handler);
+      const hookHandler = (hookDef as { handler: HookHandler | HandlerReference }).handler;
+      const regLines = generateEventRegistration(event, hookHandler, pluginRoot);
       for (const line of regLines) {
         tsLines.push(`  ${line}`);
       }
@@ -781,7 +960,7 @@ function compilePlugin(plugin: PluginManifest): AdapterOutput {
   // ── Tools ──
   if (plugin.tools && plugin.tools.length > 0) {
     tsLines.push(`  /* ── Tools ── */`);
-    for (const line of generateToolRegistrations(plugin.tools)) {
+    for (const line of generateToolRegistrations(plugin.tools, pluginRoot)) {
       tsLines.push(`  ${line}`);
     }
     tsLines.push(``);
@@ -790,7 +969,7 @@ function compilePlugin(plugin: PluginManifest): AdapterOutput {
   // ── Commands ──
   if (plugin.commands && plugin.commands.length > 0) {
     tsLines.push(`  /* ── Commands ── */`);
-    for (const line of generateCommandRegistrations(plugin.commands)) {
+    for (const line of generateCommandRegistrations(plugin.commands, pluginRoot)) {
       tsLines.push(`  ${line}`);
     }
     tsLines.push(``);
@@ -799,7 +978,7 @@ function compilePlugin(plugin: PluginManifest): AdapterOutput {
   // ── Shortcuts ──
   if (plugin.shortcuts && plugin.shortcuts.length > 0) {
     tsLines.push(`  /* ── Keyboard Shortcuts ── */`);
-    for (const line of generateShortcutRegistrations(plugin.shortcuts)) {
+    for (const line of generateShortcutRegistrations(plugin.shortcuts, pluginRoot)) {
       tsLines.push(`  ${line}`);
     }
     tsLines.push(``);
@@ -808,7 +987,7 @@ function compilePlugin(plugin: PluginManifest): AdapterOutput {
   // ── Flags ──
   if (plugin.flags && plugin.flags.length > 0) {
     tsLines.push(`  /* ── CLI Flags ── */`);
-    for (const line of generateFlagRegistrations(plugin.flags)) {
+    for (const line of generateFlagRegistrations(plugin.flags, pluginRoot)) {
       tsLines.push(`  ${line}`);
     }
     tsLines.push(``);
@@ -874,11 +1053,28 @@ function compilePlugin(plugin: PluginManifest): AdapterOutput {
     }
   }
 
+  // ── NativeCopies for command handlers ──
+  // Any hook that uses a command handler may reference files via ${CLAUDE_PLUGIN_ROOT}/path.
+  // Extract those paths so the CLI copies them into dist/pimono/ alongside the extension.
+  const nativeCopies: { from: string; to: string }[] = [];
+  if (plugin.hooks) {
+    for (const hookDef of Object.values(plugin.hooks)) {
+      const h = (hookDef as { handler?: unknown }).handler as CommandHookHandler | undefined;
+      if (!h || h.type !== 'command') continue;
+      const pluginRootRefs = h.command.matchAll(/\$\{CLAUDE_PLUGIN_ROOT\}\/([^\s"'`]+)/g);
+      for (const match of pluginRootRefs) {
+        const relPath = match[1];
+        nativeCopies.push({ from: relPath, to: relPath });
+      }
+    }
+  }
+
   return {
     files,
     manifest: plugin,
     warnings,
     issues: [],
+    ...(nativeCopies.length > 0 ? { nativeCopies } : {}),
   };
 }
 
@@ -936,9 +1132,10 @@ export class PiMonoAdapter implements PlatformAdapter {
    * Compile a plugin manifest into Pi Mono extension files.
    *
    * @param plugin - The plugin manifest.
+   * @param options - Optional compile options including pluginRoot for safe path resolution.
    * @returns AdapterOutput containing generated files and metadata.
    */
-  compile(plugin: PluginManifest): AdapterOutput {
+  compile(plugin: PluginManifest, options?: CompileOptions): AdapterOutput {
     // Run validation first and surface errors.
     const issues = this.validate(plugin);
     const errors = issues.filter((i) => i.severity === "error");
@@ -950,7 +1147,7 @@ export class PiMonoAdapter implements PlatformAdapter {
       );
     }
 
-    return compilePlugin(plugin);
+    return compilePlugin(plugin, options);
   }
 }
 

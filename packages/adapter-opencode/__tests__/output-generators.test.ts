@@ -10,6 +10,8 @@ import type { PluginManifest, HookDefinition, FileOutput } from "@agentplugins/c
 import {
   generatePluginFile,
   generateManifest,
+  generateCommandFiles,
+  generateAgentFiles,
 } from "../src/output-generators";
 
 // ─── Test Fixtures ───────────────────────────────────────────────────────────
@@ -72,9 +74,9 @@ const multiHookCodeMap = new Map<string, string>([
 
 describe("generatePluginFile()", () => {
   describe("file output structure", () => {
-    it("returns FileOutput with path '{pluginName}.ts'", () => {
+    it("returns FileOutput with path 'plugins/{pluginName}.ts'", () => {
       const result = generatePluginFile(minimalManifest, singleHookCodeMap);
-      expect(result.path).toBe("test-plugin.ts");
+      expect(result.path).toBe("plugins/test-plugin.ts");
     });
 
     it("returns object with 'path' and 'content' properties", () => {
@@ -147,7 +149,7 @@ describe("generatePluginFile()", () => {
         description: "",
       };
       const result = generatePluginFile(manifest, new Map());
-      expect(result.path).toBe("minimal.ts");
+      expect(result.path).toBe("plugins/minimal.ts");
       expect(result.content).toContain("export default async function(ctx)");
     });
   });
@@ -342,3 +344,144 @@ describe("generateManifest()", () => {
     });
   });
 });
+
+// ─── generateCommandFiles() Tests ────────────────────────────────────────────
+
+describe("generateCommandFiles()", () => {
+  it("returns empty array when manifest has no commands", () => {
+    expect(generateCommandFiles(minimalManifest)).toEqual([]);
+  });
+
+  it("returns one file per command at command/<name>.md", () => {
+    const manifest: PluginManifest = {
+      name: "cmd-plugin",
+      version: "1.0.0",
+      description: "Plugin with commands",
+      commands: [
+        { name: "goal", description: "Set a goal", prompt: "Your goal: {{args}}" },
+        { name: "goal-stop", description: "Stop the loop", prompt: "Stop now." },
+      ],
+    };
+    const files = generateCommandFiles(manifest);
+    expect(files).toHaveLength(2);
+    expect(files[0].path).toBe("command/goal.md");
+    expect(files[1].path).toBe("command/goal-stop.md");
+  });
+
+  it("replaces {{args}} with $ARGUMENTS in prompt", () => {
+    const manifest: PluginManifest = {
+      name: "cmd-plugin",
+      version: "1.0.0",
+      description: "",
+      commands: [{ name: "test", prompt: "Do {{args}} now" }],
+    };
+    const [file] = generateCommandFiles(manifest);
+    expect(file.content).toContain("$ARGUMENTS");
+    expect(file.content).not.toContain("{{args}}");
+  });
+
+  it("includes description in YAML frontmatter", () => {
+    const manifest: PluginManifest = {
+      name: "cmd-plugin",
+      version: "1.0.0",
+      description: "",
+      commands: [{ name: "go", description: "Run the thing", prompt: "Go!" }],
+    };
+    const [file] = generateCommandFiles(manifest);
+    expect(file.content).toContain("description: Run the thing");
+  });
+});
+
+// ─── generateAgentFiles() Tests ──────────────────────────────────────────────
+
+describe("generateAgentFiles()", () => {
+  it("returns empty array when manifest has no agents", () => {
+    expect(generateAgentFiles(minimalManifest)).toEqual([]);
+  });
+
+  it("returns one file per agent at agent/<name>.md", () => {
+    const manifest: PluginManifest = {
+      name: "agent-plugin",
+      version: "1.0.0",
+      description: "",
+      agents: [
+        { name: "planner", description: "Plans tasks", prompt: "You plan things." },
+        { name: "executor", description: "Executes tasks", prompt: "You execute." },
+      ],
+    };
+    const files = generateAgentFiles(manifest);
+    expect(files).toHaveLength(2);
+    expect(files[0].path).toBe("agent/planner.md");
+    expect(files[1].path).toBe("agent/executor.md");
+  });
+
+  it("includes description in YAML frontmatter", () => {
+    const manifest: PluginManifest = {
+      name: "agent-plugin",
+      version: "1.0.0",
+      description: "",
+      agents: [{ name: "helper", description: "Helps you", prompt: "I help." }],
+    };
+    const [file] = generateAgentFiles(manifest);
+    expect(file.content).toContain("description: Helps you");
+  });
+
+  it("includes tools in frontmatter when specified", () => {
+    const manifest: PluginManifest = {
+      name: "agent-plugin",
+      version: "1.0.0",
+      description: "",
+      agents: [{ name: "coder", tools: ["bash", "read"], prompt: "I code." }],
+    };
+    const [file] = generateAgentFiles(manifest);
+    expect(file.content).toContain("tools: [bash, read]");
+  });
+});
+
+describe("adapterOverrides trust boundary", () => {
+  it("sanitizes adapterOverrides.opencode relative path against pluginRoot", () => {
+    const manifest: PluginManifest = {
+      name: "override-test",
+      version: "1.0.0",
+      description: "Tests override sanitization",
+      adapterOverrides: { opencode: "./custom-override.ts" },
+    } as any;
+
+    const result = generatePluginFile(manifest, new Map(), "/tmp/fake-plugin");
+
+    expect(result.content).not.toContain("./custom-override.ts");
+    expect(result.content).toContain("/tmp/fake-plugin/custom-override.ts");
+  });
+
+  it("blocks path traversal in adapterOverrides.opencode", () => {
+    const manifest: PluginManifest = {
+      name: "override-traversal-test",
+      version: "1.0.0",
+      description: "Tests override traversal blocking",
+      adapterOverrides: { opencode: "../evil.ts" },
+    } as any;
+
+    const result = generatePluginFile(manifest, new Map(), "/tmp/fake-plugin");
+
+    expect(result.content).not.toContain("../evil.ts");
+    expect(result.content).not.toMatch(/['"]\.\.\/evil\.ts['"]/);
+    expect(result.content).toContain("/tmp/fake-plugin/evil.ts");
+  });
+
+  it("emits a trust warning when an override is used", () => {
+    const manifest: PluginManifest = {
+      name: "override-warning-test",
+      version: "1.0.0",
+      description: "Tests override warning",
+      adapterOverrides: { opencode: "./override.ts" },
+    } as any;
+
+    const result = generatePluginFile(manifest, new Map(), "/tmp/fake-plugin");
+
+    expect(result.content).toContain("[agentplugins]");
+    expect(result.content).toContain(
+      "only install overrides from plugins you trust"
+    );
+  });
+});
+

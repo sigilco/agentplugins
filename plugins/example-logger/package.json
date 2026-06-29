@@ -1,6 +1,5 @@
 {
   "name": "agentplugins-example-logger",
-  "version": "0.1.0",
   "description": "Example AgentPlugins plugin — simple logger that works across all AI agent harnesses",
   "type": "module",
   "private": true,

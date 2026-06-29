@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { isPrivateAddress, isBlockedHost, getDefaultAllowList, safeFetch } from "../src/safe-fetch";
+import { describe, it, expect, vi } from "vitest";
+import { isPrivateAddress, isBlockedHost, getDefaultAllowList, safeFetch, validateUrl, SafeFetchError } from "../src/safe-fetch";
 
 describe("safe-fetch SSRF guards", () => {
   it("flags private IPv4 ranges", () => {
@@ -31,5 +31,44 @@ describe("safe-fetch SSRF guards", () => {
 
   it("safeFetch refuses non-http protocols", async () => {
     await expect(safeFetch({ url: "file:///etc/passwd" })).rejects.toThrow(/non-http/);
+  });
+
+  // B16: redirect re-validation
+  it("validateUrl rejects cloud metadata IP even without allow-list", async () => {
+    await expect(validateUrl("http://169.254.169.254/", [])).rejects.toThrow(SafeFetchError);
+  });
+
+  it("safeFetch rejects redirect to private IP (maxRedirects loop)", async () => {
+    // Mock fetch to return a 302 pointing at cloud metadata, then another 302.
+    const mockFetch = vi.fn();
+    // Hop 1: public URL → 302 to metadata
+    mockFetch.mockResolvedValueOnce(
+      new Response(null, { status: 302, headers: { location: "http://169.254.169.254/latest/" } })
+    );
+    vi.stubGlobal("fetch", mockFetch);
+    try {
+      await expect(
+        safeFetch({ url: "http://example.com/legit", allowHosts: ["example.com"] })
+      ).rejects.toThrow(SafeFetchError);
+    } finally {
+      vi.restoreAllMocks();
+    }
+  });
+
+  it("safeFetch enforces maxRedirects cap", async () => {
+    const mockFetch = vi.fn();
+    for (let i = 0; i < 6; i++) {
+      mockFetch.mockResolvedValueOnce(
+        new Response(null, { status: 302, headers: { location: "http://example.com/loop" } })
+      );
+    }
+    vi.stubGlobal("fetch", mockFetch);
+    try {
+      await expect(
+        safeFetch({ url: "http://example.com/start", allowHosts: ["example.com"], maxRedirects: 3 })
+      ).rejects.toThrow(/Exceeded max redirects/);
+    } finally {
+      vi.restoreAllMocks();
+    }
   });
 });

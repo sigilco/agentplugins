@@ -1,6 +1,6 @@
 {
   "name": "@agentplugins/adapter-codex",
-  "version": "0.3.0",
+  "version": "0.5.0",
   "description": "AgentPlugins platform adapter for OpenAI Codex CLI",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -28,7 +28,7 @@
     "vitest": "^1.0.0"
   },
   "peerDependencies": {
-    "@agentplugins/core": "^0.3.0"
+    "@agentplugins/core": "^0.5.0"
   },
   "files": [
     "dist",
@@ -43,6 +43,7 @@
     "url": "https://github.com/sigilco/agentplugins.git",
     "directory": "packages/adapter-codex"
   },
+  "homepage": "https://agentplugins.pages.dev/",
   "keywords": [
     "agentplugins",
     "codex",

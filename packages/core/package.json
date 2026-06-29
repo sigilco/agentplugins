@@ -1,6 +1,6 @@
 {
   "name": "@agentplugins/core",
-  "version": "0.3.0",
+  "version": "0.5.0",
   "description": "Core types, validation, and plugin registry for AgentPlugins",
   "type": "module",
   "main": "./dist/index.js",
@@ -36,7 +36,17 @@
     "core"
   ],
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sigilco/agentplugins.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://agentplugins.pages.dev/",
   "dependencies": {
+    "@agentplugins/contract": "workspace:*",
+    "@agentplugins/compile": "workspace:*",
+    "@agentplugins/pipeline": "workspace:*",
+    "@agentplugins/store": "workspace:*",
     "zod": "^3.25.76"
   },
   "devDependencies": {

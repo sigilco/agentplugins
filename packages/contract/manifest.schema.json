@@ -1,0 +1,2026 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://agentplugins.pages.dev/schema/v1.json",
+  "title": "AgentPlugins Manifest",
+  "description": "Universal plugin manifest for AI agent platforms. https://agentplugins.pages.dev/",
+  "$ref": "#/$defs/PluginManifest",
+  "$defs": {
+    "PluginManifest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "displayName": {
+          "type": "string"
+        },
+        "author": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string"
+                },
+                "url": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "homepage": {
+          "type": "string"
+        },
+        "repository": {
+          "type": "string"
+        },
+        "license": {
+          "type": "string"
+        },
+        "keywords": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "defaultEnabled": {
+          "type": "boolean"
+        },
+        "skills": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "content": {
+                "type": "string"
+              },
+              "filePath": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "description"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "hooks": {
+          "type": "object",
+          "properties": {
+            "sessionStart": {
+              "type": "object",
+              "properties": {
+                "matcher": {
+                  "type": "string"
+                },
+                "handler": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "command"
+                        },
+                        "command": {
+                          "type": "string"
+                        },
+                        "statusMessage": {
+                          "type": "string"
+                        },
+                        "shell": {
+                          "type": "string",
+                          "enum": [
+                            "bash",
+                            "powershell",
+                            "cmd"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "command"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "http"
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "headers": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "url"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "reference"
+                        },
+                        "reference": {
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "reference"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "handler"
+              ],
+              "additionalProperties": false
+            },
+            "sessionEnd": {
+              "type": "object",
+              "properties": {
+                "matcher": {
+                  "type": "string"
+                },
+                "handler": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "command"
+                        },
+                        "command": {
+                          "type": "string"
+                        },
+                        "statusMessage": {
+                          "type": "string"
+                        },
+                        "shell": {
+                          "type": "string",
+                          "enum": [
+                            "bash",
+                            "powershell",
+                            "cmd"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "command"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "http"
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "headers": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "url"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "reference"
+                        },
+                        "reference": {
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "reference"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "handler"
+              ],
+              "additionalProperties": false
+            },
+            "userPromptSubmit": {
+              "type": "object",
+              "properties": {
+                "matcher": {
+                  "type": "string"
+                },
+                "handler": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "command"
+                        },
+                        "command": {
+                          "type": "string"
+                        },
+                        "statusMessage": {
+                          "type": "string"
+                        },
+                        "shell": {
+                          "type": "string",
+                          "enum": [
+                            "bash",
+                            "powershell",
+                            "cmd"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "command"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "http"
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "headers": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "url"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "reference"
+                        },
+                        "reference": {
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "reference"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "handler"
+              ],
+              "additionalProperties": false
+            },
+            "userPromptExpansion": {
+              "type": "object",
+              "properties": {
+                "matcher": {
+                  "type": "string"
+                },
+                "handler": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "command"
+                        },
+                        "command": {
+                          "type": "string"
+                        },
+                        "statusMessage": {
+                          "type": "string"
+                        },
+                        "shell": {
+                          "type": "string",
+                          "enum": [
+                            "bash",
+                            "powershell",
+                            "cmd"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "command"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "http"
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "headers": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "url"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "reference"
+                        },
+                        "reference": {
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "reference"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "handler"
+              ],
+              "additionalProperties": false
+            },
+            "preToolUse": {
+              "type": "object",
+              "properties": {
+                "matcher": {
+                  "type": "string"
+                },
+                "handler": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "command"
+                        },
+                        "command": {
+                          "type": "string"
+                        },
+                        "statusMessage": {
+                          "type": "string"
+                        },
+                        "shell": {
+                          "type": "string",
+                          "enum": [
+                            "bash",
+                            "powershell",
+                            "cmd"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "command"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "http"
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "headers": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "url"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "reference"
+                        },
+                        "reference": {
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "reference"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "handler"
+              ],
+              "additionalProperties": false
+            },
+            "postToolUse": {
+              "type": "object",
+              "properties": {
+                "matcher": {
+                  "type": "string"
+                },
+                "handler": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "command"
+                        },
+                        "command": {
+                          "type": "string"
+                        },
+                        "statusMessage": {
+                          "type": "string"
+                        },
+                        "shell": {
+                          "type": "string",
+                          "enum": [
+                            "bash",
+                            "powershell",
+                            "cmd"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "command"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "http"
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "headers": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "url"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "reference"
+                        },
+                        "reference": {
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "reference"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "handler"
+              ],
+              "additionalProperties": false
+            },
+            "postToolUseFailure": {
+              "type": "object",
+              "properties": {
+                "matcher": {
+                  "type": "string"
+                },
+                "handler": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "command"
+                        },
+                        "command": {
+                          "type": "string"
+                        },
+                        "statusMessage": {
+                          "type": "string"
+                        },
+                        "shell": {
+                          "type": "string",
+                          "enum": [
+                            "bash",
+                            "powershell",
+                            "cmd"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "command"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "http"
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "headers": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "url"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "reference"
+                        },
+                        "reference": {
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "reference"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "handler"
+              ],
+              "additionalProperties": false
+            },
+            "permissionRequest": {
+              "type": "object",
+              "properties": {
+                "matcher": {
+                  "type": "string"
+                },
+                "handler": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "command"
+                        },
+                        "command": {
+                          "type": "string"
+                        },
+                        "statusMessage": {
+                          "type": "string"
+                        },
+                        "shell": {
+                          "type": "string",
+                          "enum": [
+                            "bash",
+                            "powershell",
+                            "cmd"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "command"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "http"
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "headers": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "url"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "reference"
+                        },
+                        "reference": {
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "reference"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "handler"
+              ],
+              "additionalProperties": false
+            },
+            "permissionDenied": {
+              "type": "object",
+              "properties": {
+                "matcher": {
+                  "type": "string"
+                },
+                "handler": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "command"
+                        },
+                        "command": {
+                          "type": "string"
+                        },
+                        "statusMessage": {
+                          "type": "string"
+                        },
+                        "shell": {
+                          "type": "string",
+                          "enum": [
+                            "bash",
+                            "powershell",
+                            "cmd"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "command"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "http"
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "headers": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "url"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "reference"
+                        },
+                        "reference": {
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "reference"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "handler"
+              ],
+              "additionalProperties": false
+            },
+            "subagentStart": {
+              "type": "object",
+              "properties": {
+                "matcher": {
+                  "type": "string"
+                },
+                "handler": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "command"
+                        },
+                        "command": {
+                          "type": "string"
+                        },
+                        "statusMessage": {
+                          "type": "string"
+                        },
+                        "shell": {
+                          "type": "string",
+                          "enum": [
+                            "bash",
+                            "powershell",
+                            "cmd"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "command"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "http"
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "headers": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "url"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "reference"
+                        },
+                        "reference": {
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "reference"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "handler"
+              ],
+              "additionalProperties": false
+            },
+            "subagentStop": {
+              "type": "object",
+              "properties": {
+                "matcher": {
+                  "type": "string"
+                },
+                "handler": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "command"
+                        },
+                        "command": {
+                          "type": "string"
+                        },
+                        "statusMessage": {
+                          "type": "string"
+                        },
+                        "shell": {
+                          "type": "string",
+                          "enum": [
+                            "bash",
+                            "powershell",
+                            "cmd"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "command"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "http"
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "headers": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "url"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "reference"
+                        },
+                        "reference": {
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "reference"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "handler"
+              ],
+              "additionalProperties": false
+            },
+            "preCompact": {
+              "type": "object",
+              "properties": {
+                "matcher": {
+                  "type": "string"
+                },
+                "handler": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "command"
+                        },
+                        "command": {
+                          "type": "string"
+                        },
+                        "statusMessage": {
+                          "type": "string"
+                        },
+                        "shell": {
+                          "type": "string",
+                          "enum": [
+                            "bash",
+                            "powershell",
+                            "cmd"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "command"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "http"
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "headers": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "url"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "reference"
+                        },
+                        "reference": {
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "reference"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "handler"
+              ],
+              "additionalProperties": false
+            },
+            "postCompact": {
+              "type": "object",
+              "properties": {
+                "matcher": {
+                  "type": "string"
+                },
+                "handler": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "command"
+                        },
+                        "command": {
+                          "type": "string"
+                        },
+                        "statusMessage": {
+                          "type": "string"
+                        },
+                        "shell": {
+                          "type": "string",
+                          "enum": [
+                            "bash",
+                            "powershell",
+                            "cmd"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "command"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "http"
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "headers": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "url"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "reference"
+                        },
+                        "reference": {
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "reference"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "handler"
+              ],
+              "additionalProperties": false
+            },
+            "stop": {
+              "type": "object",
+              "properties": {
+                "matcher": {
+                  "type": "string"
+                },
+                "handler": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "command"
+                        },
+                        "command": {
+                          "type": "string"
+                        },
+                        "statusMessage": {
+                          "type": "string"
+                        },
+                        "shell": {
+                          "type": "string",
+                          "enum": [
+                            "bash",
+                            "powershell",
+                            "cmd"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "command"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "http"
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "headers": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "url"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "reference"
+                        },
+                        "reference": {
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "reference"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "handler"
+              ],
+              "additionalProperties": false
+            },
+            "stopFailure": {
+              "type": "object",
+              "properties": {
+                "matcher": {
+                  "type": "string"
+                },
+                "handler": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "command"
+                        },
+                        "command": {
+                          "type": "string"
+                        },
+                        "statusMessage": {
+                          "type": "string"
+                        },
+                        "shell": {
+                          "type": "string",
+                          "enum": [
+                            "bash",
+                            "powershell",
+                            "cmd"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "command"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "http"
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "headers": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "url"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "reference"
+                        },
+                        "reference": {
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "reference"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "handler"
+              ],
+              "additionalProperties": false
+            },
+            "notification": {
+              "type": "object",
+              "properties": {
+                "matcher": {
+                  "type": "string"
+                },
+                "handler": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "command"
+                        },
+                        "command": {
+                          "type": "string"
+                        },
+                        "statusMessage": {
+                          "type": "string"
+                        },
+                        "shell": {
+                          "type": "string",
+                          "enum": [
+                            "bash",
+                            "powershell",
+                            "cmd"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "command"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "http"
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "headers": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "url"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "reference"
+                        },
+                        "reference": {
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "reference"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "handler"
+              ],
+              "additionalProperties": false
+            },
+            "fileChanged": {
+              "type": "object",
+              "properties": {
+                "matcher": {
+                  "type": "string"
+                },
+                "handler": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "command"
+                        },
+                        "command": {
+                          "type": "string"
+                        },
+                        "statusMessage": {
+                          "type": "string"
+                        },
+                        "shell": {
+                          "type": "string",
+                          "enum": [
+                            "bash",
+                            "powershell",
+                            "cmd"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "command"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "http"
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "headers": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "url"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "reference"
+                        },
+                        "reference": {
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "reference"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "handler"
+              ],
+              "additionalProperties": false
+            },
+            "cwdChanged": {
+              "type": "object",
+              "properties": {
+                "matcher": {
+                  "type": "string"
+                },
+                "handler": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "command"
+                        },
+                        "command": {
+                          "type": "string"
+                        },
+                        "statusMessage": {
+                          "type": "string"
+                        },
+                        "shell": {
+                          "type": "string",
+                          "enum": [
+                            "bash",
+                            "powershell",
+                            "cmd"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "command"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "http"
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "headers": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "url"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "reference"
+                        },
+                        "reference": {
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "reference"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "handler"
+              ],
+              "additionalProperties": false
+            },
+            "setup": {
+              "type": "object",
+              "properties": {
+                "matcher": {
+                  "type": "string"
+                },
+                "handler": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "command"
+                        },
+                        "command": {
+                          "type": "string"
+                        },
+                        "statusMessage": {
+                          "type": "string"
+                        },
+                        "shell": {
+                          "type": "string",
+                          "enum": [
+                            "bash",
+                            "powershell",
+                            "cmd"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "command"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "http"
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "headers": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "url"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "const": "reference"
+                        },
+                        "reference": {
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "reference"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "handler"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "commands": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "prompt": {
+                "type": "string"
+              },
+              "argumentHint": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "agents": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "prompt": {
+                "type": "string"
+              },
+              "tools": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "filePath": {
+                "type": "string"
+              },
+              "model": {
+                "type": "string"
+              },
+              "fallbackModels": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "mcpServers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string"
+              },
+              "args": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "env": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "transport": {
+                "type": "string",
+                "enum": [
+                  "stdio",
+                  "http"
+                ]
+              }
+            },
+            "required": [
+              "command"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "userConfig": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "string",
+                  "number",
+                  "boolean",
+                  "directory",
+                  "file"
+                ]
+              },
+              "title": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "sensitive": {
+                "type": "boolean"
+              },
+              "required": {
+                "type": "boolean"
+              },
+              "default": {},
+              "multiple": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "type",
+              "title",
+              "description"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "targets": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "nativeEntry": {
+          "type": "object",
+          "properties": {
+            "pimono": {
+              "type": "string"
+            },
+            "opencode": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "adapterOverrides": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "propertyNames": {
+            "minLength": 1
+          }
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "npm"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "version": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "type",
+                  "name"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "binary"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "required": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "type",
+                  "name"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "sidecar": {
+          "type": "object",
+          "properties": {
+            "command": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "env": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "port": {
+              "type": "number"
+            },
+            "health": {
+              "type": "string"
+            },
+            "restart": {
+              "type": "string",
+              "enum": [
+                "always",
+                "on-failure",
+                "no"
+              ]
+            }
+          },
+          "required": [
+            "command"
+          ],
+          "additionalProperties": false
+        },
+        "integrity": {
+          "type": "string"
+        },
+        "setup": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "name",
+        "version",
+        "description"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

@@ -12,7 +12,7 @@ importers:
         specifier: ^2.31.0
         version: 2.31.0(@types/node@20.19.41)
 
-  docs-site:
+  docs:
     devDependencies:
       '@braintree/sanitize-url':
         specifier: ^7.1.2
@@ -60,6 +60,9 @@ importers:
       typescript:
         specifier: ^5.5.0
         version: 5.9.3
+      vitest:
+        specifier: ^1.0.0
+        version: 1.6.1(@types/node@20.19.41)
 
   packages/adapter-codex:
     dependencies:
@@ -121,9 +124,15 @@ importers:
       typescript:
         specifier: ^5.3.0
         version: 5.9.3
+      vitest:
+        specifier: ^1.0.0
+        version: 1.6.1(@types/node@20.19.41)
 
   packages/adapter-opencode:
     dependencies:
+      '@agentplugins/compile':
+        specifier: workspace:*
+        version: link:../compile
       '@agentplugins/core':
         specifier: workspace:*
         version: link:../core
@@ -143,6 +152,9 @@ importers:
 
   packages/adapter-pimono:
     dependencies:
+      '@agentplugins/compile':
+        specifier: workspace:*
+        version: link:../compile
       '@agentplugins/core':
         specifier: workspace:*
         version: link:../core
@@ -153,6 +165,9 @@ importers:
       typescript:
         specifier: ^5.4.0
         version: 5.9.3
+      vitest:
+        specifier: ^1.0.0
+        version: 1.6.1(@types/node@20.19.41)
 
   packages/cli:
     dependencies:
@@ -177,12 +192,21 @@ importers:
       '@agentplugins/adapter-pimono':
         specifier: workspace:*
         version: link:../adapter-pimono
+      '@agentplugins/compile':
+        specifier: workspace:*
+        version: link:../compile
+      '@agentplugins/contract':
+        specifier: workspace:*
+        version: link:../contract
       '@agentplugins/core':
         specifier: workspace:*
         version: link:../core
       '@agentplugins/ingest':
         specifier: workspace:*
         version: link:../ingest
+      '@agentplugins/pipeline':
+        specifier: workspace:*
+        version: link:../pipeline
       '@agentplugins/schema':
         specifier: workspace:*
         version: link:../schema
@@ -208,9 +232,62 @@ importers:
       typescript:
         specifier: ^5.5.0
         version: 5.9.3
+      vitest:
+        specifier: ^3.1.4
+        version: 3.2.6(@types/debug@4.1.13)(@types/node@20.19.41)
+
+  packages/compile:
+    dependencies:
+      '@agentplugins/contract':
+        specifier: workspace:*
+        version: link:../contract
+      '@agentplugins/pipeline':
+        specifier: workspace:*
+        version: link:../pipeline
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.41
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.1.4
+        version: 3.2.6(@types/debug@4.1.13)(@types/node@20.19.41)
+
+  packages/contract:
+    dependencies:
+      zod:
+        specifier: ^3.25.76
+        version: 3.25.76
+      zod-to-json-schema:
+        specifier: ^3.24.5
+        version: 3.25.2(zod@3.25.76)
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.41
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.1.4
+        version: 3.2.6(@types/debug@4.1.13)(@types/node@20.19.41)
 
   packages/core:
     dependencies:
+      '@agentplugins/compile':
+        specifier: workspace:*
+        version: link:../compile
+      '@agentplugins/contract':
+        specifier: workspace:*
+        version: link:../contract
+      '@agentplugins/pipeline':
+        specifier: workspace:*
+        version: link:../pipeline
+      '@agentplugins/store':
+        specifier: workspace:*
+        version: link:../store
       zod:
         specifier: ^3.25.76
         version: 3.25.76
@@ -275,6 +352,25 @@ importers:
         specifier: ^3.1.4
         version: 3.2.6(@types/debug@4.1.13)(@types/node@20.19.41)
 
+  packages/pipeline:
+    dependencies:
+      '@agentplugins/contract':
+        specifier: workspace:*
+        version: link:../contract
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.41
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(jiti@1.21.7)(postcss@8.5.15)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.5.0
+        version: 5.9.3
+      vitest:
+        specifier: ^1.0.0
+        version: 1.6.1(@types/node@20.19.41)
+
   packages/schema:
     dependencies:
       ajv:
@@ -306,6 +402,40 @@ importers:
       vitest:
         specifier: ^3.1.4
         version: 3.2.6(@types/debug@4.1.13)(@types/node@20.19.41)
+
+  packages/store:
+    dependencies:
+      '@agentplugins/compile':
+        specifier: workspace:*
+        version: link:../compile
+      '@agentplugins/pipeline':
+        specifier: workspace:*
+        version: link:../pipeline
+      '@agentplugins/security':
+        specifier: workspace:*
+        version: link:../security
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.41
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.1.4
+        version: 3.2.6(@types/debug@4.1.13)(@types/node@20.19.41)
+
+  plugins/example-custom-adapter:
+    devDependencies:
+      '@agentplugins/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
+      '@agentplugins/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      typescript:
+        specifier: ^5.5.0
+        version: 5.9.3
 
   plugins/example-logger:
     devDependencies:

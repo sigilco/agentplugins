@@ -25,6 +25,12 @@ export interface SafeFetchOptions {
   timeoutMs?: number;
   /** Other fetch options (method, headers, body). */
   fetchOptions?: RequestInit;
+  /**
+   * Maximum number of 3xx redirects to follow. Each hop is re-validated against
+   * the allow-list and private-IP check.
+   * @default 5
+   */
+  maxRedirects?: number;
 }
 
 export interface SafeFetchResult {
@@ -94,15 +100,17 @@ export function isBlockedHost(host: string, allowList: string[] = []): boolean {
   return false;
 }
 
-export async function safeFetch(opts: SafeFetchOptions): Promise<SafeFetchResult> {
-  const start = Date.now();
-  const allow = [...DEFAULT_ALLOW_HOSTS, ...(opts.allowHosts ?? [])];
-
+/**
+ * Validate a single URL against the allow-list and DNS-rebind check.
+ * Returns the parsed URL or throws `SafeFetchError`.
+ * Exported for direct testing of per-hop validation.
+ */
+export async function validateUrl(rawUrl: string, allow: string[]): Promise<URL> {
   let parsed: URL;
   try {
-    parsed = new URL(opts.url);
+    parsed = new URL(rawUrl);
   } catch {
-    throw new SafeFetchError(`Invalid URL: ${opts.url}`);
+    throw new SafeFetchError(`Invalid URL: ${rawUrl}`);
   }
 
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
@@ -114,9 +122,7 @@ export async function safeFetch(opts: SafeFetchOptions): Promise<SafeFetchResult
   }
 
   // DNS-rebind mitigation: resolve the hostname now and reject if it lands on
-  // a private IP. The fetch implementation will re-resolve internally; in
-  // production we should also pass the resolved IP via a custom dispatcher
-  // (e.g. undici), but for v0.3.0 we at least surface the obvious cases.
+  // a private IP.
   if (isIP(parsed.hostname) === 0) {
     try {
       const records = await lookup(parsed.hostname, { all: true });
@@ -131,14 +137,43 @@ export async function safeFetch(opts: SafeFetchOptions): Promise<SafeFetchResult
     }
   }
 
+  return parsed;
+}
+
+// ponytail: fixed cap of 5; raise via option if a real caller needs more
+const DEFAULT_MAX_REDIRECTS = 5;
+
+export async function safeFetch(opts: SafeFetchOptions): Promise<SafeFetchResult> {
+  const start = Date.now();
+  const allow = [...DEFAULT_ALLOW_HOSTS, ...(opts.allowHosts ?? [])];
+  const maxRedirects = opts.maxRedirects ?? DEFAULT_MAX_REDIRECTS;
+
+  const currentUrl = await validateUrl(opts.url, allow);
+
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), opts.timeoutMs ?? 10_000);
   try {
-    const res = await fetch(parsed.toString(), {
-      ...opts.fetchOptions,
-      signal: controller.signal,
-      redirect: 'follow',
-    });
+    let res: Response;
+    let hops = 0;
+    for (;;) {
+      res = await fetch(currentUrl.toString(), {
+        ...opts.fetchOptions,
+        signal: controller.signal,
+        redirect: 'manual',
+      });
+      if (res.status >= 300 && res.status < 400) {
+        const location = res.headers.get('location');
+        if (!location) break; // malformed redirect, hand back to caller
+        if (++hops > maxRedirects) {
+          throw new SafeFetchError(`Exceeded max redirects (${maxRedirects})`);
+        }
+        const nextRaw = new URL(location, currentUrl).toString();
+        // ponytail: reassign via let; object mutation would be worse
+        currentUrl.href = (await validateUrl(nextRaw, allow)).toString();
+        continue;
+      }
+      break;
+    }
     const bodyText = await res.text();
     const headers: Record<string, string> = {};
     res.headers.forEach((v, k) => { headers[k] = v; });

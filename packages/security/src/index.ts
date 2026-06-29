@@ -28,10 +28,12 @@ export {
 
 export {
   evaluateScriptPolicy,
+  evaluateManifestScripts,
   DEFAULT_POLICY,
   type ScriptPolicy,
   type ScriptDecision,
   type ScriptContext,
+  type ManifestScriptIssue,
 } from './scripts.js';
 
 export {

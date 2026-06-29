@@ -1,6 +1,6 @@
 {
   "name": "@agentplugins/migrate",
-  "version": "0.3.0",
+  "version": "0.5.0",
   "description": "MCP server that wraps @agentplugins/ingest to let agents migrate community plugins conversationally.",
   "type": "module",
   "main": "./dist/index.js",
@@ -36,6 +36,12 @@
     "model-context-protocol"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sigilco/agentplugins.git",
+    "directory": "packages/migrate"
+  },
+  "homepage": "https://agentplugins.pages.dev/",
   "dependencies": {
     "@agentplugins/core": "workspace:*",
     "@agentplugins/ingest": "workspace:*",

@@ -6,3 +6,25 @@ find the full documentation for it [in our repository](https://github.com/change
 
 We have a quick list of common questions to get you started engaging with this project in
 [our documentation](https://github.com/changesets/changesets/blob/main/docs/common-questions.md).
+
+## ⚠ peerDependency range quirk — read before `changeset version`
+
+`updateInternalDependencies: "patch"` caps the *bump type* for internal dep
+updates, but changeset **also rewrites dep ranges** during `version`. When a
+`peerDependencies` range is *tightened* (e.g. `@agentplugins/core` going
+`^0.3.0` → `^0.4.0` — and on 0.x a caret pins the minor, so the old range
+allowed 0.3.x and the new one does not), changeset treats that as a
+**breaking change** and escalates the bump from minor → **major**. This is
+why `adapter-codex`/`adapter-kimi` jumped 0.4.0 → 1.0.0 on the first v0.4.0
+versioning attempt.
+
+**Rule:** before running `changeset version`, make sure every package's
+`peerDependencies` range already matches the version you are releasing. A
+stale peerDep range (`^0.3.0` while the dep ships `0.4.0`) is what triggers
+the spurious major bump. Keep peerDeps in lockstep with versions — the
+adapters that use `dependencies: { "@agentplugins/core": "workspace:*" }` are
+unaffected; only the two that declare a literal `peerDependencies` range
+(codex, kimi) are at risk.
+
+If you genuinely intend to tighten a peer range, declare it as a `major`
+changeset on purpose.

@@ -1,6 +1,6 @@
 {
   "name": "@agentplugins/adapter-pimono",
-  "version": "0.3.0",
+  "version": "0.5.0",
   "description": "Pi Mono platform adapter for AgentPlugins — generates TypeScript-native extensions for the Pi agent runtime",
   "type": "module",
   "main": "./dist/index.js",
@@ -15,14 +15,18 @@
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "test": "vitest run --passWithNoTests",
+    "test:run": "vitest run"
   },
   "dependencies": {
-    "@agentplugins/core": "workspace:*"
+    "@agentplugins/core": "workspace:*",
+    "@agentplugins/compile": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.0.0",
-    "typescript": "^5.4.0"
+    "typescript": "^5.4.0",
+    "vitest": "^1.0.0"
   },
   "files": [
     "dist",
@@ -40,5 +44,11 @@
     "extension",
     "adapter"
   ],
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sigilco/agentplugins.git",
+    "directory": "packages/adapter-pimono"
+  },
+  "homepage": "https://agentplugins.pages.dev/"
 }

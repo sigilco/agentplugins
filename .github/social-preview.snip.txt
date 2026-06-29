@@ -1,0 +1,16 @@
+$ agentplugins add sigilco/agentplugins-ponytail
+
+  > AgentPlugins - write once, ship to every AI agent
+
+  + Resolved sigilco/agentplugins-ponytail@0.4.0
+  + ponytail: linked to ~/.agents/plugins/ponytail/
+
+  Detected 5 harnesses:
+  + claude-code   ~/.claude/skills/ponytail
+  + opencode      ~/.config/opencode/skills/ponytail
+  + codex         ~/.codex/skills/ponytail
+  + pimono        ~/.pi/skills/ponytail
+  + copilot       ~/.copilot/skills/ponytail
+
+$ agentplugins list
+  agentplugins-ponytail  v0.4.0  5/5 harnesses

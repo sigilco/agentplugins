@@ -134,11 +134,13 @@ function formatOutput(result, platform, hookName) {
           },
           ...(result.systemMessage ? { systemMessage: result.systemMessage } : {}),
           ...(result.continue === false ? { continue: false, stopReason: result.reason } : {}),
+          ...(result.continueWith ? { continueWith: result.continueWith } : {}),
         };
       }
       return {
         ...(result.systemMessage ? { systemMessage: result.systemMessage } : {}),
         ...(result.continue === false ? { continue: false, stopReason: result.reason } : {}),
+        ...(result.continueWith ? { continueWith: result.continueWith } : {}),
       };
 
     case 'gemini':
@@ -146,6 +148,7 @@ function formatOutput(result, platform, hookName) {
       return {
         ...(result.systemMessage ? { systemMessage: result.systemMessage } : {}),
         ...(result.additionalContext ? { additionalContext: result.additionalContext } : {}),
+        ...(result.continueWith ? { continueWith: result.continueWith } : {}),
       };
 
     case 'copilot':
@@ -154,6 +157,7 @@ function formatOutput(result, platform, hookName) {
         ...(result.systemMessage ? { systemMessage: result.systemMessage } : {}),
         ...(result.additionalContext ? { additionalContext: result.additionalContext } : {}),
         ...(result.continue === false ? { continue: false } : {}),
+        ...(result.continueWith ? { continueWith: result.continueWith } : {}),
       };
 
     case 'claude':
@@ -164,6 +168,7 @@ function formatOutput(result, platform, hookName) {
         ...(result.systemMessage ? { systemMessage: result.systemMessage } : {}),
         ...(result.additionalContext ? { additionalContext: result.additionalContext } : {}),
         ...(result.continue === false ? { continue: false } : {}),
+        ...(result.continueWith ? { continueWith: result.continueWith } : {}),
       };
   }
 }

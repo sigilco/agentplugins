@@ -98,3 +98,57 @@ export function evaluateScriptPolicy(ctx: ScriptContext, policy: ScriptPolicy = 
 
   return { decision: 'require-review', reasons };
 }
+
+// ─── Manifest-wide script evaluation ──────────────────────────────────────────
+
+export interface ManifestScriptIssue {
+  dependency: string;
+  phase: ScriptContext['phase'];
+  command: string;
+  decision: ScriptDecision;
+  reasons: string[];
+}
+
+/**
+ * Evaluate all lifecycle scripts declared in a manifest.
+ * Checks both top-level `scripts` and `dependencies[*].lifecycle`.
+ * Returns `{ ok: false }` if any script is not explicitly allowed.
+ */
+export function evaluateManifestScripts(
+  manifest: Record<string, unknown>,
+  pluginName?: string,
+  policy: ScriptPolicy = DEFAULT_POLICY,
+): { ok: boolean; issues: ManifestScriptIssue[] } {
+  const issues: ManifestScriptIssue[] = [];
+
+  // 1. Top-level manifest.scripts: { [phase]: command }
+  const scripts = manifest.scripts;
+  if (scripts && typeof scripts === 'object') {
+    for (const [phase, command] of Object.entries(scripts)) {
+      if (typeof command !== 'string' || command.length === 0) continue;
+      const ctx: ScriptContext = { dependency: pluginName ?? 'plugin', phase: phase as ScriptContext['phase'], command, pluginName };
+      const { decision, reasons } = evaluateScriptPolicy(ctx, policy);
+      if (decision !== 'allow') issues.push({ ...ctx, decision, reasons });
+    }
+  }
+
+  // 2. manifest.dependencies[*].lifecycle: { [phase]: command }
+  const deps = manifest.dependencies;
+  if (Array.isArray(deps)) {
+    for (const dep of deps) {
+      if (!dep || typeof dep !== 'object') continue;
+      const depName = (dep as any).name ?? 'unknown-dependency';
+      const lifecycle = (dep as any).lifecycle;
+      if (lifecycle && typeof lifecycle === 'object') {
+        for (const [phase, command] of Object.entries(lifecycle)) {
+          if (typeof command !== 'string' || command.length === 0) continue;
+          const ctx: ScriptContext = { dependency: depName, phase: phase as ScriptContext['phase'], command, pluginName };
+          const { decision, reasons } = evaluateScriptPolicy(ctx, policy);
+          if (decision !== 'allow') issues.push({ ...ctx, decision, reasons });
+        }
+      }
+    }
+  }
+
+  return { ok: issues.length === 0, issues };
+}

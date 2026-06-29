@@ -1,6 +1,6 @@
 {
   "name": "@agentplugins/adapter-claude",
-  "version": "0.3.0",
+  "version": "0.5.0",
   "description": "AgentPlugins platform adapter for Claude Code",
   "type": "module",
   "main": "./dist/index.js",
@@ -15,7 +15,8 @@
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
     "@agentplugins/core": "workspace:*"
@@ -23,7 +24,8 @@
   "devDependencies": {
     "@types/node": "^20.0.0",
     "tsup": "^8.0.0",
-    "typescript": "^5.5.0"
+    "typescript": "^5.5.0",
+    "vitest": "^1.0.0"
   },
   "files": [
     "dist",
@@ -32,5 +34,11 @@
   "publishConfig": {
     "access": "public"
   },
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sigilco/agentplugins.git",
+    "directory": "packages/adapter-claude"
+  },
+  "homepage": "https://agentplugins.pages.dev/"
 }

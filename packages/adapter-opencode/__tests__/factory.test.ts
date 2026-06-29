@@ -40,7 +40,7 @@ describe("createOpenCodeAdapter() factory", () => {
 
     // supportedHandlers
     expect(adapter).toHaveProperty("supportedHandlers");
-    expect(adapter.supportedHandlers).toEqual(["inline"]);
+    expect(adapter.supportedHandlers).toEqual(["inline", "command"]);
 
     // manifestPath — should be 'opencode.json', NOT '.opencode/plugins/'
     expect(adapter).toHaveProperty("manifestPath");
