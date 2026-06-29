@@ -46,15 +46,21 @@ agentplugins add <source>
 |---|---|
 | `owner/repo` | `agentplugins add user/my-plugin` |
 | Full GitHub URL | `agentplugins add https://github.com/user/my-plugin` |
+| GitHub tree URL (monorepo subdir) | `agentplugins add https://github.com/org/repo/tree/main/plugins/my-plugin` |
 | `owner/repo@version` | `agentplugins add user/my-plugin@1.2.0` |
 | Local path | `agentplugins add ./my-plugin` |
 | `gist:<id>` | `agentplugins add gist:abcdef123456` |
+
+When a GitHub tree URL points to a subdirectory, only that subdirectory is used as the plugin root — the rest of the repository is cloned but ignored. This lets plugin collections live in a monorepo and be installed individually.
 
 ### Examples
 
 ```bash
 # Latest release from GitHub
 agentplugins add user/my-plugin
+
+# Plugin inside a monorepo
+agentplugins add https://github.com/sigilco/agentplugins-roster/tree/main/plugins/roster
 
 # Specific version
 agentplugins add user/my-plugin@1.2.0

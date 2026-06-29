@@ -199,7 +199,7 @@ Runs per-target after the adapter has produced its files. `ctx.files` is the mut
 
 ### `onInstall` — gate or audit install
 
-Runs during `agentplugins add` / `agentplugins install`. The built-in `securityPlugin` is registered here by default (hash integrity, script policy). You may add your own checks after it:
+Runs during `agentplugins add`. The built-in security checks run here — pinned `integrity` hash verification, then script policy evaluation. You may add your own checks after them:
 
 ```typescript
 {
@@ -245,16 +245,16 @@ Each field is optional — a plugin may contribute any combination.
 
 ## Middleware execution order
 
-1. All `preValidate` chains run (user plugins after builtins)
-2. `validateUniversal()` + `validateForPlatform()`
-3. All `transformIR` chains run
-4. `lint()` with merged lint rules
-5. Per-target: `adapter.compile()` → all `postEmit` chains
+1. `validateUniversal()` — structural checks on the manifest
+2. `lint()` — with merged lint rules from all plugins
+3. All `preValidate` chains run — can abort before compilation
+4. All `transformIR` chains run — may mutate `ctx.manifest`
+5. Per-target: `validateForPlatform()` → `adapter.compile()` → all `postEmit` chains
 6. Files written to `dist/`
 
 Install pipeline:
 
-1. All `onInstall` chains run (security middleware first)
+1. All `onInstall` chains run (pinned-integrity and script-policy checks first)
 2. Files linked into agent directories
 
 ## See also
