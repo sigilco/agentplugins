@@ -3,6 +3,11 @@
  *
  * Loads plugin configuration from agentplugins.config.ts/js/mjs/json files.
  * Uses jiti for TypeScript support without pre-compilation.
+ *
+ * Supports three export shapes:
+ *   1. defineConfig({ manifest, plugins, targets }) — power user
+ *   2. definePlugin(manifest) — bare manifest object
+ *   3. () => PluginManifest — factory function
  */
 
 import { existsSync } from 'node:fs';
@@ -13,7 +18,8 @@ import jiti from 'jiti';
 const createJITI = jiti as unknown as (filename: string, opts?: Record<string, unknown>) => {
   import: (id: string, opts?: Record<string, unknown>) => Promise<unknown>;
 };
-import type { PluginManifest } from '@agentplugins/core';
+import type { PluginManifest, AgentPluginsConfig } from '@agentplugins/core';
+import type { Plugin } from '@agentplugins/pipeline';
 
 export interface LoadedConfig {
   /** Resolved manifest */
@@ -22,6 +28,19 @@ export interface LoadedConfig {
   root: string;
   /** Path to the config file */
   configPath: string;
+  /** User-provided pipeline plugins from defineConfig (empty if bare manifest). */
+  plugins: Plugin[];
+  /** User-provided target override from defineConfig (undefined if not set). */
+  configTargets?: string[];
+}
+
+function isDefineConfig(obj: unknown): obj is AgentPluginsConfig {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'manifest' in obj &&
+    typeof (obj as Record<string, unknown>).manifest === 'object'
+  );
 }
 
 /**
@@ -37,24 +56,30 @@ export async function loadConfig(configPath: string): Promise<LoadedConfig> {
 
   const ext = extname(resolvedPath);
   let manifest: PluginManifest;
+  let plugins: Plugin[] = [];
+  let configTargets: string[] | undefined;
 
   if (ext === '.json') {
-    // JSON config
+    // JSON config — always a bare manifest
     const { readFile } = await import('node:fs/promises');
     const content = await readFile(resolvedPath, 'utf-8');
     manifest = JSON.parse(content) as PluginManifest;
   } else {
     // TypeScript/JavaScript config — use jiti
-    const jiti = createJITI(resolvedPath, {
+    const jitiLoader = createJITI(resolvedPath, {
       interopDefault: true,
       esmResolve: true,
     });
 
-    const mod = await jiti.import(resolvedPath, { default: true });
-    const exported = (mod as any)?.default ?? mod;
+    const mod = await jitiLoader.import(resolvedPath, { default: true });
+    const exported = (mod as Record<string, unknown>)?.default ?? mod;
 
     if (typeof exported === 'function') {
-      manifest = await exported();
+      manifest = await (exported as () => Promise<PluginManifest>)();
+    } else if (isDefineConfig(exported)) {
+      manifest = exported.manifest;
+      plugins = exported.plugins ?? [];
+      configTargets = exported.targets;
     } else {
       manifest = exported as PluginManifest;
     }
@@ -71,10 +96,9 @@ export async function loadConfig(configPath: string): Promise<LoadedConfig> {
     throw new Error('Plugin manifest must have a "description" field');
   }
 
-  // Resolve root directory
   const root = resolve(resolvedPath, '..');
 
-  return { manifest, root, configPath: resolvedPath };
+  return { manifest, root, configPath: resolvedPath, plugins, configTargets };
 }
 
 /**

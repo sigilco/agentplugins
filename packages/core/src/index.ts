@@ -122,10 +122,35 @@ export type {
   RunSetupResult,
 } from '@agentplugins/store';
 
-// ─── definePlugin helper ──────────────────────────────────────────────────────
+// ─── definePlugin / defineConfig ─────────────────────────────────────────────
 
 import type { PluginManifest } from '@agentplugins/contract';
+import type { Plugin } from '@agentplugins/pipeline';
 
+export type { Plugin } from '@agentplugins/pipeline';
+
+export interface AgentPluginsConfig {
+  /** The universal plugin manifest. */
+  manifest: PluginManifest;
+  /**
+   * Pipeline plugins that contribute adapters, lint rules, emitters,
+   * and lifecycle middleware. Registered before the builtin adapters so
+   * they can override or extend any stage.
+   */
+  plugins?: Plugin[];
+  /**
+   * Override the target list for this build. Falls back to
+   * `manifest.targets` and then to all built-in targets.
+   */
+  targets?: string[];
+}
+
+/** Identity helper — provides TypeScript inference for the manifest. */
 export function definePlugin(manifest: PluginManifest): PluginManifest {
   return manifest;
+}
+
+/** Power-user config with plugins and target overrides. Backward-compatible. */
+export function defineConfig(config: AgentPluginsConfig): AgentPluginsConfig {
+  return config;
 }

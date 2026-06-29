@@ -17,7 +17,7 @@ import {
 } from '@agentplugins/core';
 import { sanitizeJoin, lint, type LintIssue } from '@agentplugins/compile';
 import { createApp } from '@agentplugins/pipeline';
-import type { App } from '@agentplugins/pipeline';
+import type { App, Plugin } from '@agentplugins/pipeline';
 import type { LoadedConfig } from '../config.js';
 
 // ─── Target resolution ────────────────────────────────────────────────────────
@@ -47,8 +47,10 @@ const BUILTIN_ADAPTER_SPECS: AdapterSpec[] = [
   { platform: 'pimono',    pkg: '@agentplugins/adapter-pimono',    exportName: 'createPiMonoAdapter' },
 ];
 
-async function buildBuiltinApp(): Promise<App> {
+async function buildApp(userPlugins: Plugin[] = []): Promise<App> {
   const app = createApp();
+
+  // Register builtin adapters first (lower precedence)
   for (const { platform, pkg, exportName } of BUILTIN_ADAPTER_SPECS) {
     try {
       // @ts-ignore — loaded dynamically at runtime
@@ -61,6 +63,12 @@ async function buildBuiltinApp(): Promise<App> {
       // Adapter package not installed — skip silently
     }
   }
+
+  // Register user plugins after builtins so they can override any builtin
+  for (const plugin of userPlugins) {
+    app.use(plugin);
+  }
+
   return app;
 }
 
@@ -88,6 +96,8 @@ export interface CompileOptions {
   silent?: boolean;
   /** Plugin root directory — required to resolve nativeEntry source paths. */
   pluginRoot?: string;
+  /** User-provided pipeline plugins from defineConfig. */
+  plugins?: Plugin[];
 }
 
 /**
@@ -96,11 +106,11 @@ export interface CompileOptions {
  * Returns per-target results.
  */
 export async function compile(options: CompileOptions): Promise<CompileResult[]> {
-  const { manifest, write = false, outDir, silent = false, pluginRoot } = options;
+  const { manifest, write = false, outDir, silent = false, pluginRoot, plugins = [] } = options;
   const targetList = resolveTargets(options.targets, manifest.targets);
   const results: CompileResult[] = [];
 
-  const app = await buildBuiltinApp();
+  const app = await buildApp(plugins);
 
   for (const target of targetList) {
     const adapter = app.adapters.get(target);
@@ -183,7 +193,12 @@ export interface BuildOptions {
 export async function build(options: BuildOptions): Promise<void> {
   const { config, outDir } = options;
   const manifest = config.manifest;
-  const targetList = resolveTargets(options.targets as TargetPlatform[] | undefined, manifest.targets);
+  // CLI --target flag > defineConfig targets > manifest.targets > ALL_TARGETS
+  const targetList = resolveTargets(
+    options.targets as TargetPlatform[] | undefined
+      ?? config.configTargets as TargetPlatform[] | undefined,
+    manifest.targets
+  );
 
   console.log(chalk.bold('\n🌉 AgentPlugins Build\n'));
   console.log(chalk.gray(`Plugin: ${manifest.name} v${manifest.version}`));
@@ -216,6 +231,7 @@ export async function build(options: BuildOptions): Promise<void> {
     write: true,
     outDir,
     pluginRoot: config.root,
+    plugins: config.plugins,
   });
 
   // Strict mode: fail on warnings

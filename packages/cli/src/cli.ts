@@ -180,7 +180,7 @@ cli
       const config = await loadConfig(options.config);
       const targets = options.target
         ? options.target.split(',').map((t: string) => t.trim())
-        : config.manifest.targets;
+        : undefined;
 
       await build({
         config,
