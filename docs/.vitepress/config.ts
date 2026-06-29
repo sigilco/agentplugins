@@ -131,6 +131,7 @@ export default withMermaid(defineConfig({
             { text: 'MCP Servers', link: '/guide/mcp-servers' },
             { text: 'Tools', link: '/guide/tools' },
             { text: 'Creating Plugins', link: '/guide/creating-plugins' },
+            { text: 'Extending the Build Pipeline', link: '/guide/extending' },
             { text: 'Linting', link: '/guide/linting' },
           ],
         },
