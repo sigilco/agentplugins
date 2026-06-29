@@ -1,5 +1,6 @@
 ---
-description: Learn how AgentPlugins solves plugin fragmentation across AI agent frameworks
+title: Introduction – AgentPlugins
+description: Learn how AgentPlugins unifies AI agent plugins across Claude Code, Codex, OpenCode, and more with a single manifest file.
 ---
 # Introduction
 

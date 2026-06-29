@@ -1,5 +1,6 @@
 ---
-description: Get a working AgentPlugin in five commands
+title: Quick Start – AgentPlugins
+description: Install AgentPlugins and create your first universal AI agent plugin in under 2 minutes.
 ---
 
 # Quick Start

@@ -1,5 +1,6 @@
 ---
-description: Build and publish a universal AgentPlugin
+title: Creating Plugins – AgentPlugins
+description: Step-by-step guide to authoring an AgentPlugins manifest and shipping to seven AI agent harnesses.
 ---
 
 # Creating Plugins

@@ -48,7 +48,11 @@ coverage/
 storybook-static/
 docs/.vitepress/cache/
 docs/.vitepress/dist/
-docs/public/
+docs/public/*
+!docs/public/robots.txt
+!docs/public/favicon.svg
+!docs/public/favicon.ico
+!docs/public/og.png
 
 # Misc
 *.local

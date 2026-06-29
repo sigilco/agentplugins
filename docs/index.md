@@ -1,4 +1,6 @@
 ---
+title: AgentPlugins – Universal Plugin Standard for AI Agents
+description: Write AI agent plugins once, ship to Claude Code, Codex, OpenCode, Gemini, Copilot, Kimi, and Pi Mono. One manifest. Seven platforms. Zero lock-in.
 layout: home
 
 hero:

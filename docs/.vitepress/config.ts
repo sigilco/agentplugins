@@ -28,8 +28,36 @@ export default withMermaid(defineConfig({
   cleanUrls: true,
   lastUpdated: true,
 
+  sitemap: {
+    hostname: DOCS_SITE,
+  },
+
   head: [
     ['meta', { name: 'theme-color', content: '#3c82f6' }],
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
+    ['link', { rel: 'alternate icon', href: '/favicon.ico' }],
+    ['meta', { name: 'keywords', content: 'ai agent plugin, claude code plugin, codex plugin, opencode plugin, universal agent manifest, ai harness plugin manager' }],
+    ['meta', { property: 'og:type', content: 'website' }],
+    ['meta', { property: 'og:url', content: DOCS_SITE }],
+    ['meta', { property: 'og:title', content: 'AgentPlugins – Universal Plugin Standard for AI Agents' }],
+    ['meta', { property: 'og:description', content: 'Write AI agent plugins once, ship to Claude Code, Codex, OpenCode, Copilot, Gemini, Kimi, and Pi Mono. One manifest. Zero lock-in.' }],
+    ['meta', { property: 'og:image', content: `${DOCS_SITE}/og.png` }],
+    ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+    ['meta', { name: 'twitter:title', content: 'AgentPlugins – Universal Plugin Standard for AI Agents' }],
+    ['meta', { name: 'twitter:description', content: 'Write AI agent plugins once, ship to Claude Code, Codex, OpenCode, Copilot, Gemini, Kimi, and Pi Mono.' }],
+    ['meta', { name: 'twitter:image', content: `${DOCS_SITE}/og.png` }],
+    ['script', { type: 'application/ld+json' }, JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "AgentPlugins",
+      "description": "Universal plugin standard for AI agents. Write once, ship to any harness.",
+      "url": DOCS_SITE,
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "All",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "license": "https://www.apache.org/licenses/LICENSE-2.0",
+      "codeRepository": "https://github.com/sigilco/agentplugins"
+    })],
   ],
 
   markdown: {
