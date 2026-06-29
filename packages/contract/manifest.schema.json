@@ -1898,15 +1898,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "enum": [
-              "claude",
-              "codex",
-              "copilot",
-              "gemini",
-              "kimi",
-              "opencode",
-              "pimono"
-            ]
+            "minLength": 1
           }
         },
         "nativeEntry": {
@@ -1927,15 +1919,7 @@
             "type": "string"
           },
           "propertyNames": {
-            "enum": [
-              "claude",
-              "codex",
-              "copilot",
-              "gemini",
-              "kimi",
-              "opencode",
-              "pimono"
-            ]
+            "minLength": 1
           }
         },
         "dependencies": {

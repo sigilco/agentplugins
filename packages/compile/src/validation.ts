@@ -71,12 +71,12 @@ export function validateUniversal(plugin: PluginManifest): ValidationIssue[] {
   // ─── targets ──────────────────────────────────────────────────────────────
   if (plugin.targets) {
     for (const target of plugin.targets) {
-      if (!ALL_TARGETS.includes(target)) {
+      if (!(ALL_TARGETS as string[]).includes(target)) {
         issues.push({
-          severity: Severity.ERROR,
+          severity: Severity.WARNING,
           field: 'targets',
-          message: `Unknown target platform: "${target}"`,
-          suggestion: `Supported: ${ALL_TARGETS.join(', ')}`,
+          message: `"${target}" is not a built-in target — ensure a matching adapter is registered or compilation will be skipped`,
+          suggestion: `Built-in targets: ${ALL_TARGETS.join(', ')}`,
         });
       }
     }

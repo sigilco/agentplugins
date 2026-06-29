@@ -12,7 +12,8 @@ import { z } from 'zod';
 
 // ─── Target platform ──────────────────────────────────────────────────────────
 
-export const TargetPlatformSchema = z.enum([
+/** Known built-in target ids — custom adapters may use any non-empty string. */
+export const BUILTIN_TARGETS = [
   'claude',
   'codex',
   'copilot',
@@ -20,12 +21,20 @@ export const TargetPlatformSchema = z.enum([
   'kimi',
   'opencode',
   'pimono',
-]);
-export type TargetPlatform = z.infer<typeof TargetPlatformSchema>;
+] as const;
 
-export const ALL_TARGETS: TargetPlatform[] = [
-  'claude', 'codex', 'copilot', 'gemini', 'kimi', 'opencode', 'pimono',
-];
+export type BuiltinTarget = (typeof BUILTIN_TARGETS)[number];
+
+/**
+ * Accepts any non-empty string so custom adapters can declare private targets.
+ * Known built-in ids have autocomplete via the `BuiltinTarget` union.
+ */
+export const TargetPlatformSchema = z.string().min(1);
+
+/** Union preserving autocomplete for built-in ids while allowing custom ones. */
+export type TargetPlatform = BuiltinTarget | (string & {});
+
+export const ALL_TARGETS: BuiltinTarget[] = [...BUILTIN_TARGETS];
 
 // ─── Dependency & Sidecar ────────────────────────────────────────────────────
 
