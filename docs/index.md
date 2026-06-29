@@ -13,6 +13,9 @@ hero:
       text: Get Started
       link: /guide/introduction
     - theme: alt
+      text: Sponsor
+      link: https://buy.polar.sh/polar_cl_Mv1gdlG7bw3I70EC9IHtfeSHJj4PEKvA7JAUz23CFhj
+    - theme: alt
       text: GitHub
       link: https://github.com/sigilco/agentplugins
 
@@ -26,11 +29,3 @@ features:
   - title: "Zero config"
     details: "Install via npm, Homebrew, curl, or mise. No setup required."
 ---
-
-## Free & open source
-
-AgentPlugins is Apache 2.0 licensed and will always be free and open source. Sponsorship keeps it that way.
-
-<p>
-  <a href="https://buy.polar.sh/polar_cl_Mv1gdlG7bw3I70EC9IHtfeSHJj4PEKvA7JAUz23CFhj" class="VPButton" target="_blank">Become a Sponsor</a>
-</p>
