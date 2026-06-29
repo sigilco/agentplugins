@@ -18,7 +18,7 @@ An adapter compiles the universal manifest into one target platform's native for
 
 Two families: **JSON-emitting** adapters (claude, codex, copilot, gemini, kimi) produce static manifest files the host reads at startup. **Code-emitting** adapters (opencode, pimono) produce real TypeScript modules the host imports and calls.
 
-See the [Tier-1 Capability Matrix](/reference/compat-matrix) for full cross-harness details.
+See the [Capability Matrix](/guide/capability-matrix) for full cross-harness details.
 
 ## JSON-emitting adapters
 
