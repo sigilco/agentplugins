@@ -257,8 +257,23 @@ export interface PlatformConstraints {
   notes: string[];
 }
 
+const PERMISSIVE_CONSTRAINTS: PlatformConstraints = {
+  maxNameLength: 256,
+  supportsHttpHandler: true,
+  supportsInlineHandler: true,
+  supportsPromptHandler: true,
+  supportsMCPToolHandler: true,
+  supportsNativeTools: true,
+  supportsMcpServersAsTools: true,
+  maxDescriptionLength: 4096,
+  supportedHooks: UNIVERSAL_HOOK_NAMES,
+  manifestPath: 'plugin.json',
+  requiresStrictValidation: false,
+  notes: ['Custom platform — all hooks and handlers assumed supported'],
+};
+
 export function getPlatformConstraints(platform: TargetPlatform): PlatformConstraints {
-  const base: Record<TargetPlatform, PlatformConstraints> = {
+  const base: Partial<Record<TargetPlatform, PlatformConstraints>> = {
     claude: {
       maxNameLength: 64,
       supportsHttpHandler: true,
@@ -388,7 +403,7 @@ export function getPlatformConstraints(platform: TargetPlatform): PlatformConstr
     },
   };
 
-  return base[platform];
+  return base[platform] ?? PERMISSIVE_CONSTRAINTS;
 }
 
 export function validateForPlatform(

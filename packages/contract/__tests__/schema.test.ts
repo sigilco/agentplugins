@@ -15,14 +15,23 @@ describe('PluginManifestSchema (single source of truth)', () => {
     expect(() => PluginManifestSchema.parse({})).toThrow();
   });
 
-  it('rejects an invalid target platform', () => {
-    expect(() => TargetPlatformSchema.parse('not-a-platform')).toThrow();
+  it('rejects an empty target platform string', () => {
+    // TargetPlatform is now an open string — any non-empty value is valid
+    // so custom harnesses can register their own targets.
+    expect(() => TargetPlatformSchema.parse('')).toThrow();
   });
 
-  it('ALL_TARGETS matches the zod enum set', () => {
-    // Catches drift between the const array and the zod enum.
-    const enumValues = TargetPlatformSchema.options;
-    expect(new Set(enumValues)).toEqual(new Set(ALL_TARGETS));
+  it('accepts a custom (non-builtin) target platform', () => {
+    // Open string type — custom adapters may register any non-empty target id.
+    expect(() => TargetPlatformSchema.parse('my-harness')).not.toThrow();
+  });
+
+  it('ALL_TARGETS contains the canonical builtin platform ids', () => {
+    // Verify the builtin list is stable and non-empty.
+    expect(ALL_TARGETS.length).toBeGreaterThan(0);
+    expect(ALL_TARGETS).toContain('claude');
+    expect(ALL_TARGETS).toContain('codex');
+    expect(ALL_TARGETS).toContain('copilot');
   });
 
   it('accepts sidecar (currently documentation-only, see B21)', () => {
