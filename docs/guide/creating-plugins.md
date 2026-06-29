@@ -78,6 +78,34 @@ export default definePlugin({
 })
 ```
 
+### `defineConfig` — extended config format
+
+Use `defineConfig` instead of `definePlugin` when you need to:
+
+- Target a **subset of platforms** without editing the manifest
+- Wire in a **private adapter** for an internal harness
+- Add **build pipeline plugins** (custom lint rules, IR transforms, post-emit hooks)
+
+```typescript
+import { defineConfig } from '@agentplugins/core'
+
+export default defineConfig({
+  manifest: {
+    name: 'my-plugin',
+    version: '1.0.0',
+    description: 'Does awesome things across every agent',
+    hooks: { /* ... */ },
+  },
+
+  // Override which targets are built — does not affect the manifest
+  targets: ['claude', 'codex'],
+})
+```
+
+`definePlugin` and `defineConfig` produce the same dist output for the same manifest. Pick `definePlugin` for simple cross-platform plugins; reach for `defineConfig` when you need the extras above.
+
+See [Extending the Build Pipeline](/guide/extending) for `plugins: [...]` and custom adapters.
+
 ::: tip
 Place hook scripts under `hooks/` and reference them with `${PLUGIN_ROOT}/hooks/...`. The placeholder resolves to the plugin's directory in the universal store at runtime.
 :::
@@ -226,4 +254,5 @@ Tag releases with semver (`v1.0.0`, `v1.1.0`, ...). `agentplugins update` resolv
 
 - [Manifest reference](/guide/manifest) — every field.
 - [Hooks](/guide/hooks) — the 19 lifecycle events.
+- [Extending the Build Pipeline](/guide/extending) — custom adapters, lint rules, and pipeline plugins.
 - [CLI reference](/reference/commands) — every command and flag.
