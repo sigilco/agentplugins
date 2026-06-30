@@ -5,7 +5,7 @@
  * Copy this file into your project and modify it for your target platform.
  */
 
-import type { PlatformAdapter, PluginManifest, AdapterOutput } from '@agentplugins/core';
+import { Severity, type PlatformAdapter, type PluginManifest, type AdapterOutput } from '@agentplugins/core';
 
 const MY_HARNESS_TARGET = 'my-harness' as const;
 
@@ -20,7 +20,7 @@ export const myHarnessAdapter: PlatformAdapter = {
   validate(plugin: PluginManifest) {
     const issues = [];
     if (!plugin.name) {
-      issues.push({ severity: 'error' as const, field: 'name', message: 'name is required' });
+      issues.push({ severity: Severity.ERROR, field: 'name', message: 'name is required' });
     }
     return issues;
   },
