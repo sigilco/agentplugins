@@ -1,6 +1,6 @@
 {
   "name": "@agentplugins/security",
-  "version": "0.6.1",
+  "version": "0.6.0",
   "description": "Security and trust primitives for AgentPlugins: integrity hashing, SSRF-safe fetch, lifecycle script policy, and wrappers for osv-scanner, OpenSSF Scorecard, and npm provenance.",
   "type": "module",
   "main": "./dist/index.js",

@@ -1,6 +1,6 @@
 {
   "name": "@agentplugins/migrate",
-  "version": "0.6.1",
+  "version": "0.6.0",
   "description": "MCP server that wraps @agentplugins/ingest to let agents migrate community plugins conversationally.",
   "type": "module",
   "main": "./dist/index.js",
