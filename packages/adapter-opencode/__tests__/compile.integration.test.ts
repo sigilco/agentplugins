@@ -357,6 +357,45 @@ describe("compile() integration", () => {
     });
   });
 
+  describe("mcpServers emission", () => {
+    it("emits mcp.servers in opencode.json when mcpServers defined", () => {
+      const manifest: PluginManifest = {
+        name: "mcp-plugin",
+        version: "1.0.0",
+        mcpServers: {
+          "my-server": {
+            command: "npx",
+            args: ["-y", "my-mcp-server"],
+            env: { MY_KEY: "value" },
+          },
+        },
+      };
+
+      const output = adapter.compile(manifest);
+
+      const manifestFile = output.files.find((f) => f.path === "opencode.json");
+      expect(manifestFile).toBeDefined();
+      const parsed = JSON.parse(manifestFile!.content);
+      expect(parsed.mcp).toBeDefined();
+      expect(parsed.mcp.servers["my-server"].command).toBe("npx");
+      expect(parsed.mcp.servers["my-server"].args).toEqual(["-y", "my-mcp-server"]);
+      expect(parsed.mcp.servers["my-server"].env).toEqual({ MY_KEY: "value" });
+    });
+
+    it("omits mcp key when no mcpServers defined", () => {
+      const manifest: PluginManifest = {
+        name: "no-mcp-plugin",
+        version: "1.0.0",
+      };
+
+      const output = adapter.compile(manifest);
+
+      const manifestFile = output.files.find((f) => f.path === "opencode.json");
+      const parsed = JSON.parse(manifestFile!.content);
+      expect(parsed.mcp).toBeUndefined();
+    });
+  });
+
   describe("postInstall instructions", () => {
     it("includes postInstall commands", () => {
       const manifest: PluginManifest = {
