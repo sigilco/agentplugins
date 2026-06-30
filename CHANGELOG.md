@@ -2,13 +2,10 @@
 
 All notable changes to this project are documented in this file.
 
-## v0.6.1 — Release infrastructure patch
+## v0.6.1 — CLI patch (Windows binary)
 
-### CI / Release
-- Fix Windows binary archive: Bun appends `.exe` when cross-compiling for `bun-windows-x64`; zip step now references the correct filename.
-- `release.yml`: `createGithubReleases: false` suppresses per-package changeset tags/releases — only a single `v*` release is created.
-- `github-release` and `update-homebrew-tap` jobs now run even when individual binary matrix targets fail (not cancelled), so a single platform failure no longer skips the GitHub Release and Homebrew tap update.
-- Sponsor CTA moved above install commands in README.
+### `@agentplugins/cli`
+- Bump to `0.6.1` to deliver the Windows (`x86_64-pc-windows-msvc`) binary missing from the v0.6.0 GitHub Release due to a CI archive bug (Bun appends `.exe` on Windows cross-compile; the zip step was referencing the bare filename). All other packages remain at `0.6.0`.
 
 ## v0.6.0 — Pipeline Kernel, defineConfig, Docs Site & Full-Stack Upgrade
 

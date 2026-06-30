@@ -1,6 +1,6 @@
 {
   "name": "@agentplugins/adapter-claude",
-  "version": "0.6.1",
+  "version": "0.6.0",
   "description": "AgentPlugins platform adapter for Claude Code",
   "type": "module",
   "main": "./dist/index.mjs",

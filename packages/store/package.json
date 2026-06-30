@@ -1,6 +1,6 @@
 {
   "name": "@agentplugins/store",
-  "version": "0.6.1",
+  "version": "0.6.0",
   "description": "Universal plugin store for AgentPlugins — install, link, and registry fs operations for ~/.agents/plugins/<name>/",
   "type": "module",
   "main": "./dist/index.js",
