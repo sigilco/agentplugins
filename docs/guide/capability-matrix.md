@@ -42,7 +42,7 @@ Legend:
 | `skills`                         | ✅      | ✅     | ✅   | —                                                                                           | Universal.                                                          |
 | `hooks` (lifecycle)              | ⚠️     | ⚠️    | ❌   | Copilot/Gemini: use HTTP or `command` handlers (see [Hooks](/guide/hooks)).                 | Kimi supports a subset (see below).                                  |
 | `subagentStart` / `subagentStop` | ❌      | ❌    | ❌   | TUI fidelity only — implement per-harness via native plugin config if you really need it.    | No universal primitive planned.                                    |
-| `tools[]`                        | ✅      | ✅     | ❌   | —                                                                                           | First-class tool emission.                                          |
+| `tools[]`                        | ⚠️      | ⚠️    | ❌   | Use `mcpServers` instead (not emitted on these Tier-2 harnesses).                           | No first-class tool emission; emit WARN.                            |
 | `mcpServers`                     | ❌      | ❌    | ❌   | Wire the MCP server directly into the harness's native config — no agentplugins path needed. | Not on the manifest path; harness-level wiring only.                |
 
 Kimi supported hooks: `preToolUse`, `userPromptSubmit`, `sessionStart`, `notification`, `permissionRequest`. Inline handlers auto-wrapped as Node.js command scripts (v0.5.0).
