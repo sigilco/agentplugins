@@ -35,7 +35,7 @@ export default withMermaid(defineConfig({
 
   head: [
     ['meta', { name: 'theme-color', content: '#3c82f6' }],
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
+    ['link', { rel: 'icon', type: 'image/png', href: '/img/logo-dark.png' }],
     ['link', { rel: 'alternate icon', href: '/favicon.ico' }],
     ['meta', { name: 'keywords', content: 'ai agent plugin, claude code plugin, codex plugin, opencode plugin, universal agent manifest, ai harness plugin manager' }],
     ['meta', { property: 'og:type', content: 'website' }],
