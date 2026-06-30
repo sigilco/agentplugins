@@ -16,6 +16,14 @@
 
 > Write AI agent plugins once, ship to any harness.
 
+## Why
+
+- **Write once, run everywhere** — one manifest compiles to Claude Code, Codex, OpenCode, Pi, Copilot, Gemini, and Kimi
+- **Universal codegen first, per-harness fallback second** — Tier-1 harnesses get full parity; Tier-2 gets skills + commands + a subset of hooks
+- **No runtime proxy** — every adapter emits the harness's native output format; no shim layer, no lock-in
+- **Honest capability matrix** — capability gaps emit `WARN` at compile time and surface on the [capability matrix page](https://agentplugins.pages.dev/guide/capability-matrix)
+- **Plays nicely with what you already have** — install a plugin into a harness that already has its own plugins; they coexist
+
 Install any plugin into every supported AI agent — **Tier-1:** Claude Code, Codex, OpenCode, Pi. **Tier-2:** Copilot, Gemini, Kimi.
 
 ```bash
