@@ -59,6 +59,9 @@ docs/public/*
 !docs/public/img/
 !docs/public/img/logo-dark.png
 !docs/public/img/logo-light.png
+!docs/public/demo.tape
+!docs/public/demo.gif
+!docs/public/demo.mp4
 
 # Misc
 *.local
