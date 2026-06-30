@@ -22,8 +22,7 @@
  *   agentplugins preview                # Preview compile output without writing
  */
 
-import { cac } from 'cac';
-import chalk from 'chalk';
+import { cli, command } from 'cleye';
 import pkg from '../package.json' with { type: 'json' };
 import { build } from './commands/build.js';
 import { validate } from './commands/validate.js';
@@ -41,230 +40,267 @@ import { importCommand } from './commands/import.js';
 import { audit } from './commands/audit.js';
 import { loadConfig } from './config.js';
 
-const cli = cac('agentplugins');
+function formatError(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
 
-// ─── Distribution Commands ───────────────────────────────────────────────────
+cli({
+  name: 'agentplugins',
+  version: pkg.version,
+  commands: [
+    // ─── Distribution Commands ──────────────────────────────────────────────
 
-cli
-  .command('add <source>', 'Install a plugin from GitHub to the store + all agents')
-  .option('-y, --yes', 'Skip the setup trust prompt (still denylist-gated)')
-  .option('--no-setup', 'Do not run any setup script after install')
-  .action(async (source: string, options) => {
-    try {
-      await add({ source, yes: options.yes, noSetup: options.setup === false });
-    } catch (err) {
-      console.error(chalk.red('Add failed:'), err instanceof Error ? err.message : String(err));
-      process.exit(1);
-    }
-  });
+    command({
+      name: 'add',
+      parameters: ['<source>'],
+      flags: {
+        yes: { type: Boolean, alias: 'y', description: 'Skip the setup trust prompt (still denylist-gated)' },
+        noSetup: { type: Boolean, default: false, description: 'Do not run any setup script after install' },
+      },
+      help: { description: 'Install a plugin from GitHub to the store + all agents' },
+    }, async ({ _, flags }) => {
+      try {
+        await add({ source: _.source, yes: flags.yes, noSetup: flags.noSetup });
+      } catch (err) {
+        console.error('Add failed:', formatError(err));
+        process.exit(1);
+      }
+    }),
 
-cli
-  .command('setup <name>', "Run an installed plugin's setup script (re-runnable)")
-  .option('-f, --force', 'Re-prompt even if the setup command is unchanged/trusted')
-  .option('-y, --yes', 'Skip the trust prompt (still denylist-gated)')
-  .action(async (name: string, options) => {
-    try {
-      await setup({ name, force: options.force, yes: options.yes });
-    } catch (err) {
-      console.error(chalk.red('Setup failed:'), err instanceof Error ? err.message : String(err));
-      process.exit(1);
-    }
-  });
+    command({
+      name: 'setup',
+      parameters: ['<name>'],
+      flags: {
+        force: { type: Boolean, alias: 'f', description: 'Re-prompt even if the setup command is unchanged/trusted' },
+        yes: { type: Boolean, alias: 'y', description: 'Skip the trust prompt (still denylist-gated)' },
+      },
+      help: { description: "Run an installed plugin's setup script (re-runnable)" },
+    }, async ({ _, flags }) => {
+      try {
+        await setup({ name: _.name, force: flags.force, yes: flags.yes });
+      } catch (err) {
+        console.error('Setup failed:', formatError(err));
+        process.exit(1);
+      }
+    }),
 
-cli
-  .command('remove <name>', 'Remove a plugin from the store and unlink all symlinks')
-  .option('-f, --force', 'Skip confirmation', { default: false })
-  .action(async (name: string, options) => {
-    try {
-      await remove({ name, force: options.force });
-    } catch (err) {
-      console.error(chalk.red('Remove failed:'), err instanceof Error ? err.message : String(err));
-      process.exit(1);
-    }
-  });
+    command({
+      name: 'remove',
+      parameters: ['<name>'],
+      flags: {
+        force: { type: Boolean, alias: 'f', default: false, description: 'Skip confirmation' },
+      },
+      help: { description: 'Remove a plugin from the store and unlink all symlinks' },
+    }, async ({ _, flags }) => {
+      try {
+        await remove({ name: _.name, force: flags.force });
+      } catch (err) {
+        console.error('Remove failed:', formatError(err));
+        process.exit(1);
+      }
+    }),
 
-cli
-  .command('list', 'List installed plugins')
-  .option('--json', 'Output as JSON')
-  .action(async (options) => {
-    try {
-      await list({ json: options.json });
-    } catch (err) {
-      console.error(chalk.red('List failed:'), err instanceof Error ? err.message : String(err));
-      process.exit(1);
-    }
-  });
+    command({
+      name: 'list',
+      flags: {
+        json: { type: Boolean, description: 'Output as JSON' },
+      },
+      help: { description: 'List installed plugins' },
+    }, async ({ flags }) => {
+      try {
+        await list({ json: flags.json });
+      } catch (err) {
+        console.error('List failed:', formatError(err));
+        process.exit(1);
+      }
+    }),
 
-cli
-  .command('update [name]', 'Update plugin(s) from source')
-  .option('-a, --all', 'Update all installed plugins')
-  .action(async (name: string | undefined, options) => {
-    try {
-      await update({ name, all: options.all });
-    } catch (err) {
-      console.error(chalk.red('Update failed:'), err instanceof Error ? err.message : String(err));
-      process.exit(1);
-    }
-  });
+    command({
+      name: 'update',
+      parameters: ['[name]'],
+      flags: {
+        all: { type: Boolean, alias: 'a', description: 'Update all installed plugins' },
+      },
+      help: { description: 'Update plugin(s) from source' },
+    }, async ({ _, flags }) => {
+      try {
+        await update({ name: _.name, all: flags.all });
+      } catch (err) {
+        console.error('Update failed:', formatError(err));
+        process.exit(1);
+      }
+    }),
 
-cli
-  .command('info <name>', 'Show detailed information about an installed plugin')
-  .option('--json', 'Output as JSON')
-  .action(async (name: string, options) => {
-    try {
-      await info({ name, json: options.json });
-    } catch (err) {
-      console.error(chalk.red('Info failed:'), err instanceof Error ? err.message : String(err));
-      process.exit(1);
-    }
-  });
+    command({
+      name: 'info',
+      parameters: ['<name>'],
+      flags: {
+        json: { type: Boolean, description: 'Output as JSON' },
+      },
+      help: { description: 'Show detailed information about an installed plugin' },
+    }, async ({ _, flags }) => {
+      try {
+        await info({ name: _.name, json: flags.json });
+      } catch (err) {
+        console.error('Info failed:', formatError(err));
+        process.exit(1);
+      }
+    }),
 
-cli
-  .command('doctor', 'Run diagnostics on store, agents, and symlinks')
-  .option('--json', 'Output as JSON')
-  .action(async (options) => {
-    try {
-      await doctor({ json: options.json });
-    } catch (err) {
-      console.error(chalk.red('Doctor failed:'), err instanceof Error ? err.message : String(err));
-      process.exit(1);
-    }
-  });
+    command({
+      name: 'doctor',
+      flags: {
+        json: { type: Boolean, description: 'Output as JSON' },
+      },
+      help: { description: 'Run diagnostics on store, agents, and symlinks' },
+    }, async ({ flags }) => {
+      try {
+        await doctor({ json: flags.json });
+      } catch (err) {
+        console.error('Doctor failed:', formatError(err));
+        process.exit(1);
+      }
+    }),
 
-cli
-  .command('import <format> <source>', 'Translate a community plugin (Claude Code, Codex, Skills.sh) into an AgentPlugins manifest')
-  .option('-o, --out <file>', 'Output manifest path (default: <source>/agentplugins.imported.json)')
-  .option('--write', 'Install the generated manifest into the universal store', { default: false })
-  .option('--no-vendor', 'Skip copying upstream files into .agentplugins-vendor/')
-  .option('-q, --quiet', 'Suppress warning output', { default: false })
-  .action(async (format: string, source: string, options) => {
-    try {
-      await importCommand({
-        format,
-        source,
-        out: options.out,
-        write: options.write,
-        vendor: options.vendor,
-        quiet: options.quiet,
-      });
-    } catch (err) {
-      console.error(chalk.red('Import failed:'), err instanceof Error ? err.message : String(err));
-      process.exit(1);
-    }
-  });
+    command({
+      name: 'import',
+      parameters: ['<format>', '<source>'],
+      flags: {
+        out: { type: String, alias: 'o', placeholder: '<file>', description: 'Output manifest path (default: <source>/agentplugins.imported.json)' },
+        write: { type: Boolean, default: false, description: 'Install the generated manifest into the universal store' },
+        noVendor: { type: Boolean, default: false, description: 'Skip copying upstream files into .agentplugins-vendor/' },
+        quiet: { type: Boolean, alias: 'q', default: false, description: 'Suppress warning output' },
+      },
+      help: { description: 'Translate a community plugin (Claude Code, Codex, Skills.sh) into an AgentPlugins manifest' },
+    }, async ({ _, flags }) => {
+      try {
+        await importCommand({
+          format: _.format,
+          source: _.source,
+          out: flags.out,
+          write: flags.write,
+          vendor: !flags.noVendor,
+          quiet: flags.quiet,
+        });
+      } catch (err) {
+        console.error('Import failed:', formatError(err));
+        process.exit(1);
+      }
+    }),
 
-cli
-  .command('audit <source>', 'Audit a plugin source for installability and supply-chain risk without writing to the store')
-  .option('--json', 'Output the report as JSON', { default: false })
-  .option('--no-scripts', 'Skip lifecycle script policy evaluation')
-  .action(async (source: string, options) => {
-    try {
-      const code = await audit({ source, json: options.json, scripts: options.scripts });
-      process.exit(code);
-    } catch (err) {
-      console.error(chalk.red('Audit failed:'), err instanceof Error ? err.message : String(err));
-      process.exit(2);
-    }
-  });
+    command({
+      name: 'audit',
+      parameters: ['<source>'],
+      flags: {
+        json: { type: Boolean, default: false, description: 'Output the report as JSON' },
+        noScripts: { type: Boolean, default: false, description: 'Skip lifecycle script policy evaluation' },
+      },
+      help: { description: 'Audit a plugin source for installability and supply-chain risk without writing to the store' },
+    }, async ({ _, flags }) => {
+      try {
+        const code = await audit({ source: _.source, json: flags.json, scripts: !flags.noScripts });
+        process.exit(code);
+      } catch (err) {
+        console.error('Audit failed:', formatError(err));
+        process.exit(2);
+      }
+    }),
 
-// ─── Codegen Commands ────────────────────────────────────────────────────────
+    // ─── Codegen Commands ───────────────────────────────────────────────────
 
-cli
-  .command('build', 'Build plugin for target platforms')
-  .option('-t, --target <targets>', 'Comma-separated target platforms (claude,codex,copilot,gemini,kimi,opencode,pimono)')
-  .option('-o, --out-dir <dir>', 'Output directory', { default: 'dist' })
-  .option('--strict', 'Fail on warnings', { default: false })
-  .option('--config <file>', 'Config file path', { default: 'agentplugins.config.ts' })
-  .action(async (options) => {
-    try {
-      const config = await loadConfig(options.config);
-      const targets = options.target
-        ? options.target.split(',').map((t: string) => t.trim())
-        : undefined;
+    command({
+      name: 'build',
+      flags: {
+        target: { type: String, alias: 't', placeholder: '<targets>', description: 'Comma-separated target platforms (claude,codex,copilot,gemini,kimi,opencode,pimono)' },
+        outDir: { type: String, alias: 'o', placeholder: '<dir>', default: 'dist', description: 'Output directory' },
+        strict: { type: Boolean, default: false, description: 'Fail on warnings' },
+        config: { type: String, placeholder: '<file>', default: 'agentplugins.config.ts', description: 'Config file path' },
+      },
+      help: { description: 'Build plugin for target platforms' },
+    }, async ({ flags }) => {
+      try {
+        const cfg = await loadConfig(flags.config);
+        const targets = flags.target ? flags.target.split(',').map((t: string) => t.trim()) : undefined;
+        await build({ config: cfg, targets, outDir: flags.outDir, strict: flags.strict });
+      } catch (err) {
+        console.error('Build failed:', formatError(err));
+        process.exit(1);
+      }
+    }),
 
-      await build({
-        config,
-        targets,
-        outDir: options.outDir,
-        strict: options.strict,
-      });
-    } catch (err) {
-      console.error(chalk.red('Build failed:'), err instanceof Error ? err.message : String(err));
-      process.exit(1);
-    }
-  });
+    command({
+      name: 'validate',
+      flags: {
+        config: { type: String, placeholder: '<file>', default: 'agentplugins.config.ts', description: 'Config file path' },
+        target: { type: String, alias: 't', placeholder: '<targets>', description: 'Validate for specific targets only' },
+      },
+      help: { description: 'Validate plugin configuration' },
+    }, async ({ flags }) => {
+      try {
+        const cfg = await loadConfig(flags.config);
+        const targets = flags.target ? flags.target.split(',').map((t: string) => t.trim()) : undefined;
+        await validate({ config: cfg, targets });
+      } catch (err) {
+        console.error('Validation failed:', formatError(err));
+        process.exit(1);
+      }
+    }),
 
-cli
-  .command('validate', 'Validate plugin configuration')
-  .option('--config <file>', 'Config file path', { default: 'agentplugins.config.ts' })
-  .option('-t, --target <targets>', 'Validate for specific targets only')
-  .action(async (options) => {
-    try {
-      const config = await loadConfig(options.config);
-      const targets = options.target
-        ? options.target.split(',').map((t: string) => t.trim())
-        : undefined;
+    command({
+      name: 'init',
+      parameters: ['[name]'],
+      flags: {
+        yes: { type: Boolean, alias: 'y', description: 'Skip prompts and use defaults' },
+        template: { type: String, alias: 't', placeholder: '<name>', description: 'Template: minimal | logger | security-guard | formatter' },
+        target: { type: String, placeholder: '<targets>', description: 'Target platforms (comma-separated)' },
+      },
+      help: { description: 'Scaffold a new AgentPlugins plugin' },
+    }, async ({ _, flags }) => {
+      try {
+        await init({ name: _.name, yes: flags.yes || false, template: flags.template, target: flags.target });
+      } catch (err) {
+        console.error('Init failed:', formatError(err));
+        process.exit(1);
+      }
+    }),
 
-      await validate({ config, targets });
-    } catch (err) {
-      console.error(chalk.red('Validation failed:'), err instanceof Error ? err.message : String(err));
-      process.exit(1);
-    }
-  });
+    command({
+      name: 'lint',
+      flags: {
+        config: { type: String, placeholder: '<file>', default: 'agentplugins.config.ts', description: 'Config file path' },
+        json: { type: Boolean, description: 'Output as JSON' },
+      },
+      help: { description: 'Static analysis of plugin manifest' },
+    }, async ({ flags }) => {
+      try {
+        const cfg = await loadConfig(flags.config);
+        await lint({ config: cfg, json: flags.json || false });
+      } catch (err) {
+        console.error('Lint failed:', formatError(err));
+        process.exit(1);
+      }
+    }),
 
-cli
-  .command('init [name]', 'Scaffold a new AgentPlugins plugin')
-  .option('-y, --yes', 'Skip prompts and use defaults')
-  .option('-t, --template <name>', 'Template: minimal | logger | security-guard | formatter')
-  .option('--target <targets>', 'Target platforms (comma-separated)')
-  .action(async (name: string | undefined, options) => {
-    try {
-      await init({
-        name,
-        yes: options.yes || false,
-        template: options.template,
-        target: options.target,
-      });
-    } catch (err) {
-      console.error(chalk.red('Init failed:'), err instanceof Error ? err.message : String(err));
-      process.exit(1);
-    }
-  });
-
-cli
-  .command('lint', 'Static analysis of plugin manifest')
-  .option('--config <file>', 'Config file path', { default: 'agentplugins.config.ts' })
-  .option('--json', 'Output as JSON')
-  .action(async (options) => {
-    try {
-      const config = await loadConfig(options.config);
-      await lint({ config, json: options.json || false });
-    } catch (err) {
-      console.error(chalk.red('Lint failed:'), err instanceof Error ? err.message : String(err));
-      process.exit(1);
-    }
-  });
-
-cli
-  .command('preview', 'Preview compile output without writing to disk')
-  .option('--config <file>', 'Config file path', { default: 'agentplugins.config.ts' })
-  .option('-t, --target <targets>', 'Comma-separated target platforms')
-  .option('--diff', 'Show diff against existing dist/ output')
-  .action(async (options) => {
-    try {
-      const config = await loadConfig(options.config);
-      const targets = options.target
-        ? options.target.split(',').map((t: string) => t.trim())
-        : undefined;
-
-      await preview({ config, targets, diff: options.diff || false });
-    } catch (err) {
-      console.error(chalk.red('Preview failed:'), err instanceof Error ? err.message : String(err));
-      process.exit(1);
-    }
-  });
-
-cli.help();
-cli.version(pkg.version);
-
-cli.parse();
+    command({
+      name: 'preview',
+      flags: {
+        config: { type: String, placeholder: '<file>', default: 'agentplugins.config.ts', description: 'Config file path' },
+        target: { type: String, alias: 't', placeholder: '<targets>', description: 'Comma-separated target platforms' },
+        diff: { type: Boolean, description: 'Show diff against existing dist/ output' },
+      },
+      help: { description: 'Preview compile output without writing to disk' },
+    }, async ({ flags }) => {
+      try {
+        const cfg = await loadConfig(flags.config);
+        const targets = flags.target ? flags.target.split(',').map((t: string) => t.trim()) : undefined;
+        await preview({ config: cfg, targets, diff: flags.diff || false });
+      } catch (err) {
+        console.error('Preview failed:', formatError(err));
+        process.exit(1);
+      }
+    }),
+  ],
+  help: {
+    description: 'Build AI agent plugins once, ship to any harness.',
+  },
+});

@@ -36,8 +36,8 @@
     "@agentplugins/adapter-opencode": "workspace:*",
     "@agentplugins/adapter-pimono": "workspace:*",
     "@clack/prompts": "^0.7.0",
-    "cac": "^6.7.14",
     "chalk": "^5.3.0",
+    "cleye": "catalog:",
     "jiti": "^1.21.6"
   },
   "devDependencies": {
