@@ -23,15 +23,15 @@ import {
   type HookDefinition,
 } from "@agentplugins/core/adapter";
 
-import { createValidate } from "./validate";
+import { createValidate } from "./validate.js";
 import {
   HOOK_MAPPING,
   EVENT_HOOKS,
   buildEventHookBlock,
   buildHookArgs,
-} from "./hook-mapping";
-import { buildHandlerInvocation } from "./handler-invocation";
-import { generatePluginFile, generateManifest, generateCommandFiles, generateAgentFiles } from "./output-generators";
+} from "./hook-mapping.js";
+import { buildHandlerInvocation } from "./handler-invocation.js";
+import { generatePluginFile, generateManifest, generateCommandFiles, generateAgentFiles } from "./output-generators.js";
 
 /**
  * The 8 hooks supported by OpenCode.

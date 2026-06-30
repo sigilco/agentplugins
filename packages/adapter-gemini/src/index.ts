@@ -222,7 +222,7 @@ function validateGeminiManifest(plugin: PluginManifest): ValidationIssue[] {
  *   stdout → JSON result (optional)
  *   exit   → 0 (allow), 2 (block), other (warning)
  */
-function wrapInlineHandler(
+function _wrapInlineHandler(
   script: string,
   hookName: string,
   geminiEvent: string
@@ -275,7 +275,7 @@ process.stdin.on("end", () => {
  * Wrap a file-based handler so it conforms to the Gemini protocol.
  * Returns a *new* inline script that proxies to the file.
  */
-function wrapFileHandler(filePath: string): string {
+function _wrapFileHandler(filePath: string): string {
   return `#!/usr/bin/env node
 // Auto-generated Gemini file-handler proxy
 const { spawn } = require("child_process");
@@ -419,11 +419,10 @@ export class GeminiAdapter implements PlatformAdapter {
           ? ((handler as ReferenceHookHandler).source ?? (handler as ReferenceHookHandler).reference)
           : undefined;
 
-      let scriptContent: string;
       if (isReference && script) {
-        scriptContent = wrapFileHandler(script);
+        _wrapFileHandler(script);
       } else {
-        scriptContent = wrapInlineHandler(
+        _wrapInlineHandler(
           script ?? "// no-op",
           hookName,
           geminiEvent

@@ -12,10 +12,6 @@
 
 import {
   type PluginManifest,
-  type HookHandler,
-  type InlineHookHandler,
-  type CommandHookHandler,
-  type HttpHookHandler,
   Severity,
 } from "@agentplugins/core";
 
