@@ -20,6 +20,10 @@ Install any plugin into every supported AI agent — **Tier-1:** Claude Code, Co
 
 [**Sponsor development →**](https://buy.polar.sh/polar_cl_Mv1gdlG7bw3I70EC9IHtfeSHJj4PEKvA7JAUz23CFhj)
 
+<p align="center">
+  <img src="./docs/public/demo.gif" width="100%" alt="AgentPlugins demo: build once, install everywhere" />
+</p>
+
 ## Why
 
 - **Write once, run everywhere** — one manifest compiles to Claude Code, Codex, OpenCode, Pi Mono, Copilot, Gemini, and Kimi
