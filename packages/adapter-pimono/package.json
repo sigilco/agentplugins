@@ -3,30 +3,30 @@
   "version": "0.5.0",
   "description": "Pi Mono platform adapter for AgentPlugins — generates TypeScript-native extensions for the Pi agent runtime",
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
+      "import": "./dist/index.mjs",
       "require": "./dist/index.cjs",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.mts"
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts",
-    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "build": "tsdown src/index.ts --format cjs,esm --dts",
+    "dev": "tsdown src/index.ts --format cjs,esm --dts --watch",
     "clean": "rm -rf dist",
     "test": "vitest run --passWithNoTests",
     "test:run": "vitest run"
   },
   "dependencies": {
-    "@agentplugins/core": "workspace:*",
-    "@agentplugins/compile": "workspace:*"
+    "@agentplugins/compile": "workspace:*",
+    "@agentplugins/core": "workspace:*"
   },
   "devDependencies": {
-    "tsup": "^8.0.0",
-    "typescript": "^5.4.0",
-    "vitest": "^1.0.0"
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "files": [
     "dist",
