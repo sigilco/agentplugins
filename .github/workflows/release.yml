@@ -119,17 +119,22 @@ jobs:
       - name: Create archive
         run: |
           if [[ "${{ matrix.target }}" == *"windows"* ]]; then
-            zip agentplugins-${{ matrix.target }}.zip agentplugins-${{ matrix.target }}
+            zip agentplugins-${{ matrix.target }}.zip agentplugins-${{ matrix.target }}.exe
           else
             tar -czf agentplugins-${{ matrix.target }}.tar.gz agentplugins-${{ matrix.target }}
           fi
 
       - name: Generate checksum
         run: |
-          if command -v shasum &>/dev/null; then
-            shasum -a 256 agentplugins-${{ matrix.target }} | awk '{print $1}' > agentplugins-${{ matrix.target }}.sha256
+          if [[ "${{ matrix.target }}" == *"windows"* ]]; then
+            BIN="agentplugins-${{ matrix.target }}.exe"
           else
-            sha256sum agentplugins-${{ matrix.target }} | awk '{print $1}' > agentplugins-${{ matrix.target }}.sha256
+            BIN="agentplugins-${{ matrix.target }}"
+          fi
+          if command -v shasum &>/dev/null; then
+            shasum -a 256 "$BIN" | awk '{print $1}' > agentplugins-${{ matrix.target }}.sha256
+          else
+            sha256sum "$BIN" | awk '{print $1}' > agentplugins-${{ matrix.target }}.sha256
           fi
 
       - name: Upload artifact
