@@ -1,6 +1,6 @@
 {
   "name": "@agentplugins/pipeline",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "AgentPlugins middleware kernel — composable plugin bus for the build and install pipelines",
   "type": "module",
   "main": "./dist/index.mjs",
