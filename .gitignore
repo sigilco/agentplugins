@@ -53,6 +53,9 @@ docs/public/*
 !docs/public/favicon.svg
 !docs/public/favicon.ico
 !docs/public/og.png
+!docs/public/img/
+!docs/public/img/logo-dark.png
+!docs/public/img/logo-light.png
 
 # Misc
 *.local
