@@ -17,7 +17,7 @@ Verify `agentplugins` is on your `PATH`:
 
 ```bash
 agentplugins --version
-# agentplugins 1.0.0
+# agentplugins 0.6.0
 ```
 
 ## 2. Add a plugin from GitHub

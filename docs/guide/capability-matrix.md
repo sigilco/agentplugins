@@ -31,9 +31,9 @@ Legend:
 | `subagentStart`          | ✅           | ✅           | ⚠️      | ✅      | OpenCode: intercept `subagent` tool calls with `preToolUse` matcher (subagents launch via the `subagent` tool).            | Emits WARN on OpenCode. Pi maps to `agent.AgentStart` lifecycle event.                                                      |
 | `subagentStop`           | ✅           | ✅           | ⚠️      | ✅      | OpenCode: detect via `postToolUse` / `postToolUseFailure` on the `subagent` tool.                                          | Emits WARN on OpenCode. Pi maps to `agent.AgentStop` lifecycle event. Pi `stop`↔`subagentStop` collision fixed in v0.3.0.   |
 | `tools[]` (first-class)  | ⚠️          | ⚠️          | ✅       | ✅      | Claude/Codex: ship tools via `mcpServers` — works on all four harnesses (universal).                                       | WARN emitted; OpenCode/Pi emit first-class `tools[]` natively.                                                             |
-| `stop` / `continueWith`  | ⚠️          | ⚠️          | ⚠️      | ⚠️     | Each harness already has a `stop`-class lifecycle hook natively — emit nothing in portable manifests until v0.4.0 ships.  | New universal primitive — v0.4.0; all-harness design.                                                                       |
-| Native-entry passthrough | n/a (JSON)  | n/a (JSON)   | ⚠️      | ⚠️     | OpenCode: drop a `.ts` file directly into `~/.config/opencode/plugins/<name>/` — Bun runs it as ESM, no codegen needed.   | `nativeEntry` escape hatch — ships in v0.4.0; OpenCode native modules must be `.ts` (file-drop path).                       |
-| Inline hook handlers     | ✅ auto-wrap | ✅ auto-wrap | ✅       | ✅      | —                                                                                                                         | Codex/Kimi: auto-wrapped as Node.js command scripts (v0.4.0).                                                              |
+| `stop` / `continueWith`  | ⚠️          | ⚠️          | ⚠️      | ⚠️     | Each harness already has a `stop`-class lifecycle hook natively — emit nothing in portable manifests until v0.5.0.  | New universal primitive — v0.5.0; all-harness design.                                                                       |
+| Native-entry passthrough | n/a (JSON)  | n/a (JSON)   | ⚠️      | ⚠️     | OpenCode: drop a `.ts` file directly into `~/.config/opencode/plugins/<name>/` — Bun runs it as ESM, no codegen needed.   | `nativeEntry` escape hatch — ships in v0.5.0; OpenCode native modules must be `.ts` (file-drop path).                       |
+| Inline hook handlers     | ✅ auto-wrap | ✅ auto-wrap | ✅       | ✅      | —                                                                                                                         | Codex/Kimi: auto-wrapped as Node.js command scripts (v0.5.0).                                                              |
 
 ## Additional harnesses
 
@@ -45,7 +45,7 @@ Legend:
 | `tools[]`                        | ✅      | ✅     | ❌   | —                                                                                           | First-class tool emission.                                          |
 | `mcpServers`                     | ❌      | ❌    | ❌   | Wire the MCP server directly into the harness's native config — no agentplugins path needed. | Not on the manifest path; harness-level wiring only.                |
 
-Kimi supported hooks: `preToolUse`, `userPromptSubmit`, `sessionStart`, `notification`, `permissionRequest`. Inline handlers auto-wrapped as Node.js command scripts (v0.4.0).
+Kimi supported hooks: `preToolUse`, `userPromptSubmit`, `sessionStart`, `notification`, `permissionRequest`. Inline handlers auto-wrapped as Node.js command scripts (v0.5.0).
 
 ## Decision tree for authors
 
@@ -58,7 +58,7 @@ Does universal codegen cover this capability across all four core harnesses?
       YES → use nativeEntry; emit WARN (not error)
       NO  → is the gap TUI-grade fidelity only?
         YES → acceptable degradation; note in this matrix
-        NO  → open a primitive proposal (v0.4.0+ scope)
+        NO  → open a primitive proposal (v0.5.0+ scope)
 ```
 
 ---
