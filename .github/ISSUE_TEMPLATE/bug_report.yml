@@ -1,0 +1,46 @@
+name: Bug Report
+description: Something is broken
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing: check the [capability matrix](https://agentplugins.pages.dev/guide/capability-matrix) — some behaviours are by design.
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the bug.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Run `agentplugins add ...`
+        2. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: AgentPlugins version
+      placeholder: "0.5.0"
+    validations:
+      required: true
+  - type: input
+    id: harness
+    attributes:
+      label: Agent harness(es) affected
+      placeholder: "Claude Code, Codex, ..."
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context

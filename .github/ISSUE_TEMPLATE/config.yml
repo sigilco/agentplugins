@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://agentplugins.pages.dev
+    about: Read the full docs before filing an issue.
+  - name: Capability Matrix
+    url: https://agentplugins.pages.dev/guide/capability-matrix
+    about: Check if a behaviour is by design (⚠️ guided per-harness).
