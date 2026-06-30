@@ -8,6 +8,9 @@ hero:
   text: "Universal plugin standard for AI agents"
   tagline: "Write AI agent plugins once, ship to any harness."
   description: "One manifest. Tier-1: Claude Code, Codex, OpenCode, Pi Mono. Tier-2: Copilot, Gemini, Kimi. Zero lock-in."
+  image:
+    src: /img/logo-dark.png
+    alt: AgentPlugins
   actions:
     - theme: brand
       text: Get Started
