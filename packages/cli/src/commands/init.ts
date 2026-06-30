@@ -108,7 +108,7 @@ async function runInteractive(opts: InitOptions): Promise<ScaffoldAnswers> {
       placeholder: 'my-plugin',
       defaultValue: DEFAULTS.name,
       validate: (v) =>
-        v.length === 0 || !KEBAB_RE.test(v)
+        !v || v.length === 0 || !KEBAB_RE.test(v)
           ? 'Use kebab-case (lowercase letters, digits, hyphens)'
           : undefined,
     });
@@ -127,7 +127,7 @@ async function runInteractive(opts: InitOptions): Promise<ScaffoldAnswers> {
       message: 'Description',
       placeholder: 'Describe what your plugin does...',
       validate: (v) =>
-        v.trim().length < 10 ? 'Description must be at least 10 characters' : undefined,
+        !v || v.trim().length < 10 ? 'Description must be at least 10 characters' : undefined,
     }),
   );
 
@@ -143,7 +143,7 @@ async function runInteractive(opts: InitOptions): Promise<ScaffoldAnswers> {
     targets = opts.target.split(',').map((t) => t.trim()).filter(Boolean);
   } else {
     const picked = assertValue(
-      await p.multiselect<typeof TARGET_OPTIONS, string>({
+      await p.multiselect<string>({
         message: 'Target platforms',
         options: TARGET_OPTIONS,
         required: false,
@@ -153,7 +153,7 @@ async function runInteractive(opts: InitOptions): Promise<ScaffoldAnswers> {
   }
 
   const pickedHooks = assertValue(
-    await p.multiselect<typeof HOOK_OPTIONS, string>({
+    await p.multiselect<string>({
       message: 'Hook coverage',
       options: HOOK_OPTIONS,
       required: false,
@@ -173,7 +173,7 @@ async function runInteractive(opts: InitOptions): Promise<ScaffoldAnswers> {
         message: 'Skill name',
         placeholder: `${name}-skill`,
         defaultValue: `${name}-skill`,
-        validate: (v) => (v.length === 0 ? 'Skill name is required' : undefined),
+        validate: (v) => (!v || v.length === 0 ? 'Skill name is required' : undefined),
       }),
     );
     skillDescription = assertValue(
@@ -181,7 +181,7 @@ async function runInteractive(opts: InitOptions): Promise<ScaffoldAnswers> {
         message: 'Skill description',
         placeholder: `Describe what the ${name} skill does...`,
         validate: (v) =>
-          v.trim().length < 10 ? 'Description must be at least 10 characters' : undefined,
+          !v || v.trim().length < 10 ? 'Description must be at least 10 characters' : undefined,
       }),
     );
   }

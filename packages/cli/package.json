@@ -35,8 +35,8 @@
     "@agentplugins/adapter-kimi": "workspace:*",
     "@agentplugins/adapter-opencode": "workspace:*",
     "@agentplugins/adapter-pimono": "workspace:*",
-    "@clack/prompts": "^0.7.0",
-    "@logtape/logtape": "^0.4.0",
+    "@clack/prompts": "catalog:",
+    "@logtape/logtape": "catalog:",
     "cleye": "catalog:",
     "jiti": "catalog:"
   },

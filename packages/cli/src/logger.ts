@@ -8,8 +8,8 @@ export async function setupLogger() {
     sinks: { console: getConsoleSink() },
     filters: {},
     loggers: [
-      { category: ['agentplugins', 'cli'], sinks: ['console'], level: 'info' },
-      { category: ['logtape', 'meta'], sinks: ['console'], level: 'warning' },
+      { category: ['agentplugins', 'cli'], sinks: ['console'], lowestLevel: 'info' },
+      { category: ['logtape', 'meta'], sinks: ['console'], lowestLevel: 'warning' },
     ],
   });
   configured = true;

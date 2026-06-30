@@ -79,7 +79,7 @@ export default withMermaid(defineConfig({
         name: 'vitepress-dev-llms-txt',
         configureServer(server) {
           server.middlewares.use((req, res) => {
-            const url = req.url.split('?')[0]
+            const url = (req.url ?? '').split('?')[0]
             if (url === '/llms.txt' || url === '/llms-full.txt') {
               const distPath = resolve(__dirname, '.vitepress/dist' + url)
               if (existsSync(distPath)) {
