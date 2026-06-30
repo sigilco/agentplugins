@@ -107,8 +107,8 @@ export default withMermaid(defineConfig({
     nav: [
       { text: 'Guide', link: '/guide/introduction' },
       { text: 'Reference', link: '/reference' },
-      { text: 'Sponsor', link: SPONSOR_SITE },
       { text: 'GitHub', link: GITHUB_SITE },
+      { text: 'Sponsor', link: SPONSOR_SITE },
       {
         text: 'LLMs',
         items: [
@@ -172,7 +172,7 @@ export default withMermaid(defineConfig({
     },
 
     footer: {
-      message: 'Released under the MIT License.',
+      message: 'Released under the Apache License 2.0.',
       copyright: 'Copyright © AgentPlugins contributors',
     },
 
