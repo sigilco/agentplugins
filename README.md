@@ -7,6 +7,13 @@
   </picture>
 </p>
 
+<p align="left">
+  <a href="https://github.com/sigilco/agentplugins/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/github/license/sigilco/agentplugins?style=flat-square"/></a>
+  <a href="https://www.npmjs.com/package/@agentplugins/cli"><img alt="npm version" src="https://img.shields.io/npm/v/@agentplugins/cli?style=flat-square"/></a>
+  <a href="https://www.npmjs.com/package/@agentplugins/cli"><img alt="npm downloads" src="https://img.shields.io/npm/dm/@agentplugins/cli?style=flat-square"/></a>
+  <a href="https://github.com/sigilco/agentplugins/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/sigilco/agentplugins/ci.yml?branch=main&style=flat-square"/></a>
+</p>
+
 > Write AI agent plugins once, ship to any harness.
 
 Install any plugin into every supported AI agent — **Tier-1:** Claude Code, Codex, OpenCode, Pi. **Tier-2:** Copilot, Gemini, Kimi.
