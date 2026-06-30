@@ -38,7 +38,7 @@
     "@clack/prompts": "^0.7.0",
     "@logtape/logtape": "^0.4.0",
     "cleye": "catalog:",
-    "jiti": "^1.21.6"
+    "jiti": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",

@@ -12,12 +12,7 @@
 
 import { existsSync } from 'node:fs';
 import { resolve, extname } from 'node:path';
-import jiti from 'jiti';
-
-// jiti's CJS default export is a function - cast to proper type
-const createJITI = jiti as unknown as (filename: string, opts?: Record<string, unknown>) => {
-  import: (id: string, opts?: Record<string, unknown>) => Promise<unknown>;
-};
+import { createJiti } from 'jiti';
 import type { PluginManifest, AgentPluginsConfig } from '@agentplugins/core';
 import type { Plugin } from '@agentplugins/pipeline';
 
@@ -66,12 +61,8 @@ export async function loadConfig(configPath: string): Promise<LoadedConfig> {
     manifest = JSON.parse(content) as PluginManifest;
   } else {
     // TypeScript/JavaScript config — use jiti
-    const jitiLoader = createJITI(resolvedPath, {
-      interopDefault: true,
-      esmResolve: true,
-    });
-
-    const mod = await jitiLoader.import(resolvedPath, { default: true });
+    const jiti = createJiti(resolvedPath, { interopDefault: true });
+    const mod = await jiti.import(resolvedPath);
     const exported = (mod as Record<string, unknown>)?.default ?? mod;
 
     if (typeof exported === 'function') {

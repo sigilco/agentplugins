@@ -20,6 +20,7 @@ import {
 } from '@agentplugins/core';
 import { join } from 'node:path';
 import { existsSync, rmSync } from 'node:fs';
+import { createJiti } from 'jiti';
 import { compile } from './build.js';
 import { runSetupFlow } from './setup.js';
 import { createApp, createInstallCtx, AbortError } from '@agentplugins/pipeline';
@@ -181,12 +182,8 @@ async function tryTsConfig(dir: string): Promise<{ path: string; manifest: Recor
     const fullPath = join(dir, candidate);
     if (!existsSync(fullPath)) continue;
     try {
-      const jiti = (await import('jiti')).default as unknown as (
-        filename: string,
-        opts?: Record<string, unknown>
-      ) => { import: (id: string, opts?: Record<string, unknown>) => Promise<unknown> };
-      const loader = jiti(fullPath, { interopDefault: true, esmResolve: true });
-      const mod = await loader.import(fullPath, { default: true });
+      const loader = createJiti(fullPath, { interopDefault: true });
+      const mod = await loader.import(fullPath);
       const exported = (mod as Record<string, unknown>)?.['default' as keyof typeof mod] ?? mod;
       const manifest = typeof exported === 'function'
         ? await (exported as () => Promise<Record<string, unknown>>)()
