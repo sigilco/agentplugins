@@ -20,5 +20,5 @@
     "outDir": "./dist",
     "rootDir": "."
   },
-  "exclude": ["node_modules", "dist", "*.js"]
+  "exclude": ["node_modules", "dist", "*.js", "**/__tests__/**", "**/dist/**", "**/node_modules/**"]
 }
