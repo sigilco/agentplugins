@@ -15,6 +15,6 @@ Full detail: [`prd.md`](.agents/docs/prd.md)
 ## Commit & branch conventions
 
 - Atomic conventional commits (`feat(adapter-pimono): fix subagentStop collision`)
-- Feature work on `feat/v0.3.0-authoring-wins`; release branch `release/v0.3.0` cut from `develop`
+- Feature work on `feat/*` branches off `develop`; merge to `develop`, then PR `develop → main` to release
 - All plans in `.agents/plans/<date>-<purpose>.md` before implementation begins
 - All work linked to a refined issue in [Project 14](https://github.com/users/espetro/projects/14/views/1)
