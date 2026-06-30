@@ -1,6 +1,6 @@
 {
   "name": "@agentplugins/adapter-gemini",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "AgentPlugins platform adapter for Google Gemini CLI extensions",
   "type": "module",
   "main": "./dist/index.mjs",

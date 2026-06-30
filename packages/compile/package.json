@@ -1,6 +1,6 @@
 {
   "name": "@agentplugins/compile",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Shared codegen kernel for AgentPlugins adapters. Secure emit helpers, sanitizers, lint, validation, hook-wrapper.",
   "type": "module",
   "main": "./dist/index.js",

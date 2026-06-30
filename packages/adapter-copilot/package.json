@@ -1,6 +1,6 @@
 {
   "name": "@agentplugins/adapter-copilot",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "GitHub Copilot CLI platform adapter for AgentPlugins — compiles AgentPlugins plugins into Copilot-compatible manifests, hooks, skills, and MCP configuration",
   "main": "./dist/index.cjs",
   "types": "./dist/index.d.mts",
