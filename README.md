@@ -2,20 +2,14 @@
 
 <p align="left">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./docs/public/img/logo-light.png" />
-    <img src="./docs/public/img/logo-dark.png" alt="AgentPlugins" height="96" />
+    <source media="(prefers-color-scheme: dark)" srcset="./docs/public/img/logo-dark.png" />
+    <img src="./docs/public/img/logo-light.png" alt="AgentPlugins" height="96" />
   </picture>
 </p>
 
 > Write AI agent plugins once, ship to any harness.
 
-Install any plugin into every supported AI agent with one command — Claude Code, Codex, Copilot, Gemini, Kimi, OpenCode, and Pi Mono.
-
-```bash
-curl -fsSL https://agentplugins.pages.dev/install.sh | bash
-```
-
-Or run ad-hoc with `npx`:
+Install any plugin into every supported AI agent — **Tier-1:** Claude Code, Codex, OpenCode, Pi Mono. **Tier-2:** Copilot, Gemini, Kimi.
 
 ```bash
 npx @agentplugins/cli add user/awesome-plugin
@@ -23,6 +17,12 @@ npx @agentplugins/cli add user/awesome-plugin
 
 ```bash
 agentplugins add sigilco/agentplugins-ponytail
+```
+
+Or install the CLI globally first:
+
+```bash
+curl -fsSL https://agentplugins.pages.dev/install.sh | bash
 ```
 
 ## Create a plugin
@@ -40,9 +40,17 @@ Porting an existing plugin? → [agentplugins.pages.dev/guide/porting](https://a
 
 ## Supported agents
 
-Works with Claude Code, Codex, Copilot, Gemini, Kimi, OpenCode, and Pi Mono.
+**Tier-1** (full capability parity): Claude Code, Codex, OpenCode, Pi Mono.
+
+**Tier-2** (skills + commands, subset of hooks): Copilot, Gemini, Kimi.
 
 Capability comparison → [agentplugins.pages.dev/guide/capability-matrix](https://agentplugins.pages.dev/guide/capability-matrix)
+
+## Architecture
+
+One manifest → seven adapters. Each adapter owns its output format; the `@agentplugins/core` compiler routes capability expressions to harness-native primitives and emits a WARN for any gap.
+
+Full detail → [ARCHITECTURE.md](./ARCHITECTURE.md)
 
 ## Documentation
 
@@ -52,6 +60,4 @@ LLMs.txt for AI agents → [agentplugins.pages.dev/llms.txt](https://agentplugin
 
 ---
 
-Sponsor AgentPlugins → [buy.polar.sh/polar_cl_Mv1gdlG7bw3I70EC9IHtfeSHJj4PEKvA7JAUz23CFhj](https://buy.polar.sh/polar_cl_Mv1gdlG7bw3I70EC9IHtfeSHJj4PEKvA7JAUz23CFhj)
-
-Apache-2.0 · [GitHub](https://github.com/sigilco/agentplugins)
+Apache-2.0 · [GitHub](https://github.com/sigilco/agentplugins) · [Sponsor](https://buy.polar.sh/polar_cl_Mv1gdlG7bw3I70EC9IHtfeSHJj4PEKvA7JAUz23CFhj)
