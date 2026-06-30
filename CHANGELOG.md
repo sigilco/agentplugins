@@ -2,6 +2,38 @@
 
 All notable changes to this project are documented in this file.
 
+## v0.6.0 — Pipeline Kernel, defineConfig, Docs Site & Full-Stack Upgrade
+
+### Architecture
+- **`@agentplugins/pipeline`** — new middleware kernel: composable install pipeline with typed `PipelineContext`, `use()` registration, ordered execution, and abort support. Security gate migrated as a first-class pipeline plugin.
+- **`defineConfig` API** — plugin bus + per-target overrides; custom-adapter extensibility via the pipeline.
+- **`@agentplugins/contract`** zod 4 migration — schema as single source of truth; `zod-to-json-schema` at build time.
+- **`@agentplugins/core`**, **`@agentplugins/migrate`** zod 4 migration.
+- **`@agentplugins/store`** — GitHub tree-URL parsing for bare repo paths in `validateCloneUrl`.
+
+### Adapters
+- **`adapter-opencode`** — emits `mcpServers` as `mcp.servers` in `opencode.json` (breaking opencode config format alignment).
+- **`adapter-claude`** / **`adapter-opencode`** — agent `model` + `fallbackModels` frontmatter support.
+- **`adapter-copilot`** — universal hook-handler fix (copilot hook registration regression).
+
+### Tooling / Build
+- **tsup → tsdown** across all adapters + `@agentplugins/pipeline`.
+- **cleye** (replaces cac) + **logtape** structured logging (replaces chalk) in CLI.
+- **jiti v2** migration in CLI and `recompile-installed` script.
+- **pnpm catalog** + `.nvmrc 22` + `engines.node >=22` across the monorepo.
+- **`adapter-opencode`** / **`adapter-gemini`** tsc errors resolved.
+
+### Docs / Site
+- VitePress docs site: logo, sponsor CTA, reference landing page, SEO/sitemap/OG tags.
+- Capability-matrix restructured; porting guide added.
+- Domain updated `agentplugins.dev → agentplugins.pages.dev`; `$id` in schema JSON updated to match.
+
+### Project / CI
+- Community-health files: `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, issue templates, PR template, `FUNDING.yml`, triage workflow.
+- CI typecheck scoped to `packages/**` (docs site and `example-profiler` lack `tsc` config).
+- Topological binary build in `release.yml` (`pnpm --filter './packages/**'` replaces selective filter).
+- `adapter-codex` / `adapter-kimi` `peerDependencies` bumped `^0.5.0 → ^0.6.0`.
+
 ## v0.5.0 — @agentplugins/store + Setup Scripts
 
 ### New package
