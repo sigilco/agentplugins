@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * One-time recompile script for installed plugins.
  * Run from workspace: npx tsx scripts/recompile-installed.ts
@@ -5,6 +6,7 @@
 import { join } from 'node:path';
 import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
+import { createJiti } from 'jiti';
 import { compile } from '../packages/cli/src/commands/build.js';
 import {
   getDetectedAgents,
@@ -25,14 +27,13 @@ async function tryTsConfig(pluginDir: string) {
     const fp = join(pluginDir, c);
     if (!existsSync(fp)) continue;
     try {
-      const jiti = (await import('jiti')).default as any;
       // Map @agentplugins/* so jiti can resolve workspace packages from the plugin dir
       const wsRoot = new URL('../', import.meta.url).pathname;
       const alias: Record<string, string> = {
         '@agentplugins/core': join(wsRoot, 'packages/core/dist/index.js'),
       };
-      const loader = jiti(fp, { interopDefault: true, esmResolve: true, alias });
-      const mod = await loader.import(fp, { default: true });
+      const loader = createJiti(fp, { interopDefault: true, alias });
+      const mod = await loader.import(fp);
       const exported = (mod as any)?.default ?? mod;
       const manifest = typeof exported === 'function' ? await (exported as () => Promise<any>)() : exported;
       if (manifest?.name) return manifest;

@@ -1,5 +1,6 @@
 ---
-description: Learn how AgentPlugins solves plugin fragmentation across AI agent frameworks
+title: Introduction – AgentPlugins
+description: Learn how AgentPlugins unifies AI agent plugins across Claude Code, Codex, OpenCode, and more with a single manifest file.
 ---
 # Introduction
 
@@ -34,29 +35,41 @@ flowchart LR
   core --> a2["Codex CLI"]
   core --> a3["GitHub Copilot"]
   core --> a4["Gemini CLI"]
-  core --> a5["+ 3 more"]
+  core --> a5["+ more"]
 ```
 
 ## Supported platforms
 
-Seven harnesses are supported as first-class compile targets:
+AgentPlugins targets four harnesses as primary compile targets with universal codegen — the same plugin behaviour across all four:
 
 
-| Agent              | Binary     | Skill path                  |
-| ------------------ | ---------- | --------------------------- |
-| Claude Code        | `claude`   | `~/.claude/skills`          |
-| Codex CLI          | `codex`    | `~/.codex/skills`           |
-| GitHub Copilot CLI | `copilot`  | `~/.copilot/skills`         |
-| Gemini CLI         | `gemini`   | `~/.gemini/skills`          |
-| Kimi               | `kimi`     | `~/.kimi/skills`            |
-| OpenCode           | `opencode` | `~/.config/opencode/skills` |
-| Pi Mono            | `pi`       | `~/.pi/extensions`          |
+| Agent       | Binary     | Skill path                  |
+| ----------- | ---------- | --------------------------- |
+| Claude Code | `claude`   | `~/.claude/skills`          |
+| Codex CLI   | `codex`    | `~/.codex/skills`           |
+| OpenCode    | `opencode` | `~/.config/opencode/skills` |
+| Pi Mono     | `pi`       | `~/.pi/extensions`          |
+
+
+Three additional harnesses are tracked with decreasing capability coverage:
+
+
+| Agent              | Binary    | Skill path          |
+| ------------------ | --------- | ------------------- |
+| GitHub Copilot CLI | `copilot` | `~/.copilot/skills` |
+| Gemini CLI         | `gemini`  | `~/.gemini/skills`  |
+| Kimi               | `kimi`    | `~/.kimi/skills`    |
 
 
 See the [agent paths reference](/reference/agent-paths) for the full registry and the [adapters reference](/reference/adapters) for what each platform emits.
+
+## Custom harnesses
+
+If you maintain an internal harness, you can add it as a custom compile target. Register a private adapter via the `plugins` field in `defineConfig` — see [Extending the Build Pipeline](/guide/extending) for the full guide.
 
 ## Where to go next
 
 - [Install](/guide/installation) the CLI.
 - Walk through the [quick start](/guide/quick-start).
 - Learn the [manifest format](/guide/manifest).
+

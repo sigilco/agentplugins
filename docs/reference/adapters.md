@@ -18,7 +18,7 @@ An adapter compiles the universal manifest into one target platform's native for
 
 Two families: **JSON-emitting** adapters (claude, codex, copilot, gemini, kimi) produce static manifest files the host reads at startup. **Code-emitting** adapters (opencode, pimono) produce real TypeScript modules the host imports and calls.
 
-See the [Tier-1 Capability Matrix](/reference/compat-matrix) for full cross-harness details.
+See the [Capability Matrix](/guide/capability-matrix) for full cross-harness details.
 
 ## JSON-emitting adapters
 
@@ -191,12 +191,58 @@ exec bun "${PLUGIN_ROOT}/dist/handler.js" pre-tool-use "$@"
 
 This means inline handlers work everywhere — at the cost of a Bun startup on platforms that don't support them natively. For latency-sensitive hooks on Claude/Codex/Gemini/Kimi, prefer `command` handlers.
 
-## Adding a new adapter
+## Custom adapters
 
-An adapter is any executable that implements the **JSON process ABI**: read a manifest (stdin or `--manifest <file>`), compile platform-specific output, write files, and exit `0` (success) or non-zero (failure). This enables any-language adapters without SDK lock-in. See [`adapter.schema.json`](https://raw.githubusercontent.com/sigilco/agentplugins/main/spec/v1/adapter.schema.json) for the contract.
+`TargetPlatform` is an open string type — any non-empty target id is valid. Register a custom adapter via the `plugins` field in `defineConfig` and add the target id to `targets`:
+
+```typescript
+// agentplugins.config.ts
+import { defineConfig } from '@agentplugins/core'
+import { myHarnessAdapter } from './src/my-harness-adapter.js'
+
+export default defineConfig({
+  manifest: { name: 'my-plugin', version: '1.0.0', description: '…' },
+  plugins: [{ name: 'my-harness', adapter: myHarnessAdapter }],
+  targets: ['claude', 'my-harness'],
+})
+```
+
+### `PlatformAdapter` interface
+
+```typescript
+interface PlatformAdapter {
+  readonly name: string                          // target id
+  readonly displayName: string                   // human label
+  readonly supportedHooks: UniversalHookName[]   // used by lint
+  readonly supportedHandlers: HandlerType[]      // used by lint
+  readonly manifestPath: string                  // primary output path (for install)
+  readonly manifestFormat: 'json' | 'toml'
+
+  validate(plugin: PluginManifest): ValidationIssue[]
+  compile(plugin: PluginManifest, options?: CompileOptions): AdapterOutput
+}
+
+interface AdapterOutput {
+  files: { path: string; content: string }[]
+  manifest: Record<string, unknown>
+  warnings: string[]
+  issues: ValidationIssue[]
+  postInstall?: string[]             // commands to run after install
+  nativeCopies?: NativeCopy[]        // verbatim file passthrough
+}
+```
+
+`validate()` returns `ValidationIssue[]` — severity `'error'` aborts the build; `'warning'` is printed and continues.
+
+`compile()` returns the full set of files to write into `dist/<target>/`. Paths are relative to that directory.
+
+For a working example, see `plugins/example-custom-adapter/` in the repository.
+
+See [Extending the Build Pipeline](/guide/extending) for the full guide including lint rules and middleware hooks.
 
 ## Next steps
 
 - [Manifest reference](/guide/manifest) — what every field means.
 - [Hooks](/guide/hooks) — the 19 universal events.
+- [Extending the Build Pipeline](/guide/extending) — custom adapters and pipeline plugins.
 - [Agent paths](/reference/agent-paths) — where each adapter writes its output.

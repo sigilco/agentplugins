@@ -4,8 +4,10 @@
  * Pulls latest changes for a plugin (or all plugins).
  */
 
-import chalk from 'chalk';
 import { updatePlugin, listPlugins, getPluginInfo } from '@agentplugins/core';
+import { getCliLogger } from '../logger.js';
+
+const logger = getCliLogger();
 
 export interface UpdateOptions {
   name?: string;
@@ -17,27 +19,30 @@ export async function update(options: UpdateOptions): Promise<void> {
   if (options.all || !options.name) {
     const plugins = listPlugins();
     if (plugins.length === 0) {
-      console.log(chalk.gray('\nNo plugins installed.\n'));
+      logger.info('\nNo plugins installed.\n');
       return;
     }
 
-    console.log(chalk.bold(`\n🔄 Updating ${plugins.length} plugin${plugins.length > 1 ? 's' : ''}\n`));
+    logger.info('\n🔄 Updating {count} plugin{plural}\n', {
+      count: plugins.length,
+      plural: plugins.length > 1 ? 's' : '',
+    });
 
     let success = 0;
     let failed = 0;
     for (const plugin of plugins) {
       try {
-        process.stdout.write(chalk.gray(`  ${plugin.meta.name}... `));
+        process.stdout.write(`  ${plugin.meta.name}... `);
         const meta = updatePlugin(plugin.meta.name);
-        console.log(chalk.green(`✓ ${meta.version} (${meta.commit.slice(0, 7)})`));
+        logger.info('✓ {version} ({commit})', { version: meta.version, commit: meta.commit.slice(0, 7) });
         success++;
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
-        console.log(chalk.red(`✗ ${msg}`));
+        logger.error('✗ {msg}', { msg });
         failed++;
       }
     }
-    console.log(chalk.gray(`\n${success} updated, ${failed} failed.\n`));
+    logger.info('\n{success} updated, {failed} failed.\n', { success, failed });
     return;
   }
 
@@ -45,23 +50,26 @@ export async function update(options: UpdateOptions): Promise<void> {
   const name = options.name;
   const info = getPluginInfo(name);
   if (!info) {
-    console.error(chalk.red(`Plugin "${name}" is not installed.`));
+    logger.error('Plugin "{name}" is not installed.', { name });
     process.exit(1);
   }
 
-  console.log(chalk.bold('\n🔄 AgentPlugins Update\n'));
-  console.log(chalk.gray(`Plugin: ${name}`));
-  console.log(chalk.gray(`Current: v${info.meta.version} (${info.meta.commit.slice(0, 7)})\n`));
+  logger.info('\n🔄 AgentPlugins Update\n');
+  logger.info('Plugin: {name}', { name });
+  logger.info('Current: v{version} ({commit})\n', {
+    version: info.meta.version,
+    commit: info.meta.commit.slice(0, 7),
+  });
 
   try {
     const meta = updatePlugin(name);
-    console.log(chalk.green(`\n✅ Updated ${name}`));
-    console.log(chalk.gray(`   Version: ${meta.version}`));
-    console.log(chalk.gray(`   Commit:  ${meta.commit.slice(0, 7)}`));
-    console.log(chalk.gray(`   Updated: ${meta.updatedAt}\n`));
+    logger.info('\n✅ Updated {name}', { name });
+    logger.info('   Version: {version}', { version: meta.version });
+    logger.info('   Commit:  {commit}', { commit: meta.commit.slice(0, 7) });
+    logger.info('   Updated: {updated}\n', { updated: meta.updatedAt });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error(chalk.red(`\nFailed to update: ${msg}\n`));
+    logger.error('\nFailed to update: {msg}\n', { msg });
     process.exit(1);
   }
 }

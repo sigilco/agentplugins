@@ -1,11 +1,16 @@
 ---
+title: AgentPlugins – Universal Plugin Standard for AI Agents
+description: Write AI agent plugins once, ship to Claude Code, Codex, OpenCode, Gemini, Copilot, Kimi, and Pi Mono. One manifest. Seven platforms. Zero lock-in.
 layout: home
 
 hero:
   name: "AgentPlugins"
   text: "Universal plugin standard for AI agents"
   tagline: "Write AI agent plugins once, ship to any harness."
-  description: "One manifest. Seven agent platforms. Universal store. Zero lock-in."
+  description: "One manifest. Tier-1: Claude Code, Codex, OpenCode, Pi Mono. Tier-2: Copilot, Gemini, Kimi. Zero lock-in."
+  image:
+    src: /img/logo-dark.png
+    alt: AgentPlugins
   actions:
     - theme: brand
       text: Get Started
@@ -13,6 +18,9 @@ hero:
     - theme: alt
       text: GitHub
       link: https://github.com/sigilco/agentplugins
+    - theme: alt
+      text: Sponsor
+      link: https://buy.polar.sh/polar_cl_Mv1gdlG7bw3I70EC9IHtfeSHJj4PEKvA7JAUz23CFhj
 
 features:
   - title: "Manage any AI harness plugin"

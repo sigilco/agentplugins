@@ -40,11 +40,12 @@
   "homepage": "https://agentplugins.pages.dev/",
   "dependencies": {
     "@agentplugins/compile": "workspace:*",
+    "@agentplugins/pipeline": "workspace:*",
     "@agentplugins/security": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "typescript": "^5.9.3",
-    "vitest": "^3.1.4"
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

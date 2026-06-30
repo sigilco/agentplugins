@@ -3,7 +3,7 @@
 # install.sh — Install AgentPlugins CLI via curl
 #
 # Usage:
-#   curl -fsSL https://agentplugins.dev/install.sh | bash
+#   curl -fsSL https://agentplugins.pages.dev/install.sh | bash
 #   curl -fsSL https://raw.githubusercontent.com/sigilco/agentplugins/main/scripts/install.sh | bash
 #
 # Flags:

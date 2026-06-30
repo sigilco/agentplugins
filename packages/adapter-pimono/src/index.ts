@@ -354,6 +354,19 @@ function validatePlugin(plugin: PluginManifest): ValidationIssue[] {
     }
   }
 
+  // ── mcpServers ──
+  if (plugin.mcpServers && Object.keys(plugin.mcpServers).length > 0) {
+    issues.push({
+      severity: Severity.WARNING,
+      field: "mcpServers",
+      message:
+        `Pi Mono has no built-in MCP support — "mcpServers" will not be emitted for this target. ` +
+        `Use first-class "tools[]" (emitted natively via pi.registerTool()) or bridge an MCP server ` +
+        `through a Pi extension via "nativeEntry.pimono". ` +
+        `See docs/guide/porting#mcp-on-pi for the guided pattern.`,
+    });
+  }
+
   return issues;
 }
 

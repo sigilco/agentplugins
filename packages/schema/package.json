@@ -41,11 +41,11 @@
   },
   "homepage": "https://agentplugins.pages.dev/",
   "dependencies": {
-    "ajv": "^8.17.1"
+    "ajv": "^8.20.0"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "typescript": "^5.9.3",
-    "vitest": "^3.1.4"
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

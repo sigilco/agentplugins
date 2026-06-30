@@ -12,10 +12,6 @@
 
 import {
   type PluginManifest,
-  type HookHandler,
-  type InlineHookHandler,
-  type CommandHookHandler,
-  type HttpHookHandler,
   Severity,
 } from "@agentplugins/core";
 
@@ -43,7 +39,7 @@ const SUPPORTED_HOOKS: readonly UniversalHookName[] = [
  * guided per-harness escape-hatch. These emit a WARN (not an error) so that
  * portable manifests remain buildable; authors are pointed to the compat matrix.
  *
- * See: docs/reference/compat-matrix.md — "subagentStart / subagentStop"
+ * See: docs/guide/capability-matrix.md — "subagentStart / subagentStop"
  */
 const GUIDED_PERHARNESS_HOOKS: readonly UniversalHookName[] = [
   "subagentStart",
@@ -83,7 +79,7 @@ export function createValidate(): (plugin: PluginManifest) => ValidationIssue[] 
             `Hook "${hookName}" has no native OpenCode event. ` +
             `OpenCode does not expose a child-session/subagent lifecycle. ` +
             `Use a per-harness nativeEntry or intercept via preToolUse/postToolUse for the subagent tool. ` +
-            `See docs/reference/compat-matrix.md for the guided per-harness path. ` +
+            `See docs/guide/capability-matrix.md for the guided per-harness path. ` +
             `This hook will be omitted from the OpenCode output.`,
         });
       } else if (!SUPPORTED_HOOKS.includes(universalHook)) {

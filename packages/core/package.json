@@ -45,12 +45,13 @@
   "dependencies": {
     "@agentplugins/contract": "workspace:*",
     "@agentplugins/compile": "workspace:*",
+    "@agentplugins/pipeline": "workspace:*",
     "@agentplugins/store": "workspace:*",
-    "zod": "^3.25.76"
+    "zod": "catalog:"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "typescript": "^5.9.3",
-    "vitest": "^3.1.4"
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

@@ -9,8 +9,8 @@
     "build:core": "cd ../../packages/core && pnpm build"
   },
   "devDependencies": {
-    "@agentplugins/core": "workspace:*",
     "@agentplugins/cli": "workspace:*",
-    "typescript": "^5.5.0"
+    "@agentplugins/core": "workspace:*",
+    "typescript": "catalog:"
   }
 }

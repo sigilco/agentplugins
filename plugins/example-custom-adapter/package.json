@@ -1,0 +1,14 @@
+{
+  "name": "agentplugins-example-custom-adapter",
+  "description": "Example: defineConfig with a private custom adapter",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "agentplugins build"
+  },
+  "devDependencies": {
+    "@agentplugins/cli": "workspace:*",
+    "@agentplugins/core": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

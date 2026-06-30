@@ -10,10 +10,12 @@ import {
   type ValidationIssue,
   type UniversalHookName,
   type HookHandler,
+  type HookDefinition,
   UNIVERSAL_HOOK_NAMES,
   ALL_TARGETS,
   type TargetPlatform,
   Severity,
+  type Dependency,
 } from '@agentplugins/contract';
 
 // ─── Universal Validators ─────────────────────────────────────────────────────
@@ -21,7 +23,11 @@ import {
 const KEBAB_CASE_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const SEMVER_RE = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
 
-export function validateUniversal(plugin: PluginManifest): ValidationIssue[] {
+export function validateUniversal(
+  plugin: PluginManifest,
+  opts?: { knownTargets?: readonly string[] }
+): ValidationIssue[] {
+  const knownTargets = opts?.knownTargets ?? (ALL_TARGETS as string[]);
   const issues: ValidationIssue[] = [];
 
   // ─── name ─────────────────────────────────────────────────────────────────
@@ -71,12 +77,12 @@ export function validateUniversal(plugin: PluginManifest): ValidationIssue[] {
   // ─── targets ──────────────────────────────────────────────────────────────
   if (plugin.targets) {
     for (const target of plugin.targets) {
-      if (!ALL_TARGETS.includes(target)) {
+      if (!(knownTargets as string[]).includes(target)) {
         issues.push({
-          severity: Severity.ERROR,
+          severity: Severity.WARNING,
           field: 'targets',
-          message: `Unknown target platform: "${target}"`,
-          suggestion: `Supported: ${ALL_TARGETS.join(', ')}`,
+          message: `"${target}" is not a built-in target — ensure a matching adapter is registered or compilation will be skipped`,
+          suggestion: `Built-in targets: ${ALL_TARGETS.join(', ')}`,
         });
       }
     }
@@ -84,7 +90,8 @@ export function validateUniversal(plugin: PluginManifest): ValidationIssue[] {
 
   // ─── hooks ────────────────────────────────────────────────────────────────
   if (plugin.hooks) {
-    for (const [name, def] of Object.entries(plugin.hooks)) {
+    const hooksRecord = plugin.hooks as Record<string, HookDefinition | undefined>;
+    for (const [name, def] of Object.entries(hooksRecord)) {
       const hookName = name as UniversalHookName;
       if (!UNIVERSAL_HOOK_NAMES.includes(hookName)) {
         issues.push({
@@ -130,7 +137,7 @@ export function validateUniversal(plugin: PluginManifest): ValidationIssue[] {
   // ─── dependencies ────────────────────────────────────────────────────────
   if (plugin.dependencies) {
     for (let i = 0; i < plugin.dependencies.length; i++) {
-      const dep = plugin.dependencies[i];
+      const dep = plugin.dependencies[i] as Dependency;
       if (dep.type === 'npm') {
         if (!dep.name) {
           issues.push({ severity: Severity.ERROR, field: `dependencies[${i}].name`, message: 'npm dependency must have a "name"' });
@@ -257,8 +264,23 @@ export interface PlatformConstraints {
   notes: string[];
 }
 
+const PERMISSIVE_CONSTRAINTS: PlatformConstraints = {
+  maxNameLength: 256,
+  supportsHttpHandler: true,
+  supportsInlineHandler: true,
+  supportsPromptHandler: true,
+  supportsMCPToolHandler: true,
+  supportsNativeTools: true,
+  supportsMcpServersAsTools: true,
+  maxDescriptionLength: 4096,
+  supportedHooks: UNIVERSAL_HOOK_NAMES,
+  manifestPath: 'plugin.json',
+  requiresStrictValidation: false,
+  notes: ['Custom platform — all hooks and handlers assumed supported'],
+};
+
 export function getPlatformConstraints(platform: TargetPlatform): PlatformConstraints {
-  const base: Record<TargetPlatform, PlatformConstraints> = {
+  const base: Partial<Record<TargetPlatform, PlatformConstraints>> = {
     claude: {
       maxNameLength: 64,
       supportsHttpHandler: true,
@@ -388,7 +410,7 @@ export function getPlatformConstraints(platform: TargetPlatform): PlatformConstr
     },
   };
 
-  return base[platform];
+  return base[platform] ?? PERMISSIVE_CONSTRAINTS;
 }
 
 export function validateForPlatform(
@@ -400,7 +422,8 @@ export function validateForPlatform(
 
   // Check unsupported hooks
   if (plugin.hooks) {
-    for (const [name, def] of Object.entries(plugin.hooks)) {
+    const hooksRecord = plugin.hooks as Record<string, HookDefinition | undefined>;
+    for (const [name, def] of Object.entries(hooksRecord)) {
       const hookName = name as UniversalHookName;
       if (!def) continue;
 

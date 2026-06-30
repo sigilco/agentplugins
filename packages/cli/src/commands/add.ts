@@ -5,23 +5,29 @@
  * and symlinks it into every detected agent harness.
  */
 
-import chalk from 'chalk';
 import {
   initStore,
   normalizeSource,
   extractRepoName,
+  parseSubdir,
+  parseBranch,
   cloneRepo,
   findManifestInDir,
   installPlugin,
   getDetectedAgents,
   getStorePath,
+  securityPlugin,
 } from '@agentplugins/core';
 import { join } from 'node:path';
 import { existsSync, rmSync } from 'node:fs';
+import { createJiti } from 'jiti';
 import { compile } from './build.js';
 import { runSetupFlow } from './setup.js';
-import { verifyIntegrity, evaluateManifestScripts } from '@agentplugins/security';
+import { createApp, createInstallCtx, AbortError } from '@agentplugins/pipeline';
+import { getCliLogger } from '../logger.js';
 import type { PluginManifest } from '@agentplugins/core';
+
+const logger = getCliLogger();
 
 export interface AddOptions {
   source: string;
@@ -30,12 +36,14 @@ export interface AddOptions {
 }
 
 export async function add(options: AddOptions): Promise<void> {
+  const subdir = parseSubdir(options.source);
+  const branch = parseBranch(options.source);
   const source = normalizeSource(options.source);
   const repoName = extractRepoName(source);
 
-  console.log(chalk.bold('\n📥 AgentPlugins Add\n'));
-  console.log(chalk.gray(`Source:  ${source}`));
-  console.log(chalk.gray(`Store:   ${getStorePath()}\n`));
+  logger.info('\n📥 AgentPlugins Add\n');
+  logger.info('Source:  {source}', { source });
+  logger.info('Store:   {store}\n', { store: getStorePath() });
 
   initStore();
 
@@ -43,29 +51,32 @@ export async function add(options: AddOptions): Promise<void> {
   const tempDir = join(getStorePath(), `.tmp-${repoName}-${Date.now()}`);
   if (existsSync(tempDir)) rmSync(tempDir, { recursive: true, force: true });
 
-  console.log(chalk.blue('Cloning repository...'));
+  logger.info('Cloning repository...');
   let commit: string;
   try {
-    commit = cloneRepo(source, tempDir);
+    commit = cloneRepo(source, tempDir, branch);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error(chalk.red(`\nFailed to clone: ${msg}`));
+    logger.error('\nFailed to clone: {msg}', { msg });
     rmSync(tempDir, { recursive: true, force: true });
     process.exit(1);
   }
-  console.log(chalk.gray(`Commit: ${commit}`));
+  logger.info('Commit: {commit}', { commit });
+
+  // Resolve subdir — for monorepo tree URLs, look inside the subdirectory
+  const pluginDir = subdir ? join(tempDir, subdir) : tempDir;
 
   // Find manifest — try JSON/SKILL.md first
-  let manifestResult = findManifestInDir(tempDir);
+  let manifestResult = findManifestInDir(pluginDir);
 
   // Fallback: try TypeScript config via jiti
   if (!manifestResult) {
-    manifestResult = await tryTsConfig(tempDir);
+    manifestResult = await tryTsConfig(pluginDir);
   }
 
   if (!manifestResult) {
-    console.error(chalk.red('\nNo plugin manifest found in repository.'));
-    console.error(chalk.gray('Expected one of: agentplugins.config.ts, agentplugins.config.json, manifest.json, package.json, SKILL.md'));
+    logger.error('\nNo plugin manifest found in repository.');
+    logger.error('Expected one of: agentplugins.config.ts, agentplugins.config.json, manifest.json, package.json, SKILL.md');
     rmSync(tempDir, { recursive: true, force: true });
     process.exit(1);
   }
@@ -75,61 +86,60 @@ export async function add(options: AddOptions): Promise<void> {
   const name = rawName.replace(/^@[^/]+\//, '');
   const version = (manifestResult.manifest['version'] as string) || '0.0.0';
 
-  console.log(chalk.cyan(`\nPlugin: ${name} v${version}`));
-  console.log(chalk.gray(`Manifest: ${manifestResult.path} (${manifestResult.type})`));
+  logger.info('\nPlugin: {name} v{version}', { name, version });
+  logger.info('Manifest: {path} ({type})', { path: manifestResult.path, type: manifestResult.type });
 
-  // B17: verify pinned integrity (opt-in — only if manifest has integrity field)
-  const integrity = manifestResult.manifest['integrity'] as string | undefined;
-  if (integrity && integrity.length > 0) {
-    const { match, reason } = verifyIntegrity(tempDir, integrity);
-    if (!match) {
-      console.error(chalk.red(`\nIntegrity check failed: ${reason}`));
+  // Security: run pinned integrity check + script policy via pipeline
+  const installApp = createApp().use(securityPlugin);
+  const installCtx = createInstallCtx({
+    pluginName: name,
+    installDir: tempDir,
+    manifest: manifestResult.manifest as unknown as PluginManifest,
+    meta: {},
+  });
+  try {
+    await installApp.runInstall(installCtx);
+  } catch (err) {
+    if (err instanceof AbortError) {
+      logger.error('\n{msg}', { msg: err.message });
       rmSync(tempDir, { recursive: true, force: true });
       process.exit(1);
     }
-  }
-
-  // B18: evaluate lifecycle script policy
-  const scriptCheck = evaluateManifestScripts(manifestResult.manifest, name);
-  if (!scriptCheck.ok) {
-    for (const issue of scriptCheck.issues) {
-      const tag = issue.decision === 'deny' ? chalk.red('[error]') : chalk.yellow('[review]');
-      console.error(`  ${tag} ${issue.dependency} (${issue.phase}): ${issue.command}`);
-      for (const r of issue.reasons) console.error(chalk.gray(`         ${r}`));
-    }
-    console.error(chalk.red('\nRefusing to install: lifecycle script policy violation'));
-    rmSync(tempDir, { recursive: true, force: true });
-    process.exit(1);
+    throw err;
   }
 
   // Detect agents
   const agents = getDetectedAgents();
   if (agents.length === 0) {
-    console.log(chalk.yellow('\n⚠  No agent harnesses detected. Plugin will be stored but not symlinked.'));
-    console.log(chalk.gray('Install Claude, Codex, or another supported agent to enable symlinking.'));
+    logger.warn('\n⚠  No agent harnesses detected. Plugin will be stored but not symlinked.');
+    logger.info('Install Claude, Codex, or another supported agent to enable symlinking.');
   } else {
-    console.log(chalk.gray(`Detected ${agents.length} agent${agents.length > 1 ? 's' : ''}: ${agents.map((a) => a.displayName).join(', ')}`));
+    logger.info('Detected {count} agent{plural}: {agents}', {
+      count: agents.length,
+      plural: agents.length > 1 ? 's' : '',
+      agents: agents.map((a) => a.displayName).join(', '),
+    });
   }
 
   // Compile for harnesses that load compiled artifacts (opencode, pimono)
   const compilableAgents = agents.filter((a) => a.pluginPath);
   if (compilableAgents.length > 0) {
     const targets = compilableAgents.map((a) => a.name);
-    console.log(chalk.blue(`\nCompiling for ${targets.join(', ')}...`));
-    const distDir = join(tempDir, '.agentplugins-dist');
+    logger.info('\nCompiling for {targets}...', { targets: targets.join(', ') });
+    const distDir = join(pluginDir, '.agentplugins-dist');
     try {
       await compile({
         manifest: manifestResult.manifest as unknown as PluginManifest,
         targets: targets as any,
         write: true,
         outDir: distDir,
-        pluginRoot: tempDir,
+        pluginRoot: pluginDir,
         silent: false,
       });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.log(chalk.yellow(`\n⚠  Compilation failed: ${msg}`));
-      console.log(chalk.gray('Plugin will be installed without compiled artifacts.'));
+      logger.warn('\n⚠  Compilation failed: {msg}', { msg });
+      logger.info('Plugin will be installed without compiled artifacts.');
     }
   }
 
@@ -140,28 +150,29 @@ export async function add(options: AddOptions): Promise<void> {
     commit,
     manifestPath: manifestResult.path,
     version,
+    ...(subdir ? { subdir } : {}),
   });
 
   // Summary
-  console.log(chalk.green(`\n✅ Installed ${name} v${version}`));
-  console.log(chalk.gray(`   Store: ${getStorePath()}/${name}`));
+  logger.info('\n✅ Installed {name} v{version}', { name, version });
+  logger.info('   Store: {store}', { store: `${getStorePath()}/${name}` });
 
   if (result.symlinks.length > 0) {
-    console.log(chalk.gray('\nInstalled to:'));
+    logger.info('\nInstalled to:');
     for (const s of result.symlinks) {
-      console.log(chalk.gray(`   ${s.agentDisplayName}: ${s.linkPath}`));
+      logger.info('   {agent}: {path}', { agent: s.agentDisplayName, path: s.linkPath });
     }
   }
 
   await runSetupFlow({
     name,
-    pluginDir: tempDir,
+    pluginDir,
     manifest: manifestResult.manifest,
     yes: options.yes,
     noSetup: options.noSetup,
   });
 
-  console.log();
+  logger.info('');
 }
 
 /** Try loading a TypeScript config via jiti */
@@ -171,12 +182,8 @@ async function tryTsConfig(dir: string): Promise<{ path: string; manifest: Recor
     const fullPath = join(dir, candidate);
     if (!existsSync(fullPath)) continue;
     try {
-      const jiti = (await import('jiti')).default as unknown as (
-        filename: string,
-        opts?: Record<string, unknown>
-      ) => { import: (id: string, opts?: Record<string, unknown>) => Promise<unknown> };
-      const loader = jiti(fullPath, { interopDefault: true, esmResolve: true });
-      const mod = await loader.import(fullPath, { default: true });
+      const loader = createJiti(fullPath, { interopDefault: true });
+      const mod = await loader.import(fullPath);
       const exported = (mod as Record<string, unknown>)?.['default' as keyof typeof mod] ?? mod;
       const manifest = typeof exported === 'function'
         ? await (exported as () => Promise<Record<string, unknown>>)()
@@ -190,4 +197,3 @@ async function tryTsConfig(dir: string): Promise<{ path: string; manifest: Recor
   }
   return null;
 }
-

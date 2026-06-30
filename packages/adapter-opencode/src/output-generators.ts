@@ -157,6 +157,24 @@ export function generateManifest(
 ): FileOutput {
   const configFileName = "opencode.json";
 
+  const mcpServers =
+    manifest.mcpServers && Object.keys(manifest.mcpServers).length > 0
+      ? {
+          mcp: {
+            servers: Object.fromEntries(
+              Object.entries(manifest.mcpServers).map(([name, cfg]) => [
+                name,
+                {
+                  command: cfg.command,
+                  ...(cfg.args && cfg.args.length > 0 ? { args: cfg.args } : {}),
+                  ...(cfg.env ? { env: cfg.env } : {}),
+                },
+              ])
+            ),
+          },
+        }
+      : {};
+
   const opencodeConfig = {
     name: manifest.name,
     description: manifest.description ?? "",
@@ -172,6 +190,7 @@ export function generateManifest(
         description: tool.description,
         parameters: tool.parameters,
       })) ?? [],
+    ...mcpServers,
     discovery: {
       paths: [".opencode/plugins/", "~/.config/opencode/plugins/"],
     },
@@ -211,6 +230,9 @@ export function generateAgentFiles(manifest: PluginManifest): FileOutput[] {
     const lines = ["---", `description: ${agent.description ?? ""}`];
     if (agent.tools && agent.tools.length > 0) {
       lines.push(`tools: [${agent.tools.join(", ")}]`);
+    }
+    if (agent.model) {
+      lines.push(`model: ${agent.model}`);
     }
     lines.push("---", "", agent.prompt ?? "", "");
     const content = lines.join("\n");

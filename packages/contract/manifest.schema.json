@@ -32,10 +32,13 @@
                   "type": "string"
                 },
                 "email": {
-                  "type": "string"
+                  "type": "string",
+                  "format": "email",
+                  "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
                 },
                 "url": {
-                  "type": "string"
+                  "type": "string",
+                  "format": "uri"
                 }
               },
               "required": [
@@ -98,7 +101,7 @@
                   "type": "string"
                 },
                 "handler": {
-                  "anyOf": [
+                  "oneOf": [
                     {
                       "type": "object",
                       "properties": {
@@ -139,6 +142,9 @@
                         },
                         "headers": {
                           "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
                           "additionalProperties": {
                             "type": "string"
                           }
@@ -185,7 +191,7 @@
                   "type": "string"
                 },
                 "handler": {
-                  "anyOf": [
+                  "oneOf": [
                     {
                       "type": "object",
                       "properties": {
@@ -226,6 +232,9 @@
                         },
                         "headers": {
                           "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
                           "additionalProperties": {
                             "type": "string"
                           }
@@ -272,7 +281,7 @@
                   "type": "string"
                 },
                 "handler": {
-                  "anyOf": [
+                  "oneOf": [
                     {
                       "type": "object",
                       "properties": {
@@ -313,6 +322,9 @@
                         },
                         "headers": {
                           "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
                           "additionalProperties": {
                             "type": "string"
                           }
@@ -359,7 +371,7 @@
                   "type": "string"
                 },
                 "handler": {
-                  "anyOf": [
+                  "oneOf": [
                     {
                       "type": "object",
                       "properties": {
@@ -400,6 +412,9 @@
                         },
                         "headers": {
                           "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
                           "additionalProperties": {
                             "type": "string"
                           }
@@ -446,7 +461,7 @@
                   "type": "string"
                 },
                 "handler": {
-                  "anyOf": [
+                  "oneOf": [
                     {
                       "type": "object",
                       "properties": {
@@ -487,6 +502,9 @@
                         },
                         "headers": {
                           "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
                           "additionalProperties": {
                             "type": "string"
                           }
@@ -533,7 +551,7 @@
                   "type": "string"
                 },
                 "handler": {
-                  "anyOf": [
+                  "oneOf": [
                     {
                       "type": "object",
                       "properties": {
@@ -574,6 +592,9 @@
                         },
                         "headers": {
                           "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
                           "additionalProperties": {
                             "type": "string"
                           }
@@ -620,7 +641,7 @@
                   "type": "string"
                 },
                 "handler": {
-                  "anyOf": [
+                  "oneOf": [
                     {
                       "type": "object",
                       "properties": {
@@ -661,6 +682,9 @@
                         },
                         "headers": {
                           "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
                           "additionalProperties": {
                             "type": "string"
                           }
@@ -707,7 +731,7 @@
                   "type": "string"
                 },
                 "handler": {
-                  "anyOf": [
+                  "oneOf": [
                     {
                       "type": "object",
                       "properties": {
@@ -748,6 +772,9 @@
                         },
                         "headers": {
                           "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
                           "additionalProperties": {
                             "type": "string"
                           }
@@ -794,7 +821,7 @@
                   "type": "string"
                 },
                 "handler": {
-                  "anyOf": [
+                  "oneOf": [
                     {
                       "type": "object",
                       "properties": {
@@ -835,6 +862,9 @@
                         },
                         "headers": {
                           "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
                           "additionalProperties": {
                             "type": "string"
                           }
@@ -881,7 +911,7 @@
                   "type": "string"
                 },
                 "handler": {
-                  "anyOf": [
+                  "oneOf": [
                     {
                       "type": "object",
                       "properties": {
@@ -922,6 +952,9 @@
                         },
                         "headers": {
                           "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
                           "additionalProperties": {
                             "type": "string"
                           }
@@ -968,7 +1001,7 @@
                   "type": "string"
                 },
                 "handler": {
-                  "anyOf": [
+                  "oneOf": [
                     {
                       "type": "object",
                       "properties": {
@@ -1009,6 +1042,9 @@
                         },
                         "headers": {
                           "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
                           "additionalProperties": {
                             "type": "string"
                           }
@@ -1055,7 +1091,7 @@
                   "type": "string"
                 },
                 "handler": {
-                  "anyOf": [
+                  "oneOf": [
                     {
                       "type": "object",
                       "properties": {
@@ -1096,6 +1132,9 @@
                         },
                         "headers": {
                           "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
                           "additionalProperties": {
                             "type": "string"
                           }
@@ -1142,7 +1181,7 @@
                   "type": "string"
                 },
                 "handler": {
-                  "anyOf": [
+                  "oneOf": [
                     {
                       "type": "object",
                       "properties": {
@@ -1183,6 +1222,9 @@
                         },
                         "headers": {
                           "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
                           "additionalProperties": {
                             "type": "string"
                           }
@@ -1229,7 +1271,7 @@
                   "type": "string"
                 },
                 "handler": {
-                  "anyOf": [
+                  "oneOf": [
                     {
                       "type": "object",
                       "properties": {
@@ -1270,6 +1312,9 @@
                         },
                         "headers": {
                           "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
                           "additionalProperties": {
                             "type": "string"
                           }
@@ -1316,7 +1361,7 @@
                   "type": "string"
                 },
                 "handler": {
-                  "anyOf": [
+                  "oneOf": [
                     {
                       "type": "object",
                       "properties": {
@@ -1357,6 +1402,9 @@
                         },
                         "headers": {
                           "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
                           "additionalProperties": {
                             "type": "string"
                           }
@@ -1403,7 +1451,7 @@
                   "type": "string"
                 },
                 "handler": {
-                  "anyOf": [
+                  "oneOf": [
                     {
                       "type": "object",
                       "properties": {
@@ -1444,6 +1492,9 @@
                         },
                         "headers": {
                           "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
                           "additionalProperties": {
                             "type": "string"
                           }
@@ -1490,7 +1541,7 @@
                   "type": "string"
                 },
                 "handler": {
-                  "anyOf": [
+                  "oneOf": [
                     {
                       "type": "object",
                       "properties": {
@@ -1531,6 +1582,9 @@
                         },
                         "headers": {
                           "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
                           "additionalProperties": {
                             "type": "string"
                           }
@@ -1577,7 +1631,7 @@
                   "type": "string"
                 },
                 "handler": {
-                  "anyOf": [
+                  "oneOf": [
                     {
                       "type": "object",
                       "properties": {
@@ -1618,6 +1672,9 @@
                         },
                         "headers": {
                           "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
                           "additionalProperties": {
                             "type": "string"
                           }
@@ -1664,7 +1721,7 @@
                   "type": "string"
                 },
                 "handler": {
-                  "anyOf": [
+                  "oneOf": [
                     {
                       "type": "object",
                       "properties": {
@@ -1705,6 +1762,9 @@
                         },
                         "headers": {
                           "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
                           "additionalProperties": {
                             "type": "string"
                           }
@@ -1793,6 +1853,15 @@
               },
               "filePath": {
                 "type": "string"
+              },
+              "model": {
+                "type": "string"
+              },
+              "fallbackModels": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
               }
             },
             "required": [
@@ -1803,6 +1872,9 @@
         },
         "mcpServers": {
           "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
           "additionalProperties": {
             "type": "object",
             "properties": {
@@ -1817,6 +1889,9 @@
               },
               "env": {
                 "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
                 "additionalProperties": {
                   "type": "string"
                 }
@@ -1837,6 +1912,9 @@
         },
         "userConfig": {
           "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
           "additionalProperties": {
             "type": "object",
             "properties": {
@@ -1877,6 +1955,9 @@
         },
         "metadata": {
           "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
           "additionalProperties": {}
         },
         "capabilities": {
@@ -1889,15 +1970,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "enum": [
-              "claude",
-              "codex",
-              "copilot",
-              "gemini",
-              "kimi",
-              "opencode",
-              "pimono"
-            ]
+            "minLength": 1
           }
         },
         "nativeEntry": {
@@ -1914,25 +1987,18 @@
         },
         "adapterOverrides": {
           "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
           "additionalProperties": {
             "type": "string"
-          },
-          "propertyNames": {
-            "enum": [
-              "claude",
-              "codex",
-              "copilot",
-              "gemini",
-              "kimi",
-              "opencode",
-              "pimono"
-            ]
           }
         },
         "dependencies": {
           "type": "array",
           "items": {
-            "anyOf": [
+            "oneOf": [
               {
                 "type": "object",
                 "properties": {
@@ -1990,6 +2056,9 @@
             },
             "env": {
               "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
               "additionalProperties": {
                 "type": "string"
               }

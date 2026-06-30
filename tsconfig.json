@@ -4,6 +4,7 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "lib": ["ES2022"],
+    "types": ["node"],
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
@@ -20,5 +21,5 @@
     "outDir": "./dist",
     "rootDir": "."
   },
-  "exclude": ["node_modules", "dist", "*.js"]
+  "exclude": ["node_modules", "dist", "*.js", "**/__tests__/**", "**/dist/**", "**/node_modules/**"]
 }

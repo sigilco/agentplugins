@@ -4,7 +4,6 @@
  * Re-runs an installed plugin's setup script with trust-on-first-use gating.
  */
 
-import chalk from 'chalk';
 import * as p from '@clack/prompts';
 import {
   getStorePath,
@@ -19,6 +18,9 @@ import {
   type SetupSource,
 } from '@agentplugins/core';
 import { join } from 'node:path';
+import { getCliLogger } from '../logger.js';
+
+const logger = getCliLogger();
 
 export interface SetupFlowOptions {
   name: string;
@@ -37,7 +39,7 @@ export interface SetupFlowResult {
 
 export async function runSetupFlow(opts: SetupFlowOptions): Promise<SetupFlowResult> {
   if (process.env.AGENTPLUGINS_SETUP_SCRIPTS === '0') {
-    console.log(chalk.gray('Setup scripts disabled (AGENTPLUGINS_SETUP_SCRIPTS=0).'));
+    logger.info('Setup scripts disabled (AGENTPLUGINS_SETUP_SCRIPTS=0).');
     return { ran: false, skipped: 'kill-switch' };
   }
 
@@ -52,9 +54,9 @@ export async function runSetupFlow(opts: SetupFlowOptions): Promise<SetupFlowRes
 
   const gate = gateSetupCommand(resolved.command, opts.name);
   if (gate.decision === 'deny') {
-    console.log(chalk.red('\n⚠  Setup command blocked by policy:'));
-    console.log(chalk.gray('  ' + resolved.command));
-    for (const r of gate.reasons) console.log(chalk.gray('  - ' + r));
+    logger.error('\n⚠  Setup command blocked by policy:');
+    logger.info('  {command}', { command: resolved.command });
+    for (const r of gate.reasons) logger.info('  - {reason}', { reason: r });
     return { ran: false, skipped: 'deny' };
   }
 
@@ -63,31 +65,31 @@ export async function runSetupFlow(opts: SetupFlowOptions): Promise<SetupFlowRes
   const trusted = !!existing && existing.hash === hash && existing.command === resolved.command;
 
   if (trusted && !opts.force) {
-    console.log(chalk.gray('\nRe-running trusted setup…'));
+    logger.info('\nRe-running trusted setup…');
     const r = await runSetupCommand({ command: resolved.command, pluginDir: opts.pluginDir });
     const now = new Date().toISOString();
     writeSetupRecord(opts.name, { ...existing!, lastRunAt: now, lastExitCode: r.code });
-    console.log(chalk.gray('Setup exited (code ' + r.code + ').'));
+    logger.info('Setup exited (code {code}).', { code: r.code });
     return { ran: true, exitCode: r.code };
   }
 
   let approve = opts.yes;
   if (!approve) {
-    console.log(chalk.cyan('\n🔧 Setup script detected') + chalk.gray('  (source: ' + resolved.source + ')'));
-    console.log(chalk.bold('  ' + resolved.command));
+    logger.info('\n🔧 Setup script detected  (source: {source})', { source: resolved.source });
+    logger.info('  {command}', { command: resolved.command });
     if (gate.decision !== 'allow') {
-      for (const r of gate.reasons) console.log(chalk.gray('  - ' + r));
+      for (const r of gate.reasons) logger.info('  - {reason}', { reason: r });
     }
     const answer = await p.confirm({ message: 'Run this setup script now?', initialValue: false });
     approve = p.isCancel(answer) ? false : answer;
   }
 
   if (!approve) {
-    console.log(chalk.gray('Skipping setup.'));
+    logger.info('Skipping setup.');
     return { ran: false, skipped: 'declined' };
   }
 
-  console.log(chalk.blue('\nRunning setup…'));
+  logger.info('\nRunning setup…');
   const r = await runSetupCommand({ command: resolved.command, pluginDir: opts.pluginDir });
   const now = new Date().toISOString();
   writeSetupRecord(opts.name, {
@@ -98,9 +100,13 @@ export async function runSetupFlow(opts: SetupFlowOptions): Promise<SetupFlowRes
     lastRunAt: now,
     lastExitCode: r.code,
   });
-  const tag = r.code === 0 ? chalk.green('✓') : chalk.yellow('⚠');
-  console.log(tag + ' Setup exited (code ' + r.code + ').');
-  console.log(chalk.gray('   Re-run later: agentplugins setup ' + opts.name));
+  const tag = r.code === 0 ? '✓' : '⚠';
+  if (r.code === 0) {
+    logger.info('{tag} Setup exited (code {code}).', { tag, code: r.code });
+  } else {
+    logger.warn('{tag} Setup exited (code {code}).', { tag, code: r.code });
+  }
+  logger.info('   Re-run later: agentplugins setup {name}', { name: opts.name });
   return { ran: true, exitCode: r.code };
 }
 
@@ -113,13 +119,13 @@ export interface SetupOptions {
 export async function setup(options: SetupOptions): Promise<void> {
   const meta = readMeta(options.name);
   if (!meta) {
-    console.error(chalk.red(`Plugin "${options.name}" is not installed.`));
+    logger.error('Plugin "{name}" is not installed.', { name: options.name });
     process.exit(1);
   }
   const pluginDir = join(getStorePath(), options.name);
   const manifestResult = findManifestInDir(pluginDir);
   if (!manifestResult) {
-    console.error(chalk.red(`No manifest found for installed plugin "${options.name}".`));
+    logger.error('No manifest found for installed plugin "{name}".', { name: options.name });
     process.exit(1);
   }
   await runSetupFlow({

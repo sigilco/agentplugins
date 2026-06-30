@@ -28,8 +28,9 @@ export function extractCompiledHooks(manifest: PluginManifest): CompiledHook[] {
   if (!hooks) return [];
 
   const compiled: CompiledHook[] = [];
+  const hooksRecord = hooks as Record<string, HookDefinition | undefined>;
   for (const name of Object.keys(hooks) as UniversalHookName[]) {
-    const def: HookDefinition | undefined = hooks[name];
+    const def = hooksRecord[name as string];
     if (!def) continue;
 
     const handler = def.handler;
@@ -43,9 +44,9 @@ export function extractCompiledHooks(manifest: PluginManifest): CompiledHook[] {
       entry.command = handler.command;
     } else if (handler.type === 'http') {
       entry.url = handler.url;
-      if (handler.headers) entry.headers = { ...handler.headers };
+      if (handler.headers) entry.headers = { ...(handler.headers as Record<string, string>) };
     } else {
-      entry.inlineSource = `// inline handler for ${name} — emit at build time`;
+      entry.inlineSource = `// inline handler for ${String(name)} — emit at build time`;
     }
 
     compiled.push(entry);
@@ -83,7 +84,7 @@ function hookEntry(hook: CompiledHook): string {
 
 function buildHooksMap(hooks: CompiledHook[]): string {
   const indent = '  ';
-  const lines = hooks.map((h) => `${indent}${h.name}: ${hookEntry(h)},`);
+  const lines = hooks.map((h) => `${indent}${String(h.name)}: ${hookEntry(h)},`);
   return `{\n${lines.join('\n')}\n}`;
 }
 
@@ -130,7 +131,7 @@ export default plugin;
 
 function buildHooksDTS(hooks: CompiledHook[]): string {
   const indent = '  ';
-  const lines = hooks.map((h) => `${indent}${h.name}: Record<string, unknown>;`);
+  const lines = hooks.map((h) => `${indent}${String(h.name)}: Record<string, unknown>;`);
   return `{\n${lines.join('\n')}\n}`;
 }
 
@@ -180,7 +181,7 @@ export const GoEmitter: CodeEmitter = {
     const imports = hooks.length > 0 ? `\nimport "context"\n` : '';
 
     const funcs = hooks.map((h) => {
-      const fnName = `On${pascalCase(h.name)}`;
+      const fnName = `On${pascalCase(String(h.name))}`;
       return [
         `func ${fnName}(ctx context.Context) error {`,
         `\t// TODO: implement ${h.handlerType} handler`,
@@ -189,7 +190,7 @@ export const GoEmitter: CodeEmitter = {
       ].join('\n');
     });
 
-    const registrations = hooks.map((h) => `\t// register On${pascalCase(h.name)}`).join('\n');
+    const registrations = hooks.map((h) => `\t// register On${pascalCase(String(h.name))}`).join('\n');
 
     const initFn = hooks.length > 0
       ? `\nfunc init() {\n${registrations}\n}\n`
@@ -212,16 +213,24 @@ export const GoEmitter: CodeEmitter = {
   },
 };
 
-const EMITTERS: Record<EmitLanguage, CodeEmitter> = {
-  typescript: TypeScriptEmitter,
-  javascript: JavaScriptEmitter,
-  go: GoEmitter,
-};
+const EMITTERS: Map<string, CodeEmitter> = new Map([
+  ['typescript', TypeScriptEmitter],
+  ['javascript', JavaScriptEmitter],
+  ['go', GoEmitter],
+]);
 
-export function getEmitter(language: EmitLanguage): CodeEmitter {
-  const emitter = EMITTERS[language];
+export function registerEmitter(emitter: CodeEmitter): void {
+  EMITTERS.set(emitter.language, emitter);
+}
+
+export function getEmitter(language: EmitLanguage | string): CodeEmitter {
+  const emitter = EMITTERS.get(language);
   if (!emitter) {
     throw new Error(`Unknown emit language: ${String(language)}`);
   }
   return emitter;
+}
+
+export function getRegisteredEmitters(): ReadonlyMap<string, CodeEmitter> {
+  return EMITTERS;
 }

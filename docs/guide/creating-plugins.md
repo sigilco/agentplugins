@@ -1,5 +1,6 @@
 ---
-description: Build and publish a universal AgentPlugin
+title: Creating Plugins – AgentPlugins
+description: Step-by-step guide to authoring an AgentPlugins manifest and shipping to seven AI agent harnesses.
 ---
 
 # Creating Plugins
@@ -25,7 +26,7 @@ You'll be prompted for:
 
 | Template | What you get |
 |---|---|
-| `minimal` | Bare manifest + `SKILL.md`. Good starting point. |
+| `minimal` | Bare manifest. Good starting point. |
 | `logger` | A plugin that logs every hook event to `${PLUGIN_DATA}/log.jsonl`. |
 | `security-guard` | A `preToolUse` block-list for dangerous commands. |
 | `formatter` | A `postToolUse` hook that runs your formatter of choice. |
@@ -40,10 +41,13 @@ Pick `minimal` if you're not sure — you can add hooks later.
 
 ✓ Created my-plugin/
   my-plugin/agentplugins.config.ts
-  my-plugin/SKILL.md
-  my-plugin/hooks/
+  my-plugin/package.json
+  my-plugin/tsconfig.json
+  my-plugin/.gitignore
   my-plugin/README.md
 ```
+
+Hooks, skills, and commands are declared inline in `agentplugins.config.ts` — there is no separate `SKILL.md` or `hooks/` directory in the scaffold. Open `agentplugins.config.ts` to start editing.
 
 ## 2. Write hooks
 
@@ -76,6 +80,34 @@ export default definePlugin({
   },
 })
 ```
+
+### `defineConfig` — extended config format
+
+Use `defineConfig` instead of `definePlugin` when you need to:
+
+- Target a **subset of platforms** without editing the manifest
+- Wire in a **private adapter** for an internal harness
+- Add **build pipeline plugins** (custom lint rules, IR transforms, post-emit hooks)
+
+```typescript
+import { defineConfig } from '@agentplugins/core'
+
+export default defineConfig({
+  manifest: {
+    name: 'my-plugin',
+    version: '1.0.0',
+    description: 'Does awesome things across every agent',
+    hooks: { /* ... */ },
+  },
+
+  // Override which targets are built — does not affect the manifest
+  targets: ['claude', 'codex'],
+})
+```
+
+`definePlugin` and `defineConfig` produce the same dist output for the same manifest. Pick `definePlugin` for simple cross-platform plugins; reach for `defineConfig` when you need the extras above.
+
+See [Extending the Build Pipeline](/guide/extending) for `plugins: [...]` and custom adapters.
 
 ::: tip
 Place hook scripts under `hooks/` and reference them with `${PLUGIN_ROOT}/hooks/...`. The placeholder resolves to the plugin's directory in the universal store at runtime.
@@ -225,4 +257,5 @@ Tag releases with semver (`v1.0.0`, `v1.1.0`, ...). `agentplugins update` resolv
 
 - [Manifest reference](/guide/manifest) — every field.
 - [Hooks](/guide/hooks) — the 19 lifecycle events.
+- [Extending the Build Pipeline](/guide/extending) — custom adapters, lint rules, and pipeline plugins.
 - [CLI reference](/reference/commands) — every command and flag.

@@ -136,30 +136,32 @@ The manifest declares the **shape** of a tool. The implementation — what runs 
 
 ## Per-platform behavior
 
-`tools[]` is natively emitted by **OpenCode** and **Pi Mono** only. For all other platforms — including the Tier-1 harnesses Claude Code and Codex — **`mcpServers` is the recommended universal tool delivery mechanism**.
+`tools[]` is natively emitted by **OpenCode** and **Pi Mono** only. For all other platforms — including Claude Code and Codex — **`mcpServers` is the recommended universal tool delivery mechanism**.
 
 | Platform | `tools[]` | `mcpServers` | Notes |
 |---|:---:|:---:|---|
-| Claude Code | ⚠️ | ✅ | `tools[]` not emitted; use `mcpServers` — full Tier-1 tool parity |
+| Claude Code | ⚠️ | ✅ | `tools[]` not emitted; use `mcpServers` |
 | Codex | ⚠️ | ✅ | Same as Claude Code |
 | OpenCode | ✅ | ✅ | First-class `tools[]` + `mcpServers` both supported |
-| Pi Mono | ✅ | ✅ | First-class `tools[]` + `mcpServers` both supported |
+| Pi Mono | ✅ | ⚠️ | Pi has no built-in MCP. Use first-class `tools[]` (emitted natively) or bridge via `nativeEntry.pimono`. See [MCP on Pi](/guide/porting#mcp-on-pi). |
 | Copilot | ⚠️ | ❌ | Neither emitted; Tier-2 only |
 | Gemini | ⚠️ | ❌ | Neither emitted; Tier-2 only |
 | Kimi | ⚠️ | ❌ | Neither emitted; Tier-2 only |
 
 > ⚠️ When `tools[]` is declared and the target platform does not natively emit it, `agentplugins validate` emits a **WARNING** (not an error) with a pointer to `mcpServers`. The build still succeeds.
+>
+> ⚠️ Pi Mono has no built-in MCP support. On Pi, the native `tools[]` emission is the recommended path. `agentplugins validate` emits a WARNING when `mcpServers` is set with `pimono` as a target.
 
 ### Recommended cross-harness pattern
 
-For plugins targeting all Tier-1 harnesses, back tools with an MCP server:
+For plugins targeting Claude, Codex, and OpenCode, back tools with an MCP server. For Pi Mono, declare `tools[]` directly (emitted natively) or use `nativeEntry.pimono` to bridge an MCP server through a Pi extension.
 
 ```typescript
 export default definePlugin({
   name: 'my-tools',
   version: '1.0.0',
 
-  // Tier-1 universal tool path: all four harnesses consume MCP servers
+  // MCP path: consumed by Claude Code, Codex, OpenCode (not Pi Mono)
   mcpServers: {
     'my-tools-server': {
       command: 'npx',
@@ -184,10 +186,10 @@ export default definePlugin({
 })
 ```
 
-See the [Tier-1 Capability Matrix](/reference/compat-matrix) for full cross-harness tool support details.
+See the [Capability Matrix](/guide/capability-matrix) for full cross-harness tool support details.
 
 ## Next steps
 
-- [MCP Servers](/guide/mcp-servers) — recommended universal tool mechanism for all Tier-1 harnesses.
+- [MCP Servers](/guide/mcp-servers) — recommended universal tool mechanism for all supported harnesses.
 - [Manifest reference](/guide/manifest) for the full `tools` schema.
-- [Tier-1 Capability Matrix](/reference/compat-matrix) for cross-harness support details.
+- [Capability Matrix](/guide/capability-matrix) for cross-harness support details.

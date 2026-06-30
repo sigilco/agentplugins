@@ -1,5 +1,6 @@
 ---
-description: Get a working AgentPlugin in five commands
+title: Quick Start – AgentPlugins
+description: Install AgentPlugins and create your first universal AI agent plugin in under 2 minutes.
 ---
 
 # Quick Start
@@ -16,7 +17,7 @@ Verify `agentplugins` is on your `PATH`:
 
 ```bash
 agentplugins --version
-# agentplugins 1.0.0
+# agentplugins 0.6.0
 ```
 
 ## 2. Add a plugin from GitHub
@@ -72,7 +73,7 @@ agentplugins init
 ? Plugin name (kebab-case) › my-awesome-plugin
 ? Description › Does awesome things across every agent
 ? Template › - Use arrow-keys. Return to submit.
->   minimal        Bare manifest + SKILL.md
+>   minimal        Bare manifest
     logger         Logs every hook event
     security-guard preToolUse block-list
     formatter      postToolUse auto-format
@@ -80,8 +81,9 @@ agentplugins init
 
 ✓ Created my-awesome-plugin/
   my-awesome-plugin/agentplugins.config.ts
-  my-awesome-plugin/SKILL.md
-  my-awesome-plugin/hooks/pre-tool-use.sh
+  my-awesome-plugin/package.json
+  my-awesome-plugin/tsconfig.json
+  my-awesome-plugin/.gitignore
   my-awesome-plugin/README.md
 ```
 

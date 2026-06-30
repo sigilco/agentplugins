@@ -7,13 +7,15 @@
 
 import { resolve, join } from 'node:path';
 import { existsSync, readFileSync } from 'node:fs';
-import chalk from 'chalk';
 import {
   ALL_TARGETS,
   type TargetPlatform,
 } from '@agentplugins/core';
 import { compile } from './build.js';
+import { getCliLogger } from '../logger.js';
 import type { LoadedConfig } from '../config.js';
+
+const logger = getCliLogger();
 
 export interface PreviewOptions {
   config: LoadedConfig;
@@ -26,10 +28,10 @@ export async function preview(options: PreviewOptions): Promise<void> {
   const manifest = config.manifest;
   const targetList = (options.targets || manifest.targets || ALL_TARGETS) as TargetPlatform[];
 
-  console.log(chalk.bold('\n👁  AgentPlugins Preview\n'));
-  console.log(chalk.gray(`Plugin: ${manifest.name} v${manifest.version}`));
-  console.log(chalk.gray(`Targets: ${targetList.join(', ')}`));
-  console.log();
+  logger.info('\n👁  AgentPlugins Preview\n');
+  logger.info('Plugin: {name} v{version}', { name: manifest.name, version: manifest.version });
+  logger.info('Targets: {targets}', { targets: targetList.join(', ') });
+  logger.info('');
 
   const results = await compile({
     manifest,
@@ -44,11 +46,14 @@ export async function preview(options: PreviewOptions): Promise<void> {
 
   for (const result of results) {
     if (result.skipped) {
-      console.log(chalk.yellow(`  ${result.target}: skipped${result.error ? ` — ${result.error}` : ''}`));
+      logger.warn('  {target}: skipped{error}', {
+        target: result.target,
+        error: result.error ? ` — ${result.error}` : '',
+      });
       continue;
     }
 
-    console.log(chalk.bold(`  📦 ${result.target}/`));
+    logger.info('  📦 {target}/', { target: result.target });
     totalFiles += result.files.length;
 
     for (const file of result.files) {
@@ -59,37 +64,37 @@ export async function preview(options: PreviewOptions): Promise<void> {
         const distPath = join('dist', result.target, file.path);
         const absDist = resolve(distPath);
         if (!existsSync(absDist)) {
-          suffix = chalk.green(' (new)');
+          suffix = ' (new)';
           newFiles++;
         } else {
           try {
             const existing = readFileSync(absDist, 'utf-8');
             if (existing !== file.content) {
-              suffix = chalk.yellow(' (changed)');
+              suffix = ' (changed)';
               changedFiles++;
             } else {
-              suffix = chalk.gray(' (unchanged)');
+              suffix = ' (unchanged)';
             }
           } catch {
-            suffix = chalk.green(' (new)');
+            suffix = ' (new)';
             newFiles++;
           }
         }
       }
 
-      console.log(chalk.gray(`    ${display}`) + suffix);
+      logger.info('    {display}{suffix}', { display, suffix });
     }
-    console.log();
+    logger.info('');
   }
 
-  console.log(chalk.bold('Summary:'));
-  console.log(chalk.gray(`  Files: ${totalFiles}`));
+  logger.info('Summary:');
+  logger.info('  Files: {count}', { count: totalFiles });
   if (diff) {
-    console.log(chalk.gray(`  Changed: ${changedFiles}`));
-    console.log(chalk.gray(`  New: ${newFiles}`));
-    console.log(chalk.gray(`  Unchanged: ${totalFiles - changedFiles - newFiles}`));
+    logger.info('  Changed: {count}', { count: changedFiles });
+    logger.info('  New: {count}', { count: newFiles });
+    logger.info('  Unchanged: {count}', { count: totalFiles - changedFiles - newFiles });
   }
-  console.log();
+  logger.info('');
 
   // Diff output
   if (diff) {
@@ -106,9 +111,9 @@ export async function preview(options: PreviewOptions): Promise<void> {
     }
 
     if (anyDiff) {
-      console.log(chalk.cyan('Changes detected. Run `agentplugins build` to write output.\n'));
+      logger.info('Changes detected. Run `agentplugins build` to write output.\n');
     } else {
-      console.log(chalk.gray('No changes — dist/ is up to date.\n'));
+      logger.info('No changes — dist/ is up to date.\n');
     }
   }
 }

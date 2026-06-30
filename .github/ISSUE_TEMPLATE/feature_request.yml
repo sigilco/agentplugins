@@ -1,0 +1,30 @@
+name: Feature Request
+description: Propose a new capability or improvement
+labels: ["feature"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or motivation
+      description: What are you trying to do that you can't do today?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+  - type: textarea
+    id: harnesses
+    attributes:
+      label: Harnesses this should cover
+      placeholder: "Claude Code, Codex, OpenCode, Pi Mono (Tier-1) / Copilot, Gemini, Kimi (Tier-2)"
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context

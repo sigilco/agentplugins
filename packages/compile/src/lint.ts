@@ -5,7 +5,7 @@
  * catching quality and safety issues beyond structural validation.
  */
 
-import type { PluginManifest } from '@agentplugins/contract';
+import type { PluginManifest, HookDefinition, HookHandler } from '@agentplugins/contract';
 
 export interface LintIssue {
   rule: string;
@@ -18,6 +18,8 @@ export interface LintIssue {
 export interface LintContext {
   manifest: PluginManifest;
   inlineHandlerSource?: string[];
+  /** Extra rules appended to the global registry for this lint run only. */
+  extraRules?: LintRule[];
 }
 
 export interface LintRule {
@@ -227,7 +229,8 @@ const handlerSafetyRule: LintRule = {
 
     // Scan command-handler command strings
     if (manifest.hooks) {
-      for (const [name, def] of Object.entries(manifest.hooks)) {
+      const hooks = manifest.hooks as Record<string, HookDefinition | undefined>;
+      for (const [name, def] of Object.entries(hooks)) {
         if (def && def.handler.type === 'command') {
           for (const pattern of activePatterns) {
             const match = pattern.exec(def.handler.command);
@@ -262,7 +265,8 @@ const secretsRule: LintRule = {
       }
     }
     if (manifest.hooks) {
-      for (const [name, def] of Object.entries(manifest.hooks)) {
+      const hooks = manifest.hooks as Record<string, HookDefinition | undefined>;
+      for (const [name, def] of Object.entries(hooks)) {
         if (def && def.handler.type === 'command') {
           haystacks.push({ field: `hooks.${name}`, text: def.handler.command });
         }
@@ -294,7 +298,7 @@ const continueWithSafetyRule: LintRule = {
     const hasStopHook = !!manifest.hooks?.stop;
     if (!hasStopHook) return [];
 
-    const handler = manifest.hooks?.stop?.handler;
+    const handler = manifest.hooks?.stop?.handler as HookHandler | undefined;
     // Detect continueWith usage: in command handler text OR in inline handler source
     const usesContinueWith =
       (handler?.type === 'command' && handler.command.includes('continueWith')) ||
@@ -340,7 +344,8 @@ export function getLintRules(): LintRule[] {
 
 export function lint(ctx: LintContext): LintIssue[] {
   const issues: LintIssue[] = [];
-  for (const rule of registry) {
+  const rules = ctx.extraRules ? [...registry, ...ctx.extraRules] : registry;
+  for (const rule of rules) {
     issues.push(...rule.run(ctx));
   }
   return issues;

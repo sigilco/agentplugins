@@ -24,6 +24,7 @@
     "@agentplugins/contract": "workspace:*",
     "@agentplugins/core": "workspace:*",
     "@agentplugins/compile": "workspace:*",
+    "@agentplugins/pipeline": "workspace:*",
     "@agentplugins/ingest": "workspace:*",
     "@agentplugins/schema": "workspace:*",
     "@agentplugins/security": "workspace:*",
@@ -34,15 +35,15 @@
     "@agentplugins/adapter-kimi": "workspace:*",
     "@agentplugins/adapter-opencode": "workspace:*",
     "@agentplugins/adapter-pimono": "workspace:*",
-    "@clack/prompts": "^0.7.0",
-    "cac": "^6.7.14",
-    "chalk": "^5.3.0",
-    "jiti": "^1.21.6"
+    "@clack/prompts": "catalog:",
+    "@logtape/logtape": "catalog:",
+    "cleye": "catalog:",
+    "jiti": "catalog:"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "typescript": "^5.5.0",
-    "vitest": "^3.1.4"
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "keywords": [
     "agentplugins",

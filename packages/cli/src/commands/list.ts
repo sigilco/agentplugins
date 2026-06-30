@@ -4,8 +4,10 @@
  * Lists all installed plugins in the universal store.
  */
 
-import chalk from 'chalk';
 import { listPlugins } from '@agentplugins/core';
+import { getCliLogger } from '../logger.js';
+
+const logger = getCliLogger();
 
 export interface ListOptions {
   json?: boolean;
@@ -26,12 +28,12 @@ export async function list(options: ListOptions): Promise<void> {
   }
 
   if (plugins.length === 0) {
-    console.log(chalk.gray('\nNo plugins installed.'));
-    console.log(chalk.gray('Run `agentplugins add <github-url>` to install a plugin.\n'));
+    logger.info('\nNo plugins installed.');
+    logger.info('Run `agentplugins add <github-url>` to install a plugin.\n');
     return;
   }
 
-  console.log(chalk.bold(`\n📦 Installed Plugins (${plugins.length})\n`));
+  logger.info('\n📦 Installed Plugins ({count})\n', { count: plugins.length });
 
   for (const plugin of plugins) {
     const symlinkCount = plugin.symlinks.length;
@@ -39,21 +41,23 @@ export async function list(options: ListOptions): Promise<void> {
 
     const description = (plugin.manifest?.['description'] as string) ?? plugin.meta.source;
 
-    console.log(chalk.cyan(`  ${plugin.meta.name}`) + chalk.gray(` v${plugin.meta.version}`));
-    console.log(chalk.gray(`    ${description}`));
+    logger.info('  {name} v{version}', { name: plugin.meta.name, version: plugin.meta.version });
+    logger.info('    {description}', { description });
 
     if (plugin.meta.source && plugin.meta.source !== 'unknown') {
-      console.log(chalk.gray(`    source:  ${plugin.meta.source}`));
+      logger.info('    source:  {source}', { source: plugin.meta.source });
     }
-    console.log(chalk.gray(`    updated: ${plugin.meta.updatedAt}`));
+    logger.info('    updated: {updated}', { updated: plugin.meta.updatedAt });
 
     if (symlinkCount > 0) {
       const agentNames = plugin.symlinks.map((s) => s.agent).join(', ');
-      const status = brokenCount > 0 ? chalk.yellow(` (${brokenCount} broken)`) : '';
-      console.log(chalk.gray(`    linked:  ${agentNames}`) + status);
+      logger.info('    linked:  {agents}{broken}', {
+        agents: agentNames,
+        broken: brokenCount > 0 ? ` (${brokenCount} broken)` : '',
+      });
     } else {
-      console.log(chalk.gray('    linked:  (none)'));
+      logger.info('    linked:  (none)');
     }
-    console.log();
+    logger.info('');
   }
 }

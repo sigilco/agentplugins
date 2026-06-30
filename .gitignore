@@ -9,6 +9,9 @@ dist/
 *.d.ts
 *.d.ts.map
 
+# Exceptions: source declaration files (not build artifacts)
+!docs/.vitepress/env.d.ts
+
 # pnpm
 .pnpm-store/
 .pnpm/
@@ -48,11 +51,22 @@ coverage/
 storybook-static/
 docs/.vitepress/cache/
 docs/.vitepress/dist/
-docs/public/
+docs/public/*
+!docs/public/robots.txt
+!docs/public/favicon.svg
+!docs/public/favicon.ico
+!docs/public/og.png
+!docs/public/img/
+!docs/public/img/logo-dark.png
+!docs/public/img/logo-light.png
 
 # Misc
 *.local
 *.backup
 
+# Session / scratch files
+tmp/
+
 # Deepwork session state (ephemeral)
 .slim/
+.npmrc

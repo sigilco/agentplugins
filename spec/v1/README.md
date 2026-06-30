@@ -79,10 +79,10 @@ An adapter is any executable that implements the **JSON process ABI**: read a ma
 ## Schema consumption
 
 - npm: `@agentplugins/schema` (JSON Schema + generated TS types + Ajv validators)
-- Hosted: `https://agentplugins.dev/schema/v1.json`
+- Hosted: `https://agentplugins.pages.dev/schema/v1.json`
 - Raw: `https://raw.githubusercontent.com/sigilco/agentplugins/main/spec/v1/manifest.schema.json`
 
-Include `"$schema": "https://agentplugins.dev/schema/v1.json"` in your manifest for editor autocomplete in VS Code, JetBrains, and any JSON-Schema-aware editor.
+Include `"$schema": "https://agentplugins.pages.dev/schema/v1.json"` in your manifest for editor autocomplete in VS Code, JetBrains, and any JSON-Schema-aware editor.
 
 ## Versioning
 

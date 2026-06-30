@@ -1,14 +1,14 @@
 ---
 title: Porting an Existing Plugin
-description: Port an existing per-harness plugin to the AgentPlugins universal manifest with functional parity across Tier-1 harnesses.
+description: Port an existing per-harness plugin to the AgentPlugins universal manifest with functional parity across all supported harnesses.
 ---
 
 # Porting an Existing Plugin
 
 This guide walks through porting an existing per-harness plugin to AgentPlugins so it delivers the **same functionality** everywhere — universal codegen first, per-harness escape hatch only when a capability has no universal primitive.
 
-::: info Tier-1 parity is the bar
-The four Tier-1 harnesses are **Claude Code, Codex, OpenCode, and Pi Mono**. A capability must work across all four at the *functionality* level — not necessarily with identical TUI chrome, but the same underlying behaviour. See the [Tier-1 Capability Matrix](/reference/compat-matrix) for the per-capability verdict.
+::: info Parity is the bar
+The four supported harnesses are **Claude Code, Codex, OpenCode, and Pi Mono**. A capability must work across all four at the *functionality* level — not necessarily with identical TUI chrome, but the same underlying behaviour. See the [Capability Matrix](/guide/capability-matrix) for the per-capability verdict.
 :::
 
 ---
@@ -18,11 +18,11 @@ The four Tier-1 harnesses are **Claude Code, Codex, OpenCode, and Pi Mono**. A c
 For each capability in your existing plugin, work through this tree:
 
 ```
-1. Does universal codegen cover it across all Tier-1?
+1. Does universal codegen cover it across all four core harnesses?
    YES → declare it in the manifest; the adapter handles the rest
    NO  → continue ↓
 
-2. Can all Tier-1 harnesses support it via a per-harness escape hatch?
+2. Can all four harnesses support it via a per-harness escape hatch?
    YES → implement guided per-harness (see below); emit WARN on build
    NO  → continue ↓
 
@@ -44,7 +44,7 @@ List every capability your plugin provides:
 | Custom command | `/reset` clears state | `commands[]` |
 | Overlay UI | Side panel in Pi TUI | Pi-specific |
 
-For each row, check the [Tier-1 Capability Matrix](/reference/compat-matrix) to see whether it's universal-codegen, guided-per-harness, or unsupported.
+For each row, check the [Capability Matrix](/guide/capability-matrix) to see whether it's universal-codegen, guided-per-harness, or unsupported.
 
 ---
 
@@ -73,14 +73,14 @@ export default definePlugin({
     { name: 'reset', description: 'Reset plugin state', command: './scripts/reset.sh' },
   ],
 
-  // Tools via MCP — works on all Tier-1
+  // Tools via MCP — works on all four
   mcpServers: {
     'my-tools': { command: 'npx', args: ['my-tools-mcp-server'] },
   },
 })
 ```
 
-Build and verify on each Tier-1:
+Build and verify on each harness:
 
 ```bash
 agentplugins build
@@ -118,7 +118,7 @@ hooks: {
 },
 ```
 
-The WARN emitted on `agentplugins validate` for OpenCode points here. Record the gap in the [compat matrix](/reference/compat-matrix).
+The WARN emitted on `agentplugins validate` for OpenCode points here. Record the gap in the [Capability Matrix](/guide/capability-matrix).
 
 **Per-harness fallback via `nativeEntry`:**
 
@@ -142,6 +142,26 @@ You do not need to edit `~/.config/opencode/config.json`. The `.ts` file-drop is
 
 If you ship a `.mjs` source, `agentplugins` automatically links it under a `.ts` name (safety net) but emits a WARN. Rename the source to `.ts` to silence it.
 
+### MCP on Pi {#mcp-on-pi}
+
+Pi Mono has no built-in MCP support ("No MCP" per the Pi README). When your manifest sets `mcpServers` and `pimono` is a target, `agentplugins validate` emits a WARNING pointing here.
+
+Two paths:
+
+**Option A — native `tools[]` (recommended for Pi):** Declare your tool shapes in `tools[]`. The Pi adapter emits `pi.registerTool()` calls natively. No MCP server needed on Pi.
+
+**Option B — MCP bridge via `nativeEntry.pimono`:** Write a Pi extension that spawns your MCP server as a child process and bridges it through Pi's `pi.tool()` API. Wire it with:
+
+```typescript
+nativeEntry: {
+  pimono: './src/pi-mcp-bridge.ts',
+}
+```
+
+The file is copied verbatim to `index.ts` in the Pi dist; codegen is skipped. The bridge has full access to Pi's extension API (`ExtensionAPI`) and can call your MCP server over stdio.
+
+Use Option A when your tools are already declared in `tools[]`. Use Option B when you have a shared MCP server that must run on all four harnesses and you want a single implementation.
+
 ---
 
 ## Step 4 — TUI-only features (acceptable degradation)
@@ -149,7 +169,7 @@ If you ship a `.mjs` source, `agentplugins` automatically links it under a `.ts`
 Overlays, side panels, and interactive widgets that use Pi's TUI system (`@earendil-works/pi-tui`) are Pi-only by nature. This is the **one allowed degradation** category:
 
 - Implement the TUI feature on Pi via `nativeEntry`.
-- On other Tier-1: omit the widget; the underlying functionality (data, hooks, state) must still work.
+- On other harnesses: omit the widget; the underlying functionality (data, hooks, state) must still work.
 - Record in compat matrix as "TUI fidelity — Pi only".
 
 ---
@@ -183,7 +203,7 @@ Flags the user controls: `--yes` (skip the prompt, still denylist-gated), `--no-
 
 ## Step 6 — Verify parity
 
-For each Tier-1 harness:
+For each supported harness:
 
 ```bash
 # Build
@@ -207,12 +227,13 @@ Confirm the **same observable behaviour** on all four: same hooks fire, same com
 
 - **Universal orchestration runtime** — don't build one. Subagent spawning = per-harness primitives + userland provider protocol.
 - **Mechanical ports** — don't translate existing config files 1:1. Rewrite on the manifest; let adapters generate the platform-native output.
+- **Plugin composition / inheritance** — native composition (extending one plugin from another) is not a Tier-1 primitive on any supported harness. If you need to combine behavior from two plugins, express it per-harness via `nativeEntry` where the harness supports extension chaining, or simply declare the same hooks in both plugins and let the harness merge them. There is no universal `extends` or `compose` field in the manifest, and none is planned for v0.4.0.
 
 ---
 
 ## See also
 
 - [Ecosystem](/guide/ecosystem) — plugins already ported for Tier-1 parity
-- [Tier-1 Capability Matrix](/reference/compat-matrix) — full capability table
+- [Capability Matrix](/guide/capability-matrix) — full capability table
 - [Creating Plugins](/guide/creating-plugins) — authoring guide from scratch
 - [JSON Schema](/reference/schema) — manifest schema for editor autocomplete

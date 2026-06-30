@@ -106,11 +106,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build workspace dependencies
-        run: pnpm --filter @agentplugins/core --filter @agentplugins/schema build
-
-      - name: Build CLI (tsc)
-        run: pnpm --filter @agentplugins/cli build
+      - name: Build all packages (topological)
+        run: pnpm --filter './packages/**' build
 
       - name: Compile native binary
         run: |

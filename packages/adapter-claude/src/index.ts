@@ -379,6 +379,17 @@ class ClaudePlatformAdapter implements PlatformAdapter {
       }
     }
 
+    // ─── 4b. Generate agent files ───────────────────────────────────────────
+    if (plugin.agents && plugin.agents.length > 0) {
+      for (const agent of plugin.agents) {
+        const agentContent = this.buildAgentFile(agent);
+        files.push({
+          path: `agents/${agent.name}.md`,
+          content: agentContent,
+        });
+      }
+    }
+
     // ─── 5. Generate .mcp.json ──────────────────────────────────────────────
     if (plugin.mcpServers && Object.keys(plugin.mcpServers).length > 0) {
       const mcpConfig = this.buildMCPConfig(plugin);
@@ -640,6 +651,21 @@ class ClaudePlatformAdapter implements PlatformAdapter {
 
     // Fallback
     return frontmatterBlock + `\n# ${skill.name}\n\n${skill.description}\n`;
+  }
+
+  private buildAgentFile(agent: { name: string; description?: string; prompt?: string; tools?: string[]; model?: string; fallbackModels?: string[] }): string {
+    const lines: string[] = ['---', `name: ${agent.name}`];
+    if (agent.description) {
+      lines.push(`description: ${agent.description}`);
+    }
+    if (agent.tools && agent.tools.length > 0) {
+      lines.push(`tools: ${agent.tools.join(', ')}`);
+    }
+    if (agent.model) {
+      lines.push(`model: ${agent.model}`);
+    }
+    lines.push('---', '', agent.prompt ?? '', '');
+    return lines.join('\n');
   }
 
   /**

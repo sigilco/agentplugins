@@ -73,6 +73,8 @@ export interface PluginMeta {
   version: string;
   /** Trust-on-first-use record for the plugin's `setup` command (v0.5.0+). */
   setup?: SetupRecord;
+  /** Relative subdirectory within the store dir where the manifest lives (monorepo installs). */
+  subdir?: string;
 }
 
 export interface DetectedAgent {
@@ -279,7 +281,8 @@ export function getDetectedAgents(): DetectedAgent[] {
 
 /**
  * Normalize a plugin source URL.
- * Accepts: https://github.com/u/r, git@github.com:u/r.git, u/r
+ * Accepts: https://github.com/u/r, git@github.com:u/r.git, u/r,
+ *          https://github.com/u/r/tree/main/sub/dir
  */
 export function normalizeSource(source: string): string {
   let url = source.trim();
@@ -294,6 +297,9 @@ export function normalizeSource(source: string): string {
     const path = url.slice('git@github.com:'.length);
     url = `https://github.com/${path}`;
   }
+
+  // Strip /tree/{branch}[/{path}] or /blob/{branch}[/{path}]
+  url = url.replace(/\/(tree|blob)\/[^?#]*/, '');
 
   // Strip trailing .git
   if (url.endsWith('.git')) {
@@ -311,6 +317,24 @@ export function extractRepoName(source: string): string {
   const normalized = normalizeSource(source);
   const parts = normalized.split('/');
   return parts[parts.length - 1] || 'unknown-plugin';
+}
+
+/**
+ * Extract the subdirectory path from a GitHub tree URL.
+ * e.g. "https://github.com/u/r/tree/main/plugins/roster" → "plugins/roster"
+ */
+export function parseSubdir(source: string): string | undefined {
+  const m = source.match(/github\.com\/[^/]+\/[^/]+\/tree\/[^/]+\/(.+)/);
+  return m?.[1];
+}
+
+/**
+ * Extract the branch name from a GitHub tree URL.
+ * e.g. "https://github.com/u/r/tree/main/plugins/roster" → "main"
+ */
+export function parseBranch(source: string): string | undefined {
+  const m = source.match(/github\.com\/[^/]+\/[^/]+\/tree\/([^/]+)/);
+  return m?.[1];
 }
 
 // ─── Store Operations ────────────────────────────────────────────────────────
@@ -336,10 +360,11 @@ export function validateCloneUrl(url: string): void {
  * Returns the commit hash.
  * Throws on failure.
  */
-export function cloneRepo(source: string, dest: string): string {
+export function cloneRepo(source: string, dest: string, branch?: string): string {
   const url = normalizeSource(source);
   validateCloneUrl(url);
-  execSync(`git clone --depth 1 "${url}" "${dest}"`, { stdio: 'pipe' });
+  const branchFlag = branch ? `--branch "${branch}"` : '';
+  execSync(`git clone --depth 1 ${branchFlag} "${url}" "${dest}"`, { stdio: 'pipe' });
   return execSync('git rev-parse HEAD', { cwd: dest, encoding: 'utf-8' }).trim();
 }
 
@@ -463,6 +488,8 @@ export interface InstallOptions {
   version: string;
   /** Whether to symlink into detected agents (default: true) */
   symlink?: boolean;
+  /** Subdirectory within the cloned repo where the plugin lives (monorepo installs). */
+  subdir?: string;
 }
 
 export interface InstallResult {
@@ -501,6 +528,7 @@ export function installPlugin(
     updatedAt: now,
     manifestPath: opts.manifestPath,
     version: opts.version,
+    ...(opts.subdir ? { subdir: opts.subdir } : {}),
   };
   writeFileSync(getMetaPath(opts.name), JSON.stringify(meta, null, 2), 'utf-8');
 
@@ -710,8 +738,9 @@ export function updatePlugin(name: string): PluginMeta {
   // Pull latest
   const newCommit = pullRepo(storePath);
 
-  // Re-find manifest (in case it changed)
-  const manifestResult = findManifestInDir(storePath);
+  // Re-find manifest (in case it changed); respect subdir for monorepo installs
+  const manifestSearchDir = oldMeta.subdir ? join(storePath, oldMeta.subdir) : storePath;
+  const manifestResult = findManifestInDir(manifestSearchDir);
   const version = manifestResult?.manifest['version'] as string || oldMeta.version;
   const manifestPath = manifestResult?.path || oldMeta.manifestPath;
 

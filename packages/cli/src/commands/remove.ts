@@ -4,8 +4,10 @@
  * Removes a plugin from the store and unlinks all symlinks.
  */
 
-import chalk from 'chalk';
 import { removePlugin, getPluginInfo } from '@agentplugins/core';
+import { getCliLogger } from '../logger.js';
+
+const logger = getCliLogger();
 
 export interface RemoveOptions {
   name: string;
@@ -17,26 +19,26 @@ export async function remove(options: RemoveOptions): Promise<void> {
 
   const info = getPluginInfo(name);
   if (!info) {
-    console.error(chalk.red(`Plugin "${name}" is not installed.`));
+    logger.error('Plugin "{name}" is not installed.', { name });
     process.exit(1);
   }
 
-  console.log(chalk.bold('\n🗑  AgentPlugins Remove\n'));
-  console.log(chalk.gray(`Plugin: ${name} v${info.meta.version}`));
-  console.log(chalk.gray(`Source: ${info.meta.source}`));
+  logger.info('\n🗑  AgentPlugins Remove\n');
+  logger.info('Plugin: {name} v{version}', { name, version: info.meta.version });
+  logger.info('Source: {source}', { source: info.meta.source });
 
   if (info.symlinks.length > 0) {
-    console.log(chalk.gray(`Symlinks: ${info.symlinks.length}`));
+    logger.info('Symlinks: {count}', { count: info.symlinks.length });
   }
 
   removePlugin(name);
 
-  console.log(chalk.green(`\n✅ Removed ${name}`));
+  logger.info('\n✅ Removed {name}', { name });
   if (info.symlinks.length > 0) {
-    console.log(chalk.gray('Unlinked from:'));
+    logger.info('Unlinked from:');
     for (const s of info.symlinks) {
-      console.log(chalk.gray(`   ${s.agentDisplayName}: ${s.linkPath}`));
+      logger.info('   {agent}: {path}', { agent: s.agentDisplayName, path: s.linkPath });
     }
   }
-  console.log();
+  logger.info('');
 }

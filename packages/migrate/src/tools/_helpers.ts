@@ -3,7 +3,6 @@
  */
 
 import { z, type ZodRawShape } from 'zod';
-import { zodToJsonSchema } from 'zod-to-json-schema';
 import type { ToolCallback } from '@modelcontextprotocol/sdk/server/mcp.js';
 
 export interface McpTool<TSchema extends ZodRawShape> {
@@ -25,7 +24,7 @@ export function defineTool<TSchema extends ZodRawShape>(
  * The MCP SDK accepts zod shapes directly so this is mostly used in tests.
  */
 export function describeSchema(shape: ZodRawShape): Record<string, unknown> {
-  return zodToJsonSchema(z.object(shape)) as Record<string, unknown>;
+  return z.toJSONSchema(z.object(shape), { target: 'draft-07' }) as Record<string, unknown>;
 }
 
 export { z };

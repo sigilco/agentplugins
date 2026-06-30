@@ -5,9 +5,11 @@
  * Catches common pitfalls: naming, versioning, handler safety, secrets, etc.
  */
 
-import chalk from 'chalk';
 import { lintManifest } from '@agentplugins/core';
+import { getCliLogger } from '../logger.js';
 import type { LoadedConfig } from '../config.js';
+
+const logger = getCliLogger();
 
 export interface LintOptions {
   config: LoadedConfig;
@@ -31,11 +33,11 @@ export async function lint(options: LintOptions): Promise<void> {
     return;
   }
 
-  console.log(chalk.bold('\n🔍 AgentPlugins Lint\n'));
-  console.log(chalk.gray(`Plugin: ${manifest.name} v${manifest.version}\n`));
+  logger.info('\n🔍 AgentPlugins Lint\n');
+  logger.info('Plugin: {name} v{version}\n', { name: manifest.name, version: manifest.version });
 
   if (issues.length === 0) {
-    console.log(chalk.green('  ✅ No issues found.\n'));
+    logger.info('  ✅ No issues found.\n');
     return;
   }
 
@@ -43,24 +45,27 @@ export async function lint(options: LintOptions): Promise<void> {
   const warnings = issues.filter(i => i.severity === 'warning');
 
   for (const issue of issues) {
-    const color = issue.severity === 'error' ? chalk.red : chalk.yellow;
-    const icon = issue.severity === 'error' ? '✗' : '⚠';
-    const field = issue.field ? chalk.gray(` [${issue.field}]`) : '';
-    const rule = chalk.gray(` (${issue.rule})`);
-    console.log(color(`  ${icon} ${issue.message}${field}${rule}`));
+    const field = issue.field ? ` [${issue.field}]` : '';
+    const rule = ` (${issue.rule})`;
+    const message = `  ${issue.severity === 'error' ? '✗' : '⚠'} ${issue.message}${field}${rule}`;
+    if (issue.severity === 'error') {
+      logger.error(message);
+    } else {
+      logger.warn(message);
+    }
     if (issue.suggestion) {
-      console.log(chalk.cyan(`     → ${issue.suggestion}`));
+      logger.info('     → {suggestion}', { suggestion: issue.suggestion });
     }
   }
 
-  console.log();
-  console.log(chalk.bold('Summary:'));
-  if (errors.length > 0) console.log(chalk.red(`  Errors: ${errors.length}`));
-  if (warnings.length > 0) console.log(chalk.yellow(`  Warnings: ${warnings.length}`));
+  logger.info('');
+  logger.info('Summary:');
+  if (errors.length > 0) logger.error('  Errors: {count}', { count: errors.length });
+  if (warnings.length > 0) logger.warn('  Warnings: {count}', { count: warnings.length });
   if (errors.length === 0 && warnings.length > 0) {
-    console.log(chalk.gray('  Run with --strict to fail on warnings.'));
+    logger.info('  Run with --strict to fail on warnings.');
   }
-  console.log();
+  logger.info('');
 
   if (errors.length > 0) {
     process.exit(1);
