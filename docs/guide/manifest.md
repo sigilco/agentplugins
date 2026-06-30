@@ -55,7 +55,8 @@ The `hooks` object maps universal lifecycle event names to handlers. There are *
 
 | Category | Hooks |
 |---|---|
-| Session | `sessionStart`, `sessionEnd`, `setup` |
+| Session | `sessionStart`, `sessionEnd` |
+| Setup | `setup` |
 | Prompt | `userPromptSubmit`, `userPromptExpansion` |
 | Tool | `preToolUse`, `postToolUse`, `postToolUseFailure` |
 | Permission | `permissionRequest`, `permissionDenied` |
@@ -214,6 +215,23 @@ sidecar: {
 | `port` | `number` | Expected port for health checks. |
 | `health` | `string` | Health check URL. |
 | `restart` | `'always' \| 'on-failure' \| 'no'` | Restart policy. |
+
+## Install setup
+
+The optional top-level `setup` field declares a one-shot install command. After `agentplugins add`, the CLI prompts for trust and runs it once. It is distinct from the `hooks.setup` lifecycle hook.
+
+```typescript
+setup: {
+  command: './scripts/install.sh',
+}
+```
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `command` | `string` | yes | Shell command to run after install. |
+| `args` | `string[]` | no | Arguments passed to the command. |
+
+If `setup` is omitted, the CLI auto-detects `install.sh` → `setup.sh` → `postinstall.mjs` → `postinstall.js` (first hit). See [Linting](/guide/linting) and [Porting](/guide/porting#security--setup-on-install) for details.
 
 ## Rules
 
