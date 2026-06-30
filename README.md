@@ -11,6 +11,8 @@
 
 Install any plugin into every supported AI agent — **Tier-1:** Claude Code, Codex, OpenCode, Pi Mono. **Tier-2:** Copilot, Gemini, Kimi.
 
+[**Sponsor development →**](https://buy.polar.sh/polar_cl_Mv1gdlG7bw3I70EC9IHtfeSHJj4PEKvA7JAUz23CFhj)
+
 ```bash
 npx @agentplugins/cli add user/awesome-plugin
 ```

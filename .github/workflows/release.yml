@@ -46,6 +46,7 @@ jobs:
         uses: changesets/action@v1
         with:
           publish: pnpm release
+          createGithubReleases: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -151,7 +152,7 @@ jobs:
   github-release:
     name: Create GitHub Release
     needs: [release-npm, build-binaries]
-    if: needs.release-npm.outputs.published == 'true'
+    if: always() && needs.release-npm.outputs.published == 'true' && needs.build-binaries.result != 'cancelled'
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
@@ -203,7 +204,7 @@ jobs:
   update-homebrew-tap:
     name: Update Homebrew Tap
     needs: [release-npm, github-release]
-    if: needs.release-npm.outputs.published == 'true'
+    if: always() && needs.release-npm.outputs.published == 'true' && needs.github-release.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: write
