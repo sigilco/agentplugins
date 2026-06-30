@@ -9,6 +9,9 @@ dist/
 *.d.ts
 *.d.ts.map
 
+# Exceptions: source declaration files (not build artifacts)
+!docs/.vitepress/env.d.ts
+
 # pnpm
 .pnpm-store/
 .pnpm/

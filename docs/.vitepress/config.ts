@@ -72,8 +72,9 @@ export default withMermaid(defineConfig({
 
   vite: {
     plugins: [
-      llmstxt(),
-      groupIconVitePlugin(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      llmstxt() as any,
+      groupIconVitePlugin() as any,
       // Serve llms.txt / llms-full.txt from .vitepress/dist/ during dev
       {
         name: 'vitepress-dev-llms-txt',
