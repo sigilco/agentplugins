@@ -1,6 +1,6 @@
 {
   "name": "@agentplugins/cli",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "CLI for building AgentPlugins plugins across multiple AI agent harnesses",
   "type": "module",
   "bin": {
