@@ -17,7 +17,7 @@ Trigger this skill when the user asks any of:
 - "make this Claude plugin work with agentplugins add"
 - "translate plugin.json into an AgentPlugins manifest"
 
-Do NOT trigger this skill for plugins written natively in OpenCode or Pi Mono — those ecosystems ship TypeScript modules with hook/tool registrations inside function bodies, and TS AST parsing is too brittle for v0.3.0. Refuse and recommend rewriting the plugin directly against AgentPlugins v1.
+Do NOT trigger this skill for plugins written natively in OpenCode or Pi — those ecosystems ship TypeScript modules with hook/tool registrations inside function bodies, and TS AST parsing is too brittle for v0.3.0. Refuse and recommend rewriting the plugin directly against AgentPlugins v1.
 
 ## Decision tree
 
@@ -30,7 +30,7 @@ Is the source a directory you can read?
     │   ├── .claude-plugin/plugin.json exists    → format = claude-code
     │   ├── .codex-plugin/plugin.json exists     → format = codex
     │   ├── SKILL.md or skill.md present         → format = skills-sh
-    │   ├── package.json + TS with hook calls    → REFUSE: OpenCode/Pi Mono
+    │   ├── package.json + TS with hook calls    → REFUSE: OpenCode/Pi
     │   └── none of the above                    → ask the user to identify it
     │
     ├── Is the plugin one of the "out-of-scope" patterns?
@@ -62,9 +62,9 @@ Is the source a directory you can read?
 
 Use these verbatim when you need to refuse or escalate. They are written in the agent voice and can be lifted as-is.
 
-### OpenCode / Pi Mono TS plugins
+### OpenCode / Pi TS plugins
 
-> I can see this is an OpenCode/Pi Mono plugin (TypeScript module with `experimental.chat.messages.transform`-style hook registrations). AgentPlugins v0.3.0 cannot deterministically migrate TS plugins — the hook surface lives inside function bodies and an AST import would be too brittle to trust. I can help you rewrite it directly against the AgentPlugins v1 manifest instead. Want me to scaffold the equivalent `.claude-plugin/plugin.json` + `agentplugins.config.ts`?
+> I can see this is an OpenCode/Pi plugin (TypeScript module with `experimental.chat.messages.transform`-style hook registrations). AgentPlugins v0.3.0 cannot deterministically migrate TS plugins — the hook surface lives inside function bodies and an AST import would be too brittle to trust. I can help you rewrite it directly against the AgentPlugins v1 manifest instead. Want me to scaffold the equivalent `.claude-plugin/plugin.json` + `agentplugins.config.ts`?
 
 ### Persistent HTTP server
 

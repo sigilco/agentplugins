@@ -1,14 +1,14 @@
 /**
  * @agentplugins/adapter-pimono
  *
- * Pi Mono platform adapter for AgentPlugins.
+ * Pi platform adapter for AgentPlugins.
  *
  * Generates TypeScript-native extensions for the Pi agent runtime (jiti-loaded).
- * Pi Mono extensions are single or multi-file TS modules that export a default
+ * Pi extensions are single or multi-file TS modules that export a default
  * factory function receiving an ExtensionAPI instance at load time.
  *
  * Key features:
- * - Maps universal hooks to Pi Mono's 30+ lifecycle events (session.*, agent.*,
+ * - Maps universal hooks to Pi's 30+ lifecycle events (session.*, agent.*,
  *   message.*, tool.*, model.*, context.*)
  * - Generates inline handler code for pi.on(event, handler) registrations
  * - Emits pi.registerTool() calls for tools defined in the plugin manifest
@@ -17,7 +17,7 @@
  * - Supports multi-file extensions via a generated package.json with a "pi" key
  * - Single-file extensions need no manifest metadata file
  *
- * @see https://github.com/earendil-works/pi-coding-agent (Pi Mono platform)
+ * @see https://github.com/earendil-works/pi-coding-agent (Pi platform)
  */
 
 // @ts-nocheck - Adapter types differ from current core types; code generation is correct at runtime
@@ -126,7 +126,7 @@ declare module "@agentplugins/core" {
 const PLATFORM_NAME: TargetPlatform = "pimono";
 
 /** Human-readable display name. */
-const DISPLAY_NAME = "Pi Mono";
+const DISPLAY_NAME = "Pi";
 
 /** Manifest file name (used for multi-file extensions). */
 const MANIFEST_PATH = "package.json";
@@ -137,7 +137,7 @@ const MANIFEST_FORMAT: "json" = "json";
 /**
  * Universal hooks this adapter supports.
  *
- * Not every Pi Mono event has a universal counterpart. Unsupported hooks are
+ * Not every Pi event has a universal counterpart. Unsupported hooks are
  * left out so the compiler can emit a diagnostic when a plugin declares them.
  */
 const SUPPORTED_HOOKS: readonly UniversalHookName[] = [
@@ -153,16 +153,16 @@ const SUPPORTED_HOOKS: readonly UniversalHookName[] = [
   "stop",
 ];
 
-/** Handler types Pi Mono can express natively. */
+/** Handler types Pi can express natively. */
 const SUPPORTED_HANDLERS: readonly ExtendedHandlerType[] = [
   "inline", // pi.on(event, async (ctx) => { … })
   "reference", // Handled by generating a proxy that calls the named function
 ];
 
 /**
- * Mapping from universal hook names to Pi Mono event strings.
+ * Mapping from universal hook names to Pi event strings.
  *
- * Pi Mono uses dot-namespaced events (category.EventName) for its 30+
+ * Pi uses dot-namespaced events (category.EventName) for its 30+
  * lifecycle hooks across 6 categories:
  *   - session.* (SessionStart, SessionEnd, CompactStart)
  *   - agent.*   (AgentStart, AgentStop)
@@ -226,14 +226,14 @@ function resolveHandlerSource(source: string, pluginRoot?: string): string {
    ──────────────────────────────────────────────────────────────────────────── */
 
 /**
- * Validate a plugin manifest for Pi Mono compatibility.
+ * Validate a plugin manifest for Pi compatibility.
  *
  * Checks:
  * 1. Plugin name is present and non-empty.
  * 2. All declared hooks are supported by this adapter.
  * 3. All declared tools have valid TypeBox-compatible schemas (at minimum a
  *    `type` or `$schema` property).
- * 4. Inline handlers are supported (Pi Mono expects inline async functions).
+ * 4. Inline handlers are supported (Pi expects inline async functions).
  * 5. Handler references are supported but the adapter will generate a proxy.
  *
  * @param plugin - The plugin manifest to validate.
@@ -262,7 +262,7 @@ function validatePlugin(plugin: PluginManifest): ValidationIssue[] {
             `Unsupported hook "${hookName}". ` +
             (piMonoEvent
               ? `This adapter maps it to "${piMonoEvent}", but the hook is not listed as supported.`
-              : `No Pi Mono event mapping exists for this hook.`),
+              : `No Pi event mapping exists for this hook.`),
         });
       }
 
@@ -360,7 +360,7 @@ function validatePlugin(plugin: PluginManifest): ValidationIssue[] {
       severity: Severity.WARNING,
       field: "mcpServers",
       message:
-        `Pi Mono has no built-in MCP support — "mcpServers" will not be emitted for this target. ` +
+        `Pi has no built-in MCP support — "mcpServers" will not be emitted for this target. ` +
         `Use first-class "tools[]" (emitted natively via pi.registerTool()) or bridge an MCP server ` +
         `through a Pi extension via "nativeEntry.pimono". ` +
         `See docs/guide/porting#mcp-on-pi for the guided pattern.`,
@@ -380,7 +380,7 @@ function validatePlugin(plugin: PluginManifest): ValidationIssue[] {
  * For inline handlers we embed the source code directly inside the
  * pi.on(event, async (ctx) => { … }) callback.
  *
- * Pi Mono context objects (`ctx`) provide:
+ * Pi context objects (`ctx`) provide:
  *   - ctx.session   – current session
  *   - ctx.agent     – current agent
  *   - ctx.message   – current message (for message.* events)
@@ -391,7 +391,7 @@ function validatePlugin(plugin: PluginManifest): ValidationIssue[] {
  *   - ctx.logger    – scoped logger
  *
  * @param handler - The inline handler definition.
- * @param event   - The Pi Mono event string (for comment context).
+ * @param event   - The Pi event string (for comment context).
  * @returns TypeScript source string for the handler body.
  */
 function generateInlineHandlerBody(
@@ -423,13 +423,13 @@ function generateInlineHandlerBody(
 /**
  * Generate handler code for a "command" type handler.
  *
- * Pi Mono extensions run in Node.js, so we wrap the shell command via
+ * Pi extensions run in Node.js, so we wrap the shell command via
  * execSync. The CLAUDE_PLUGIN_ROOT env var is set to __piPluginRoot so hook
  * scripts can locate sibling files regardless of cwd. Stdout is parsed as
  * JSON and returned; parse failures return an empty object.
  *
  * @param handler - The command handler definition.
- * @param event   - The Pi Mono event name (for logging).
+ * @param event   - The Pi event name (for logging).
  * @returns TypeScript source string for the handler body.
  */
 const PIMONO_PLUGIN_ROOT_RE = /\$\{(?:CLAUDE_)?PLUGIN_ROOT\}/g;
@@ -470,9 +470,9 @@ function generateCommandHandlerBody(handler: CommandHookHandler, event: string):
 /**
  * Generate a handler for a "reference" type handler.
  *
- * Since Pi Mono expects inline functions, we generate a thin async wrapper
+ * Since Pi expects inline functions, we generate a thin async wrapper
  * that imports (or requires) the referenced module and calls the target
- * function with the Pi Mono context.
+ * function with the Pi context.
  *
  * @param handler - The reference handler definition.
  * @returns TypeScript source string for the wrapper.
@@ -501,7 +501,7 @@ function generateReferenceHandler(handler: HandlerReference, pluginRoot?: string
 /**
  * Generate a pi.on(event, handler) registration block.
  *
- * @param event   - Pi Mono event string (e.g. "session.SessionStart").
+ * @param event   - Pi event string (e.g. "session.SessionStart").
  * @param handler - Universal hook handler definition.
  * @returns Lines of TypeScript source.
  */
@@ -562,7 +562,7 @@ function generateEventRegistration(
 /**
  * Generate pi.registerTool() calls for each tool in the manifest.
  *
- * Pi Mono uses TypeBox schemas, so we embed the schema object directly.
+ * Pi uses TypeBox schemas, so we embed the schema object directly.
  *
  * @param tools - Array of plugin tools.
  * @returns Lines of TypeScript source.
@@ -754,7 +754,7 @@ function generateFlagRegistrations(
    ──────────────────────────────────────────────────────────────────────────── */
 
 /**
- * Compile a plugin manifest into Pi Mono extension source files.
+ * Compile a plugin manifest into Pi extension source files.
  *
  * The output contains:
  *   1. `index.ts` — the main extension file exporting a default factory function.
@@ -762,7 +762,7 @@ function generateFlagRegistrations(
  *      Pi-specific metadata (name, version, entry point, etc.).
  *
  * Single-file extensions (no external source files referenced) do not need a
- * package.json — Pi Mono's auto-discovery will find `index.ts` directly.
+ * package.json — Pi's auto-discovery will find `index.ts` directly.
  *
  * @param plugin - The plugin manifest to compile.
  * @returns AdapterOutput with generated files and metadata.
@@ -838,7 +838,7 @@ function compilePlugin(plugin: PluginManifest, options?: CompileOptions): Adapte
 
   // Header / generated notice
   tsLines.push(`/**`);
-  tsLines.push(` * Generated Pi Mono Extension — ${plugin.name}`);
+  tsLines.push(` * Generated Pi Extension — ${plugin.name}`);
   tsLines.push(` *`);
   tsLines.push(` * Platform:    ${DISPLAY_NAME}`);
   tsLines.push(` * Plugin:      ${plugin.name}${plugin.version ? ` v${plugin.version}` : ""}`);
@@ -897,9 +897,9 @@ function compilePlugin(plugin: PluginManifest, options?: CompileOptions): Adapte
 
   // Default factory function (async when adapterOverrides is set).
   tsLines.push(`/**`);
-  tsLines.push(` * Pi Mono extension factory.`);
+  tsLines.push(` * Pi extension factory.`);
   tsLines.push(` *`);
-  tsLines.push(` * @param pi - The ExtensionAPI instance provided by the Pi Mono runtime.`);
+  tsLines.push(` * @param pi - The ExtensionAPI instance provided by the Pi runtime.`);
   tsLines.push(` */`);
   tsLines.push(`export default async function(pi: ExtensionAPI) {`);
   if (dynamicImports.size > 0) {
@@ -944,7 +944,7 @@ function compilePlugin(plugin: PluginManifest, options?: CompileOptions): Adapte
     for (const [hookName, hookDef] of Object.entries(plugin.hooks)) {
       const event = HOOK_TO_EVENT[hookName as UniversalHookName];
       if (!event) {
-        tsLines.push(`  // WARNING: No Pi Mono event for hook "${hookName}" — skipping`);
+        tsLines.push(`  // WARNING: No Pi event for hook "${hookName}" — skipping`);
         tsLines.push(``);
         continue;
       }
@@ -1013,7 +1013,7 @@ function compilePlugin(plugin: PluginManifest, options?: CompileOptions): Adapte
     const pkg: Record<string, unknown> = {
       name: plugin.name,
       version: plugin.version ?? "0.0.0",
-      description: plugin.description ?? `Pi Mono extension for ${plugin.name}`,
+      description: plugin.description ?? `Pi extension for ${plugin.name}`,
       main: "index.ts",
       pi: {
         name: plugin.name,
@@ -1047,7 +1047,7 @@ function compilePlugin(plugin: PluginManifest, options?: CompileOptions): Adapte
     for (const hookName of Object.keys(plugin.hooks)) {
       if (!SUPPORTED_HOOKS.includes(hookName as UniversalHookName)) {
         warnings.push(
-          `Hook "${hookName}" is not supported by the Pi Mono adapter and was skipped.`
+          `Hook "${hookName}" is not supported by the Pi adapter and was skipped.`
         );
       }
     }
@@ -1083,10 +1083,10 @@ function compilePlugin(plugin: PluginManifest, options?: CompileOptions): Adapte
    ──────────────────────────────────────────────────────────────────────────── */
 
 /**
- * Pi Mono platform adapter.
+ * Pi platform adapter.
  *
  * Implements the AgentPlugins `PlatformAdapter` interface to compile universal
- * plugin manifests into Pi Mono native TypeScript extensions.
+ * plugin manifests into Pi native TypeScript extensions.
  *
  * Usage:
  * ```ts
@@ -1119,7 +1119,7 @@ export class PiMonoAdapter implements PlatformAdapter {
   readonly manifestFormat: "json" | "toml" = MANIFEST_FORMAT;
 
   /**
-   * Validate a plugin manifest for Pi Mono compatibility.
+ * Validate a plugin manifest for Pi compatibility.
    *
    * @param plugin - The plugin manifest.
    * @returns Array of validation issues (empty if valid).
@@ -1129,7 +1129,7 @@ export class PiMonoAdapter implements PlatformAdapter {
   }
 
   /**
-   * Compile a plugin manifest into Pi Mono extension files.
+   * Compile a plugin manifest into Pi extension files.
    *
    * @param plugin - The plugin manifest.
    * @param options - Optional compile options including pluginRoot for safe path resolution.
@@ -1143,7 +1143,7 @@ export class PiMonoAdapter implements PlatformAdapter {
     if (errors.length > 0) {
       const errorMessages = errors.map((e) => `  - ${e.message}`).join("\n");
       throw new Error(
-        `Pi Mono adapter validation failed with ${errors.length} error(s):\n${errorMessages}`
+        `Pi adapter validation failed with ${errors.length} error(s):\n${errorMessages}`
       );
     }
 
@@ -1152,14 +1152,14 @@ export class PiMonoAdapter implements PlatformAdapter {
 }
 
 /**
- * Singleton instance of the Pi Mono adapter.
+ * Singleton instance of the Pi adapter.
  *
  * Most consumers should use this pre-constructed instance rather than
  * constructing `PiMonoAdapter` directly.
  */
 export const piMonoAdapter = new PiMonoAdapter();
 
-/** Factory function for creating a new Pi Mono adapter instance. */
+/** Factory function for creating a new Pi adapter instance. */
 export function createPiMonoAdapter(): PlatformAdapter {
   return new PiMonoAdapter();
 }

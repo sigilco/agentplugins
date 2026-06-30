@@ -9,7 +9,7 @@
 
 > Write AI agent plugins once, ship to any harness.
 
-Install any plugin into every supported AI agent — **Tier-1:** Claude Code, Codex, OpenCode, Pi Mono. **Tier-2:** Copilot, Gemini, Kimi.
+Install any plugin into every supported AI agent — **Tier-1:** Claude Code, Codex, OpenCode, Pi. **Tier-2:** Copilot, Gemini, Kimi.
 
 ```bash
 npx @agentplugins/cli add user/awesome-plugin
@@ -40,7 +40,7 @@ Porting an existing plugin? → [agentplugins.pages.dev/guide/porting](https://a
 
 ## Supported agents
 
-**Tier-1** (full capability parity): Claude Code, Codex, OpenCode, Pi Mono.
+**Tier-1** (full capability parity): Claude Code, Codex, OpenCode, Pi.
 
 **Tier-2** (skills + commands, subset of hooks): Copilot, Gemini, Kimi.
 

@@ -5,7 +5,7 @@ description: Community plugins built on the AgentPlugins universal manifest, ins
 
 # Ecosystem
 
-Community plugins rewritten on the AgentPlugins universal manifest. Each targets functional parity across the four supported harnesses — the same functionality across Claude Code, Codex, OpenCode, and Pi Mono.
+Community plugins rewritten on the AgentPlugins universal manifest. Each targets functional parity across the four supported harnesses — the same functionality across Claude Code, Codex, OpenCode, and Pi.
 
 Install any plugin with a single command:
 

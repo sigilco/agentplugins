@@ -1,8 +1,8 @@
 # @agentplugins/adapter-pimono
 
-> AgentPlugins platform adapter for [Pi Mono](https://pi.mono/).
+> AgentPlugins platform adapter for [Pi](https://pi.dev/).
 
-Generates TypeScript-native extensions for the Pi agent runtime from a universal `PluginManifest`. Pi Mono extensions are regular TS modules, so handlers are emitted as real functions rather than wrapped scripts.
+Generates TypeScript-native extensions for the Pi agent runtime from a universal `PluginManifest`. Pi extensions are regular TS modules, so handlers are emitted as real functions rather than wrapped scripts.
 
 ## Installation
 

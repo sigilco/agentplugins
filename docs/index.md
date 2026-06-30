@@ -1,13 +1,13 @@
 ---
 title: AgentPlugins – Universal Plugin Standard for AI Agents
-description: Write AI agent plugins once, ship to Claude Code, Codex, OpenCode, Gemini, Copilot, Kimi, and Pi Mono. One manifest. Seven platforms. Zero lock-in.
+description: Write AI agent plugins once, ship to Claude Code, Codex, OpenCode, Gemini, Copilot, Kimi, and Pi. One manifest. Seven platforms. Zero lock-in.
 layout: home
 
 hero:
   name: "AgentPlugins"
   text: "Universal plugin standard for AI agents"
   tagline: "Write AI agent plugins once, ship to any harness."
-  description: "One manifest. Tier-1: Claude Code, Codex, OpenCode, Pi Mono. Tier-2: Copilot, Gemini, Kimi. Zero lock-in."
+  description: "One manifest. Tier-1: Claude Code, Codex, OpenCode, Pi. Tier-2: Copilot, Gemini, Kimi. Zero lock-in."
   image:
     src: /img/logo-dark.png
     alt: AgentPlugins

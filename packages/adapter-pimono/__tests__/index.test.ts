@@ -1,7 +1,7 @@
 /**
  * adapter-pimono index tests — B11
  *
- * Safety and codegen coverage for the Pi Mono adapter.
+ * Safety and codegen coverage for the Pi adapter.
  */
 
 import { describe, it, expect } from "vitest";

@@ -195,7 +195,7 @@ agents: [
 ::: warning EXPERIMENTAL
 `sidecar` is experimental. It is accepted by the schema and validated, but **no adapter currently starts or stops sidecar processes**. Do not rely on it for production plugins.
 
-**For a long-running background process today:** ship a stdio MCP server (consumed natively by Claude Code, Codex, and OpenCode via `mcpServers`) or declare a `setup` command that starts it. On Pi Mono (which has no MCP), ship a Pi extension via `nativeEntry.pimono` that starts the process using Pi's extension API.
+**For a long-running background process today:** ship a stdio MCP server (consumed natively by Claude Code, Codex, and OpenCode via `mcpServers`) or declare a `setup` command that starts it. On Pi (which has no MCP), ship a Pi extension via `nativeEntry.pimono` that starts the process using Pi's extension API.
 :::
 
 ```typescript

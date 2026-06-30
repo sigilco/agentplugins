@@ -104,7 +104,7 @@ The response body determines allow/block semantics, mirroring the command handle
 
 ### 3. `reference` / `inline` — TypeScript function
 
-References a named handler in the plugin's handler module, or inlines a TypeScript function directly. Natively supported by OpenCode and Pi Mono; auto-wrapped as a shell command for other platforms.
+References a named handler in the plugin's handler module, or inlines a TypeScript function directly. Natively supported by OpenCode and Pi; auto-wrapped as a shell command for other platforms.
 
 ```typescript
 hooks: {

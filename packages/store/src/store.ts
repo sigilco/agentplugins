@@ -46,7 +46,7 @@ export interface AgentPathEntry {
   /**
    * How the compiled artifact is linked into pluginPath:
    * - 'file': a single <name>.ts file (e.g. OpenCode)
-   * - 'dir': a directory symlink to the whole dist/<target>/ dir (e.g. Pi Mono)
+   * - 'dir': a directory symlink to the whole dist/<target>/ dir (e.g. Pi)
    */
   pluginPathMode?: 'file' | 'dir';
   /**
@@ -184,7 +184,7 @@ export const AGENT_PATHS: readonly AgentPathEntry[] = [
   },
   {
     name: 'pimono',
-    displayName: 'Pi Mono',
+    displayName: 'Pi',
     skillPath: '~/.pi/extensions',
     binary: 'pi',
     manifestPath: '~/.pi/config.json',
@@ -845,7 +845,7 @@ export function linkCompiledPlugin(pluginName: string, agent: DetectedAgent): Sy
     return results;
   }
 
-  // Legacy single-file or dir mode (e.g. Pi Mono)
+  // Legacy single-file or dir mode (e.g. Pi)
   mkdirSync(agent.pluginPath, { recursive: true });
 
   let linkPath: string;

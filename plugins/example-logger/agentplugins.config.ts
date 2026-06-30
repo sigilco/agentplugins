@@ -13,7 +13,7 @@ import { definePlugin } from '@agentplugins/core';
  * - Google Gemini CLI (gemini-extension.json)
  * - Kimi (kimi.plugin.json)
  * - OpenCode (.opencode/plugins/)
- * - Pi Mono (.pi/extensions/)
+ * - Pi (.pi/extensions/)
  */
 export default definePlugin({
   name: 'agentplugins-example-logger',

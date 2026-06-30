@@ -1,4 +1,4 @@
-# Pi Mono `Tier-1`
+# Pi `Tier-1`
 
 Open-source agent harness from Eärendil Works. Extensions are npm packages or standalone `.ts` files.
 

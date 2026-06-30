@@ -2,12 +2,12 @@
 
 ## Executive Summary
 
-AgentPlugins solves the fragmentation problem in AI agent plugin development. Plugin developers currently must maintain separate codebases for each platform (Claude Code, OpenCode, Codex, Copilot, Gemini, Kimi, Pi Mono). AgentPlugins provides a **universal plugin format** and **platform-specific adapters** (inspired by the unplugin pattern), enabling developers to write once and compile to multiple agent platforms.
+AgentPlugins solves the fragmentation problem in AI agent plugin development. Plugin developers currently must maintain separate codebases for each platform (Claude Code, OpenCode, Codex, Copilot, Gemini, Kimi, Pi). AgentPlugins provides a **universal plugin format** and **platform-specific adapters** (inspired by the unplugin pattern), enabling developers to write once and compile to multiple agent platforms.
 
 ## Problem Statement
 
 ### Current State
-- **7+ AI agent platforms** exist with incompatible plugin ecosystems (Claude Code, OpenCode, Codex, Copilot, Gemini, Kimi, Pi Mono)
+- **7+ AI agent platforms** exist with incompatible plugin ecosystems (Claude Code, OpenCode, Codex, Copilot, Gemini, Kimi, Pi)
 - Plugin developers must maintain **N separate codebases** for N platforms
 - Each platform has different:
   - Hook/event semantics (e.g., `sessionStart` vs `session.SessionStart`)
@@ -37,17 +37,17 @@ AgentPlugins solves the fragmentation problem in AI agent plugin development. Pl
 
 ### Tier-1 Functional Parity
 
-**Tier-1 harnesses: Claude Code, Codex, OpenCode, Pi Mono.** Tier-2: Copilot, Gemini, Kimi.
+**Tier-1 harnesses: Claude Code, Codex, OpenCode, Pi.** Tier-2: Copilot, Gemini, Kimi.
 
 A plugin capability must deliver the same functionality across all four Tier-1 harnesses — at the functionality level, not the TUI level. We do not ship a feature that works on only one harness.
 
 Five operating principles:
 
-1. **Tier-1 parity is the bar.** Same functionality across Claude Code, Codex, OpenCode, Pi Mono. TUI-grade fidelity (overlays, widgets) is the only allowed degradation.
+1. **Tier-1 parity is the bar.** Same functionality across Claude Code, Codex, OpenCode, Pi. TUI-grade fidelity (overlays, widgets) is the only allowed degradation.
 2. **Codegen first, guided per-harness fallback second.** Where universal codegen can express a capability across all Tier-1, do that. Where a harness lacks the native primitive, check whether all Tier-1 can support it via a custom (escape-hatch) method, and if so guide the author — rather than dropping the feature.
 3. **Keep a compat matrix.** The living [Capability Matrix](../../docs/guide/capability-matrix.md) (published at `/guide/capability-matrix`) records what's universal-codegen, guided-per-harness, and genuinely unsupported. It's the contract for "same functionality, different plumbing."
 4. **Lean, no global SDK.** Primitives express intent, not mechanism; each adapter owns its own plumbing. The escape hatch lets power users write native code against each harness's SDK.
-5. **Multi-platform by default, platform-specific code allowed.** AgentPlugins gives plugin authors the foundations to distribute their plugin across all Tier-1 harnesses (Claude Code, Codex, OpenCode, Pi Mono). Authors are not forced to support every harness — they may target a single harness or ship harness-specific behavior (e.g., custom logging for one harness) when another harness lacks a needed primitive. The end goal is a distribution platform and utilities so authors can make a plugin usable in other harnesses without porting or rewriting the implementation. Think React Native or Rust: multi-platform by default, platform-specific code when you need it.
+5. **Multi-platform by default, platform-specific code allowed.** AgentPlugins gives plugin authors the foundations to distribute their plugin across all Tier-1 harnesses (Claude Code, Codex, OpenCode, Pi). Authors are not forced to support every harness — they may target a single harness or ship harness-specific behavior (e.g., custom logging for one harness) when another harness lacks a needed primitive. The end goal is a distribution platform and utilities so authors can make a plugin usable in other harnesses without porting or rewriting the implementation. Think React Native or Rust: multi-platform by default, platform-specific code when you need it.
 
 ## Target Audience
 
@@ -70,7 +70,7 @@ _Draft — this section reflects the current product direction and will be final
 - **Distribution-first CLI** — `agentplugins add <github-url>` installs a plugin once; the universal store (`~/.agents/plugins/<name>/`) fans out via symlinks to every detected agent harness.
 - **Skills.sh compatibility** — plugins exposing `SKILL.md` are first-class citizens; our CLI reads both AgentPlugins and Skills.sh layouts.
 - **JSON Schema** — `@agentplugins/schema` package + hosted JSON Schema (`agentplugins.pages.dev/schema/v1.json`) for editor autocomplete and self-documenting manifests.
-- **Parity primitives** — every shipped capability works across Claude Code, Codex, OpenCode, and Pi Mono. The [Capability Matrix](../../docs/guide/capability-matrix.md) is the living contract.
+- **Parity primitives** — every shipped capability works across Claude Code, Codex, OpenCode, and Pi. The [Capability Matrix](../../docs/guide/capability-matrix.md) is the living contract.
 - **Security & audit guardrails** — `agentplugins audit` scores supply-chain risk (OSV, Scorecard, npm provenance); safe-fetch SSRF guard; lifecycle script policy.
 - **Public launch** — registry, docs site, examples, and a stable v1 manifest format.
 

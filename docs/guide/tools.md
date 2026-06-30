@@ -136,32 +136,32 @@ The manifest declares the **shape** of a tool. The implementation — what runs 
 
 ## Per-platform behavior
 
-`tools[]` is natively emitted by **OpenCode** and **Pi Mono** only. For all other platforms — including Claude Code and Codex — **`mcpServers` is the recommended universal tool delivery mechanism**.
+`tools[]` is natively emitted by **OpenCode** and **Pi** only. For all other platforms — including Claude Code and Codex — **`mcpServers` is the recommended universal tool delivery mechanism**.
 
 | Platform | `tools[]` | `mcpServers` | Notes |
 |---|:---:|:---:|---|
 | Claude Code | ⚠️ | ✅ | `tools[]` not emitted; use `mcpServers` |
 | Codex | ⚠️ | ✅ | Same as Claude Code |
 | OpenCode | ✅ | ✅ | First-class `tools[]` + `mcpServers` both supported |
-| Pi Mono | ✅ | ⚠️ | Pi has no built-in MCP. Use first-class `tools[]` (emitted natively) or bridge via `nativeEntry.pimono`. See [MCP on Pi](/guide/porting#mcp-on-pi). |
+| Pi | ✅ | ⚠️ | Pi has no built-in MCP. Use first-class `tools[]` (emitted natively) or bridge via `nativeEntry.pimono`. See [MCP on Pi](/guide/porting#mcp-on-pi). |
 | Copilot | ⚠️ | ❌ | Neither emitted; Tier-2 only |
 | Gemini | ⚠️ | ❌ | Neither emitted; Tier-2 only |
 | Kimi | ⚠️ | ❌ | Neither emitted; Tier-2 only |
 
 > ⚠️ When `tools[]` is declared and the target platform does not natively emit it, `agentplugins validate` emits a **WARNING** (not an error) with a pointer to `mcpServers`. The build still succeeds.
 >
-> ⚠️ Pi Mono has no built-in MCP support. On Pi, the native `tools[]` emission is the recommended path. `agentplugins validate` emits a WARNING when `mcpServers` is set with `pimono` as a target.
+> ⚠️ Pi has no built-in MCP support. On Pi, the native `tools[]` emission is the recommended path. `agentplugins validate` emits a WARNING when `mcpServers` is set with `pimono` as a target.
 
 ### Recommended cross-harness pattern
 
-For plugins targeting Claude, Codex, and OpenCode, back tools with an MCP server. For Pi Mono, declare `tools[]` directly (emitted natively) or use `nativeEntry.pimono` to bridge an MCP server through a Pi extension.
+For plugins targeting Claude, Codex, and OpenCode, back tools with an MCP server. For Pi, declare `tools[]` directly (emitted natively) or use `nativeEntry.pimono` to bridge an MCP server through a Pi extension.
 
 ```typescript
 export default definePlugin({
   name: 'my-tools',
   version: '1.0.0',
 
-  // MCP path: consumed by Claude Code, Codex, OpenCode (not Pi Mono)
+  // MCP path: consumed by Claude Code, Codex, OpenCode (not Pi)
   mcpServers: {
     'my-tools-server': {
       command: 'npx',
@@ -169,7 +169,7 @@ export default definePlugin({
     },
   },
 
-  // Optional: declare tool shapes for OpenCode/Pi Mono native emission
+  // Optional: declare tool shapes for OpenCode/Pi native emission
   tools: [
     {
       name: 'lookup-user',

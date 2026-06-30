@@ -41,7 +41,7 @@ const TARGET_OPTIONS = [
   { value: 'gemini', label: 'Gemini', hint: 'Google Gemini' },
   { value: 'kimi', label: 'Kimi', hint: 'Moonshot Kimi' },
   { value: 'opencode', label: 'OpenCode', hint: 'OpenCode agent' },
-  { value: 'pimono', label: 'Pi Mono', hint: 'Pi Mono agent' },
+  { value: 'pimono', label: 'Pi', hint: 'Pi agent' },
 ];
 
 const HOOK_OPTIONS = [

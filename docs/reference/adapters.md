@@ -14,7 +14,7 @@ An adapter compiles the universal manifest into one target platform's native for
 | `opencode` | TypeScript plugin + `opencode.json` | inline (reference) | subset | ✅ | ✅ |
 | `pimono` | TypeScript extension + `package.json` | inline (reference) | subset | ✅ | ⚠️ |
 
-⚠️ = WARN emitted; `tools[]` is not natively emitted — use `mcpServers` for Claude/Codex (Tier-1 universal tool path). Pi Mono has no built-in MCP; `tools[]` is the native tool path.
+⚠️ = WARN emitted; `tools[]` is not natively emitted — use `mcpServers` for Claude/Codex (Tier-1 universal tool path). Pi has no built-in MCP; `tools[]` is the native tool path.
 
 Two families: **JSON-emitting** adapters (claude, codex, copilot, gemini, kimi) produce static manifest files the host reads at startup. **Code-emitting** adapters (opencode, pimono) produce real TypeScript modules the host imports and calls.
 
@@ -131,7 +131,7 @@ If a native module is shipped as `.mjs`, `agentplugins` links it under a `.ts` n
 
 ### pimono
 
-Emits a Pi Mono extension as a TypeScript module plus a `package.json`:
+Emits a Pi extension as a TypeScript module plus a `package.json`:
 
 ```
 dist/pimono/
@@ -139,7 +139,7 @@ dist/pimono/
   package.json             # declares the `pi` key with extension metadata
 ```
 
-- Hooks are mapped to Pi Mono's event system.
+- Hooks are mapped to Pi's event system.
 - Inline/reference handlers are emitted as native functions, loaded via [jiti](https://github.com/unjs/jiti).
 - The `package.json` declares the extension under the `pi` key.
 
@@ -157,7 +157,7 @@ Code-emitting adapters respect the `emitLanguage` field on the manifest:
 |---|---|
 | `typescript` | Emit `.ts` files (default). Best for editor support. |
 | `javascript` | Emit `.js` files. Skip type checking. |
-| `go` | Emit `.go` files (Pi Mono only, experimental). |
+| `go` | Emit `.go` files (Pi only, experimental). |
 
 JSON-emitting adapters ignore this field.
 

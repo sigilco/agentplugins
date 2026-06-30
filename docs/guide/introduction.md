@@ -19,7 +19,7 @@ Every AI agent framework ships its own plugin system with its own manifest forma
 | Gemini CLI         | `gemini-extension.json`      | command only          |
 | Kimi               | `kimi.plugin.json`           | command only          |
 | OpenCode           | TypeScript plugins           | inline only           |
-| Pi Mono            | TypeScript extensions        | inline only           |
+| Pi            | TypeScript extensions        | inline only           |
 
 
 **Seven frameworks, seven different APIs.** A plugin author who wants to reach across the ecosystem maintains seven forks of the same logic. Users who switch harnesses lose every plugin they configured.
@@ -48,7 +48,7 @@ AgentPlugins targets four harnesses as primary compile targets with universal co
 | Claude Code | `claude`   | `~/.claude/skills`          |
 | Codex CLI   | `codex`    | `~/.codex/skills`           |
 | OpenCode    | `opencode` | `~/.config/opencode/skills` |
-| Pi Mono     | `pi`       | `~/.pi/extensions`          |
+| Pi     | `pi`       | `~/.pi/extensions`          |
 
 
 Three additional harnesses are tracked with decreasing capability coverage:

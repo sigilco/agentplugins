@@ -2,7 +2,7 @@ GitHub Project is [https://github.com/users/espetro/projects/14](https://github.
 
 ## Operating Principles
 
-**Tier-1 harnesses: Claude Code, Codex, OpenCode, Pi Mono.** Tier-2: Copilot, Gemini, Kimi.
+**Tier-1 harnesses: Claude Code, Codex, OpenCode, Pi.** Tier-2: Copilot, Gemini, Kimi.
 
 1. **Tier-1 parity is the bar.** Every shipped capability must work across all four Tier-1 harnesses at the functionality level (not TUI level).
 2. **Codegen first, guided per-harness fallback second.** Universal codegen where possible; otherwise guide the author via the escape hatch rather than dropping the feature.

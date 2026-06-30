@@ -1,6 +1,6 @@
 {
   "name": "agentplugins",
-  "description": "Write AI agent plugins once, ship to any harness. Unifying library for Claude Code, Codex, OpenCode, Gemini, Copilot CLI, Kimi, and Pi Mono.",
+  "description": "Write AI agent plugins once, ship to any harness. Unifying library for Claude Code, Codex, OpenCode, Gemini, Copilot CLI, Kimi, and Pi.",
   "private": true,
   "type": "module",
   "scripts": {

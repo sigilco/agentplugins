@@ -5,7 +5,7 @@ description: What each supported harness supports — universal codegen, guided 
 
 # Capability Matrix
 
-**Supported harnesses:** Claude Code · Codex · OpenCode · Pi Mono
+**Supported harnesses:** Claude Code · Codex · OpenCode · Pi
 
 **Additional (tracked, not blocking):** Copilot · Gemini · Kimi
 
@@ -20,12 +20,12 @@ Legend:
 
 ## Capability table
 
-| Capability               | Claude Code | Codex       | OpenCode | Pi Mono | Escape hatch                                                                                                              | Notes                                                                                                                      |
+| Capability               | Claude Code | Codex       | OpenCode | Pi | Escape hatch                                                                                                              | Notes                                                                                                                      |
 | ------------------------ | :----------: | :----------: | :------: | :-----: | ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | `skills`                 | ✅           | ✅           | ✅       | ✅      | —                                                                                                                         | Universal codegen                                                                                                          |
 | `hooks` (lifecycle)      | ✅           | ✅           | ✅       | ✅      | —                                                                                                                         | Universal codegen                                                                                                          |
 | `commands`               | ✅           | ✅           | ✅       | ✅      | —                                                                                                                         | Universal codegen                                                                                                          |
-| `mcpServers`             | ✅           | ✅           | ✅       | ⚠️     | Pi has no built-in MCP. Ship tools via native `tools[]` (emitted natively), or bridge an MCP server through a Pi extension via `nativeEntry.pimono`. | Universal on Claude · Codex · OpenCode. Pi Mono has no MCP; emits WARN when `mcpServers` is set. See [MCP on Pi](/guide/porting#mcp-on-pi). |
+| `mcpServers`             | ✅           | ✅           | ✅       | ⚠️     | Pi has no built-in MCP. Ship tools via native `tools[]` (emitted natively), or bridge an MCP server through a Pi extension via `nativeEntry.pimono`. | Universal on Claude · Codex · OpenCode. Pi has no MCP; emits WARN when `mcpServers` is set. See [MCP on Pi](/guide/porting#mcp-on-pi). |
 | `agents[]`               | ✅           | ✅           | ✅       | ⚠️     | Pi has no named-agent declaration primitive. Use `nativeEntry.pimono` to spawn custom agents via a Pi extension.           | Pi adapter emits nothing for `agents[]`; use `nativeEntry.pimono` for custom agent wiring on Pi.                           |
 | `agents[].model`         | ✅           | ⚠️          | ✅       | ⚠️     | Codex/Pi: use the harness's own per-agent model config (or simply omit and accept the harness default).                    | Claude + OpenCode emit `model:` frontmatter when set. Codex/Pi have no per-agent file concept; model unset → harness default. |
 | `subagentStart`          | ✅           | ✅           | ⚠️      | ✅      | OpenCode: intercept `subagent` tool calls with `preToolUse` matcher (subagents launch via the `subagent` tool).            | Emits WARN on OpenCode. Pi maps to `agent.AgentStart` lifecycle event.                                                      |

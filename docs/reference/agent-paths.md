@@ -29,7 +29,7 @@ Seven agent harnesses are supported:
 | Kimi | Kimi | `~/.kimi/skills` | `kimi` | `~/.kimi/config.json` |
 | Gemini CLI | Gemini CLI | `~/.gemini/skills` | `gemini` | `~/.gemini/settings.json` |
 | GitHub Copilot CLI | GitHub Copilot CLI | `~/.copilot/skills` | `copilot` | `~/.copilot/config.json` |
-| Pi Mono | Pi Mono | `~/.pi/extensions` | `pi` | `~/.pi/config.json` |
+| Pi | Pi | `~/.pi/extensions` | `pi` | `~/.pi/config.json` |
 
 ## How detection works
 

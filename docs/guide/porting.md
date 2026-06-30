@@ -8,7 +8,7 @@ description: Port an existing per-harness plugin to the AgentPlugins universal m
 This guide walks through porting an existing per-harness plugin to AgentPlugins so it delivers the **same functionality** everywhere — universal codegen first, per-harness escape hatch only when a capability has no universal primitive.
 
 ::: info Parity is the bar
-The four supported harnesses are **Claude Code, Codex, OpenCode, and Pi Mono**. A capability must work across all four at the *functionality* level — not necessarily with identical TUI chrome, but the same underlying behaviour. See the [Capability Matrix](/guide/capability-matrix) for the per-capability verdict.
+The four supported harnesses are **Claude Code, Codex, OpenCode, and Pi**. A capability must work across all four at the *functionality* level — not necessarily with identical TUI chrome, but the same underlying behaviour. See the [Capability Matrix](/guide/capability-matrix) for the per-capability verdict.
 :::
 
 ---
@@ -144,7 +144,7 @@ If you ship a `.mjs` source, `agentplugins` automatically links it under a `.ts`
 
 ### MCP on Pi {#mcp-on-pi}
 
-Pi Mono has no built-in MCP support ("No MCP" per the Pi README). When your manifest sets `mcpServers` and `pimono` is a target, `agentplugins validate` emits a WARNING pointing here.
+Pi has no built-in MCP support ("No MCP" per the Pi README). When your manifest sets `mcpServers` and `pimono` is a target, `agentplugins validate` emits a WARNING pointing here.
 
 Two paths:
 

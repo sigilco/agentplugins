@@ -55,7 +55,7 @@
     },
     {
       "name": "pimono",
-      "displayName": "Pi Mono",
+      "displayName": "Pi",
       "skillPath": "~/.pi/extensions",
       "binary": "pi",
       "manifestPath": "~/.pi/config.json"

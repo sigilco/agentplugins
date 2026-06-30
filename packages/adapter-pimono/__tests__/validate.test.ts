@@ -5,7 +5,7 @@ import { createPiMonoAdapter } from "../src/index";
 
 const adapter = createPiMonoAdapter({ pluginRoot: "/tmp/test-plugin" });
 
-describe("validatePlugin() — Pi Mono adapter", () => {
+describe("validatePlugin() — Pi adapter", () => {
   describe("mcpServers warning", () => {
     it("emits WARNING when mcpServers is set", () => {
       const manifest: PluginManifest = {
@@ -23,7 +23,7 @@ describe("validatePlugin() — Pi Mono adapter", () => {
         expect.objectContaining({
           severity: Severity.WARNING,
           field: "mcpServers",
-          message: expect.stringContaining("Pi Mono has no built-in MCP support"),
+          message: expect.stringContaining("Pi has no built-in MCP support"),
         })
       );
     });

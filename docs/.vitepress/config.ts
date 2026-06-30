@@ -41,11 +41,11 @@ export default withMermaid(defineConfig({
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:url', content: DOCS_SITE }],
     ['meta', { property: 'og:title', content: 'AgentPlugins – Universal Plugin Standard for AI Agents' }],
-    ['meta', { property: 'og:description', content: 'Write AI agent plugins once, ship to Claude Code, Codex, OpenCode, Copilot, Gemini, Kimi, and Pi Mono. One manifest. Zero lock-in.' }],
+    ['meta', { property: 'og:description', content: 'Write AI agent plugins once, ship to Claude Code, Codex, OpenCode, Copilot, Gemini, Kimi, and Pi. One manifest. Zero lock-in.' }],
     ['meta', { property: 'og:image', content: `${DOCS_SITE}/og.png` }],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
     ['meta', { name: 'twitter:title', content: 'AgentPlugins – Universal Plugin Standard for AI Agents' }],
-    ['meta', { name: 'twitter:description', content: 'Write AI agent plugins once, ship to Claude Code, Codex, OpenCode, Copilot, Gemini, Kimi, and Pi Mono.' }],
+    ['meta', { name: 'twitter:description', content: 'Write AI agent plugins once, ship to Claude Code, Codex, OpenCode, Copilot, Gemini, Kimi, and Pi.' }],
     ['meta', { name: 'twitter:image', content: `${DOCS_SITE}/og.png` }],
     ['script', { type: 'application/ld+json' }, JSON.stringify({
       "@context": "https://schema.org",

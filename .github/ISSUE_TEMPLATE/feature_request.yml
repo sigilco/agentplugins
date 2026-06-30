@@ -19,7 +19,7 @@ body:
     id: harnesses
     attributes:
       label: Harnesses this should cover
-      placeholder: "Claude Code, Codex, OpenCode, Pi Mono (Tier-1) / Copilot, Gemini, Kimi (Tier-2)"
+      placeholder: "Claude Code, Codex, OpenCode, Pi (Tier-1) / Copilot, Gemini, Kimi (Tier-2)"
   - type: textarea
     id: alternatives
     attributes:

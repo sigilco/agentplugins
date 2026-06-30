@@ -102,7 +102,7 @@ mcpServers: {
 | Gemini | ✓ | — | stdio only. |
 | Kimi | ✓ | — | stdio only. |
 | OpenCode | ✓ | ✓ | Native MCP support. |
-| Pi Mono | ✓ | — | stdio only. |
+| Pi | ✓ | — | stdio only. |
 
 Unsupported transports are dropped at build time with a warning.
 
