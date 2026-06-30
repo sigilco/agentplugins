@@ -8,7 +8,7 @@ allowBuilds:
 catalog:
   typescript: '^5.9.3'
   vitest: '^3.2.6'
-  tsdown: '^1.0.0'
+  tsdown: '^0.22.3'
   jiti: '^2.0.0'
   tsx: '^4.0.0'
   logtape: '^0.4.0'
