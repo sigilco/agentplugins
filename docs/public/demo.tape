@@ -2,15 +2,19 @@
 #
 # Render: cd docs/public && vhs demo.tape
 # Produces: demo.gif + demo.mp4
+#
+# Resolution: 1920x1080 (1080p) for crisp text on social media
+# Re-encode: see .agents/docs/demo-gif-creation.md
 
 Output docs/public/demo.gif
 Output docs/public/demo.mp4
 
 Set Shell bash
-Set FontSize 16
-Set Width 1200, Height 700
-Set Padding 20
-Set Theme "Tokyo Night"
+Set FontSize 22
+Set Width 1920
+Set Height 1080
+Set Padding 40
+Set Theme Dracula
 Set TypingSpeed 50ms
 Set PlaybackSpeed 1.0
 
@@ -28,9 +32,7 @@ Type "Build a plugin using @agentplugins/cli that auto-generates conventional co
 Enter
 
 # Agent "thinking" — clear, no spinner
-Sleep 1s
-Type "..."
-Sleep 4s
+Sleep 5s
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Frame 3 — Agent reports done (scripted response, see demo-frames/agent-response.txt)
