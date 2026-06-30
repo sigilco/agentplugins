@@ -91,6 +91,10 @@ Full docs → [agentplugins.pages.dev](https://agentplugins.pages.dev)
 
 LLMs.txt for AI agents → [agentplugins.pages.dev/llms.txt](https://agentplugins.pages.dev/llms.txt)
 
+## Contributing
+
+PRs welcome. See [CONTRIBUTING.md](./CONTRIBUTING.md), file issues, and join the conversation in [Discussions](https://github.com/sigilco/agentplugins/discussions).
+
 ---
 
 Apache-2.0 · [GitHub](https://github.com/sigilco/agentplugins) · [Sponsor](https://buy.polar.sh/polar_cl_Mv1gdlG7bw3I70EC9IHtfeSHJj4PEKvA7JAUz23CFhj)
