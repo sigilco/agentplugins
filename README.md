@@ -16,6 +16,10 @@
 
 > Write AI agent plugins once, ship to any harness.
 
+<p align="center">
+  <img src="./docs/public/demo.gif" width="100%" alt="AgentPlugins demo: build once, install everywhere" />
+</p>
+
 ## Why
 
 - **Write once, run everywhere** — one manifest compiles to Claude Code, Codex, OpenCode, Pi, Copilot, Gemini, and Kimi
