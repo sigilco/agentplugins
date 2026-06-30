@@ -228,7 +228,7 @@ interface HookContext {
   toolInput?: unknown       // for tool hooks
   prompt?: string           // for prompt hooks
   agentName?: string        // for subagent hooks
-  error?: string            // for onError
+  error?: string            // for postToolUseFailure, stopFailure
 }
 ```
 
@@ -240,7 +240,7 @@ Returning an object lets you influence the agent's behavior:
 interface HookResult {
   block?: boolean           // stop the action
   reason?: string           // explanation (shown to the agent)
-  additionalContext?: string// inject context into the turn
+  additionalContext?: string // inject context into the turn
   modifiedInput?: unknown   // rewrite the tool input
 }
 ```

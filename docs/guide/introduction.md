@@ -22,7 +22,7 @@ Every AI agent framework ships its own plugin system with its own manifest forma
 | Pi Mono            | TypeScript extensions        | inline only           |
 
 
-**Seven frameworks, seven different APIs.** A plugin author who wants reach across the ecosystem maintains seven forks of the same logic. Users who switch harnesses lose every plugin they configured.
+**Seven frameworks, seven different APIs.** A plugin author who wants to reach across the ecosystem maintains seven forks of the same logic. Users who switch harnesses lose every plugin they configured.
 
 ## The solution
 
