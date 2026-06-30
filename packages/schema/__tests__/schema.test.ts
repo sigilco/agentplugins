@@ -14,7 +14,7 @@ describe("@agentplugins/schema", () => {
   describe("exports", () => {
     it("exports manifest schema object", () => {
       expect(manifestSchema).toBeDefined();
-      expect(manifestSchema.$id).toContain("agentplugins.dev");
+      expect(manifestSchema.$id).toContain("agentplugins.pages.dev");
       expect(manifestSchema.type).toBe("object");
     });
 

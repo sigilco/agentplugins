@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://agentplugins.dev/schema/v1/adapter.json",
+  "$id": "https://agentplugins.pages.dev/schema/v1/adapter.json",
   "title": "AgentPlugins Adapter ABI v1",
   "description": "Contract for the JSON process ABI. An adapter is any executable (binary, script) that reads a JSON manifest on stdin (or via --manifest <file>), compiles platform-specific output, writes files, and exits 0 (success) or non-zero (failure). Enables any-language adapters without SDK lock-in.",
   "type": "object",

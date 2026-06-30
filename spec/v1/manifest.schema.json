@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://agentplugins.dev/schema/v1.json",
+  "$id": "https://agentplugins.pages.dev/schema/v1.json",
   "title": "AgentPlugins Manifest v1",
-  "description": "The public contract for an AgentPlugins plugin. One manifest compiles to any supported agent harness. Include \"$schema\": \"https://agentplugins.dev/schema/v1.json\" in your manifest for editor autocomplete.",
+  "description": "The public contract for an AgentPlugins plugin. One manifest compiles to any supported agent harness. Include \"$schema\": \"https://agentplugins.pages.dev/schema/v1.json\" in your manifest for editor autocomplete.",
   "type": "object",
   "required": ["name", "version", "description"],
   "additionalProperties": false,

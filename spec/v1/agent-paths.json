@@ -1,5 +1,5 @@
 {
-  "$schema": "https://agentplugins.dev/schema/v1/agent-paths.json",
+  "$schema": "https://agentplugins.pages.dev/schema/v1/agent-paths.json",
   "version": 1,
   "description": "Community-maintained registry of well-known agent skill/plugin paths. AgentPlugins scans these to detect installed agents and fan out symlinks from the universal store (~/.agents/plugins/<name>).",
   "store": {
