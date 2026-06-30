@@ -42,6 +42,22 @@ Or install the CLI globally first:
 curl -fsSL https://agentplugins.pages.dev/install.sh | bash
 ```
 
+## Quick start
+
+From zero to a working plugin in any supported harness:
+
+```bash
+# Scaffold a new plugin from the official template
+npx @agentplugins/cli init my-plugin
+cd my-plugin
+
+# Install it into every supported harness (writes to ~/.claude, ~/.codex, etc.)
+npx @agentplugins/cli add .
+
+# Verify the install landed where you expect
+npx @agentplugins/cli doctor
+```
+
 ## Create a plugin
 
 Scaffold a plugin from a template, write your manifest, build, and publish to GitHub:
