@@ -10,10 +10,12 @@ import {
   type ValidationIssue,
   type UniversalHookName,
   type HookHandler,
+  type HookDefinition,
   UNIVERSAL_HOOK_NAMES,
   ALL_TARGETS,
   type TargetPlatform,
   Severity,
+  type Dependency,
 } from '@agentplugins/contract';
 
 // ─── Universal Validators ─────────────────────────────────────────────────────
@@ -88,7 +90,8 @@ export function validateUniversal(
 
   // ─── hooks ────────────────────────────────────────────────────────────────
   if (plugin.hooks) {
-    for (const [name, def] of Object.entries(plugin.hooks)) {
+    const hooksRecord = plugin.hooks as Record<string, HookDefinition | undefined>;
+    for (const [name, def] of Object.entries(hooksRecord)) {
       const hookName = name as UniversalHookName;
       if (!UNIVERSAL_HOOK_NAMES.includes(hookName)) {
         issues.push({
@@ -134,7 +137,7 @@ export function validateUniversal(
   // ─── dependencies ────────────────────────────────────────────────────────
   if (plugin.dependencies) {
     for (let i = 0; i < plugin.dependencies.length; i++) {
-      const dep = plugin.dependencies[i];
+      const dep = plugin.dependencies[i] as Dependency;
       if (dep.type === 'npm') {
         if (!dep.name) {
           issues.push({ severity: Severity.ERROR, field: `dependencies[${i}].name`, message: 'npm dependency must have a "name"' });
@@ -419,7 +422,8 @@ export function validateForPlatform(
 
   // Check unsupported hooks
   if (plugin.hooks) {
-    for (const [name, def] of Object.entries(plugin.hooks)) {
+    const hooksRecord = plugin.hooks as Record<string, HookDefinition | undefined>;
+    for (const [name, def] of Object.entries(hooksRecord)) {
       const hookName = name as UniversalHookName;
       if (!def) continue;
 
