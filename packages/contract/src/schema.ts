@@ -47,7 +47,7 @@ export type Dependency = z.infer<typeof DependencySchema>;
 export const SidecarSchema = z.object({
   command: z.string(),
   args: z.array(z.string()).optional(),
-  env: z.record(z.string()).optional(),
+  env: z.record(z.string(), z.string()).optional(),
   port: z.number().optional(),
   health: z.string().optional(),
   restart: z.enum(['always', 'on-failure', 'no']).optional(),
@@ -92,7 +92,7 @@ export type AgentDefinition = z.infer<typeof AgentDefinitionSchema>;
 export const MCPServerConfigSchema = z.object({
   command: z.string(),
   args: z.array(z.string()).optional(),
-  env: z.record(z.string()).optional(),
+  env: z.record(z.string(), z.string()).optional(),
   transport: z.enum(['stdio', 'http']).optional(),
 });
 export type MCPServerConfig = z.infer<typeof MCPServerConfigSchema>;
@@ -114,14 +114,14 @@ export const ToolParameterSchema: z.ZodType<ToolParameter> = z.lazy(() =>
     description: z.string().optional(),
     enum: z.array(z.string()).optional(),
     items: ToolParameterSchema.optional(),
-    properties: z.record(ToolParameterSchema).optional(),
+    properties: z.record(z.string(), ToolParameterSchema).optional(),
     required: z.array(z.string()).optional(),
   })
 );
 
 export const ToolParameterSchemaMapSchema = z.object({
   type: z.literal('object'),
-  properties: z.record(ToolParameterSchema),
+  properties: z.record(z.string(), ToolParameterSchema),
   required: z.array(z.string()).optional(),
 });
 
@@ -215,7 +215,7 @@ export type CommandHookHandler = z.infer<typeof CommandHandlerSchema>;
 export const HttpHandlerSchema = z.object({
   type: z.literal('http'),
   url: z.string(),
-  headers: z.record(z.string()).optional(),
+  headers: z.record(z.string(), z.string()).optional(),
 });
 export type HttpHookHandler = z.infer<typeof HttpHandlerSchema>;
 
@@ -307,7 +307,7 @@ export const PluginManifestSchema = z.object({
   displayName: z.string().optional(),
   author: z.union([
     z.string(),
-    z.object({ name: z.string(), email: z.string().optional(), url: z.string().optional() }),
+    z.object({ name: z.string(), email: z.email().optional(), url: z.url().optional() }),
   ]).optional(),
   homepage: z.string().optional(),
   repository: z.string().optional(),
@@ -319,9 +319,9 @@ export const PluginManifestSchema = z.object({
   hooks: UniversalHooksSchema.optional(),
   commands: z.array(CommandSchema).optional(),
   agents: z.array(AgentDefinitionSchema).optional(),
-  mcpServers: z.record(MCPServerConfigSchema).optional(),
-  userConfig: z.record(UserConfigOptionSchema).optional(),
-  metadata: z.record(z.unknown()).optional(),
+  mcpServers: z.record(z.string(), MCPServerConfigSchema).optional(),
+  userConfig: z.record(z.string(), UserConfigOptionSchema).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 
   capabilities: z.array(z.string()).optional(),
   targets: z.array(TargetPlatformSchema).optional(),
