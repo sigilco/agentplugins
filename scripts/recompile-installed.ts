@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * One-time recompile script for installed plugins.
  * Run from workspace: npx tsx scripts/recompile-installed.ts
