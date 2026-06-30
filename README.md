@@ -20,6 +20,14 @@ Install any plugin into every supported AI agent — **Tier-1:** Claude Code, Co
 
 [**Sponsor development →**](https://buy.polar.sh/polar_cl_Mv1gdlG7bw3I70EC9IHtfeSHJj4PEKvA7JAUz23CFhj)
 
+## Why
+
+- **Write once, run everywhere** — one manifest compiles to Claude Code, Codex, OpenCode, Pi Mono, Copilot, Gemini, and Kimi
+- **Universal codegen first, per-harness fallback second** — Tier-1 harnesses get full parity; Tier-2 gets skills + commands + a subset of hooks
+- **No runtime proxy** — every adapter emits the harness's native output format; no shim layer, no lock-in
+- **Honest capability matrix** — capability gaps emit `WARN` at compile time and surface on the [capability matrix page](https://agentplugins.pages.dev/guide/capability-matrix)
+- **Plays nicely with what you already have** — install a plugin into a harness that already has its own plugins; they coexist
+
 ```bash
 npx @agentplugins/cli add user/awesome-plugin
 ```
