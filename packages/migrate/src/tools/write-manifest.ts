@@ -14,7 +14,7 @@ import { validateManifest } from '@agentplugins/schema';
 export const writeManifestTool = defineTool(
   {
     destination: z.string().describe('Absolute path to write the manifest to'),
-    manifest: z.record(z.unknown()).describe('The manifest object to write'),
+    manifest: z.record(z.string(), z.unknown()).describe('The manifest object to write'),
     overwrite: z.boolean().default(false).describe('Overwrite an existing file'),
   },
   async ({ destination, manifest, overwrite }) => {

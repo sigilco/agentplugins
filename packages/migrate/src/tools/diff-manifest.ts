@@ -10,8 +10,8 @@ import { defineTool, z } from './_helpers.js';
 
 export const diffManifestTool = defineTool(
   {
-    before: z.record(z.unknown()).describe('The original manifest (or any baseline)'),
-    after: z.record(z.unknown()).describe('The generated manifest'),
+    before: z.record(z.string(), z.unknown()).describe('The original manifest (or any baseline)'),
+    after: z.record(z.string(), z.unknown()).describe('The generated manifest'),
   },
   async ({ before, after }) => {
     const keys = new Set([...Object.keys(before), ...Object.keys(after)]);
