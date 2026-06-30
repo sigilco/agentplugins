@@ -40,7 +40,7 @@ jobs:
         run: pnpm --filter './packages/**' build
 
       - name: Typecheck
-        run: pnpm -r exec tsc --noEmit
+        run: pnpm --filter './packages/**' exec tsc --noEmit
 
       - name: Test
         run: pnpm test
