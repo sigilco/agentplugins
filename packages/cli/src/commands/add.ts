@@ -5,7 +5,6 @@
  * and symlinks it into every detected agent harness.
  */
 
-import chalk from 'chalk';
 import {
   initStore,
   normalizeSource,
@@ -24,7 +23,10 @@ import { existsSync, rmSync } from 'node:fs';
 import { compile } from './build.js';
 import { runSetupFlow } from './setup.js';
 import { createApp, createInstallCtx, AbortError } from '@agentplugins/pipeline';
+import { getCliLogger } from '../logger.js';
 import type { PluginManifest } from '@agentplugins/core';
+
+const logger = getCliLogger();
 
 export interface AddOptions {
   source: string;
@@ -38,9 +40,9 @@ export async function add(options: AddOptions): Promise<void> {
   const source = normalizeSource(options.source);
   const repoName = extractRepoName(source);
 
-  console.log(chalk.bold('\n📥 AgentPlugins Add\n'));
-  console.log(chalk.gray(`Source:  ${source}`));
-  console.log(chalk.gray(`Store:   ${getStorePath()}\n`));
+  logger.info('\n📥 AgentPlugins Add\n');
+  logger.info('Source:  {source}', { source });
+  logger.info('Store:   {store}\n', { store: getStorePath() });
 
   initStore();
 
@@ -48,17 +50,17 @@ export async function add(options: AddOptions): Promise<void> {
   const tempDir = join(getStorePath(), `.tmp-${repoName}-${Date.now()}`);
   if (existsSync(tempDir)) rmSync(tempDir, { recursive: true, force: true });
 
-  console.log(chalk.blue('Cloning repository...'));
+  logger.info('Cloning repository...');
   let commit: string;
   try {
     commit = cloneRepo(source, tempDir, branch);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error(chalk.red(`\nFailed to clone: ${msg}`));
+    logger.error('\nFailed to clone: {msg}', { msg });
     rmSync(tempDir, { recursive: true, force: true });
     process.exit(1);
   }
-  console.log(chalk.gray(`Commit: ${commit}`));
+  logger.info('Commit: {commit}', { commit });
 
   // Resolve subdir — for monorepo tree URLs, look inside the subdirectory
   const pluginDir = subdir ? join(tempDir, subdir) : tempDir;
@@ -72,8 +74,8 @@ export async function add(options: AddOptions): Promise<void> {
   }
 
   if (!manifestResult) {
-    console.error(chalk.red('\nNo plugin manifest found in repository.'));
-    console.error(chalk.gray('Expected one of: agentplugins.config.ts, agentplugins.config.json, manifest.json, package.json, SKILL.md'));
+    logger.error('\nNo plugin manifest found in repository.');
+    logger.error('Expected one of: agentplugins.config.ts, agentplugins.config.json, manifest.json, package.json, SKILL.md');
     rmSync(tempDir, { recursive: true, force: true });
     process.exit(1);
   }
@@ -83,8 +85,8 @@ export async function add(options: AddOptions): Promise<void> {
   const name = rawName.replace(/^@[^/]+\//, '');
   const version = (manifestResult.manifest['version'] as string) || '0.0.0';
 
-  console.log(chalk.cyan(`\nPlugin: ${name} v${version}`));
-  console.log(chalk.gray(`Manifest: ${manifestResult.path} (${manifestResult.type})`));
+  logger.info('\nPlugin: {name} v{version}', { name, version });
+  logger.info('Manifest: {path} ({type})', { path: manifestResult.path, type: manifestResult.type });
 
   // Security: run pinned integrity check + script policy via pipeline
   const installApp = createApp().use(securityPlugin);
@@ -98,7 +100,7 @@ export async function add(options: AddOptions): Promise<void> {
     await installApp.runInstall(installCtx);
   } catch (err) {
     if (err instanceof AbortError) {
-      console.error(chalk.red(`\n${err.message}`));
+      logger.error('\n{msg}', { msg: err.message });
       rmSync(tempDir, { recursive: true, force: true });
       process.exit(1);
     }
@@ -108,17 +110,21 @@ export async function add(options: AddOptions): Promise<void> {
   // Detect agents
   const agents = getDetectedAgents();
   if (agents.length === 0) {
-    console.log(chalk.yellow('\n⚠  No agent harnesses detected. Plugin will be stored but not symlinked.'));
-    console.log(chalk.gray('Install Claude, Codex, or another supported agent to enable symlinking.'));
+    logger.warn('\n⚠  No agent harnesses detected. Plugin will be stored but not symlinked.');
+    logger.info('Install Claude, Codex, or another supported agent to enable symlinking.');
   } else {
-    console.log(chalk.gray(`Detected ${agents.length} agent${agents.length > 1 ? 's' : ''}: ${agents.map((a) => a.displayName).join(', ')}`));
+    logger.info('Detected {count} agent{plural}: {agents}', {
+      count: agents.length,
+      plural: agents.length > 1 ? 's' : '',
+      agents: agents.map((a) => a.displayName).join(', '),
+    });
   }
 
   // Compile for harnesses that load compiled artifacts (opencode, pimono)
   const compilableAgents = agents.filter((a) => a.pluginPath);
   if (compilableAgents.length > 0) {
     const targets = compilableAgents.map((a) => a.name);
-    console.log(chalk.blue(`\nCompiling for ${targets.join(', ')}...`));
+    logger.info('\nCompiling for {targets}...', { targets: targets.join(', ') });
     const distDir = join(pluginDir, '.agentplugins-dist');
     try {
       await compile({
@@ -131,8 +137,8 @@ export async function add(options: AddOptions): Promise<void> {
       });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.log(chalk.yellow(`\n⚠  Compilation failed: ${msg}`));
-      console.log(chalk.gray('Plugin will be installed without compiled artifacts.'));
+      logger.warn('\n⚠  Compilation failed: {msg}', { msg });
+      logger.info('Plugin will be installed without compiled artifacts.');
     }
   }
 
@@ -147,13 +153,13 @@ export async function add(options: AddOptions): Promise<void> {
   });
 
   // Summary
-  console.log(chalk.green(`\n✅ Installed ${name} v${version}`));
-  console.log(chalk.gray(`   Store: ${getStorePath()}/${name}`));
+  logger.info('\n✅ Installed {name} v{version}', { name, version });
+  logger.info('   Store: {store}', { store: `${getStorePath()}/${name}` });
 
   if (result.symlinks.length > 0) {
-    console.log(chalk.gray('\nInstalled to:'));
+    logger.info('\nInstalled to:');
     for (const s of result.symlinks) {
-      console.log(chalk.gray(`   ${s.agentDisplayName}: ${s.linkPath}`));
+      logger.info('   {agent}: {path}', { agent: s.agentDisplayName, path: s.linkPath });
     }
   }
 
@@ -165,7 +171,7 @@ export async function add(options: AddOptions): Promise<void> {
     noSetup: options.noSetup,
   });
 
-  console.log();
+  logger.info('');
 }
 
 /** Try loading a TypeScript config via jiti */
@@ -194,4 +200,3 @@ async function tryTsConfig(dir: string): Promise<{ path: string; manifest: Recor
   }
   return null;
 }
-

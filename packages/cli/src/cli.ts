@@ -24,6 +24,7 @@
 
 import { cli, command } from 'cleye';
 import pkg from '../package.json' with { type: 'json' };
+import { setupLogger, getCliLogger } from './logger.js';
 import { build } from './commands/build.js';
 import { validate } from './commands/validate.js';
 import { init } from './commands/init.js';
@@ -39,6 +40,9 @@ import { doctor } from './commands/doctor.js';
 import { importCommand } from './commands/import.js';
 import { audit } from './commands/audit.js';
 import { loadConfig } from './config.js';
+
+await setupLogger();
+const logger = getCliLogger();
 
 function formatError(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
@@ -62,7 +66,7 @@ cli({
       try {
         await add({ source: _.source, yes: flags.yes, noSetup: flags.noSetup });
       } catch (err) {
-        console.error('Add failed:', formatError(err));
+        logger.error('Add failed: {msg}', { msg: formatError(err) });
         process.exit(1);
       }
     }),
@@ -79,7 +83,7 @@ cli({
       try {
         await setup({ name: _.name, force: flags.force, yes: flags.yes });
       } catch (err) {
-        console.error('Setup failed:', formatError(err));
+        logger.error('Setup failed: {msg}', { msg: formatError(err) });
         process.exit(1);
       }
     }),
@@ -95,7 +99,7 @@ cli({
       try {
         await remove({ name: _.name, force: flags.force });
       } catch (err) {
-        console.error('Remove failed:', formatError(err));
+        logger.error('Remove failed: {msg}', { msg: formatError(err) });
         process.exit(1);
       }
     }),
@@ -110,7 +114,7 @@ cli({
       try {
         await list({ json: flags.json });
       } catch (err) {
-        console.error('List failed:', formatError(err));
+        logger.error('List failed: {msg}', { msg: formatError(err) });
         process.exit(1);
       }
     }),
@@ -126,7 +130,7 @@ cli({
       try {
         await update({ name: _.name, all: flags.all });
       } catch (err) {
-        console.error('Update failed:', formatError(err));
+        logger.error('Update failed: {msg}', { msg: formatError(err) });
         process.exit(1);
       }
     }),
@@ -142,7 +146,7 @@ cli({
       try {
         await info({ name: _.name, json: flags.json });
       } catch (err) {
-        console.error('Info failed:', formatError(err));
+        logger.error('Info failed: {msg}', { msg: formatError(err) });
         process.exit(1);
       }
     }),
@@ -157,7 +161,7 @@ cli({
       try {
         await doctor({ json: flags.json });
       } catch (err) {
-        console.error('Doctor failed:', formatError(err));
+        logger.error('Doctor failed: {msg}', { msg: formatError(err) });
         process.exit(1);
       }
     }),
@@ -183,7 +187,7 @@ cli({
           quiet: flags.quiet,
         });
       } catch (err) {
-        console.error('Import failed:', formatError(err));
+        logger.error('Import failed: {msg}', { msg: formatError(err) });
         process.exit(1);
       }
     }),
@@ -201,7 +205,7 @@ cli({
         const code = await audit({ source: _.source, json: flags.json, scripts: !flags.noScripts });
         process.exit(code);
       } catch (err) {
-        console.error('Audit failed:', formatError(err));
+        logger.error('Audit failed: {msg}', { msg: formatError(err) });
         process.exit(2);
       }
     }),
@@ -223,7 +227,7 @@ cli({
         const targets = flags.target ? flags.target.split(',').map((t: string) => t.trim()) : undefined;
         await build({ config: cfg, targets, outDir: flags.outDir, strict: flags.strict });
       } catch (err) {
-        console.error('Build failed:', formatError(err));
+        logger.error('Build failed: {msg}', { msg: formatError(err) });
         process.exit(1);
       }
     }),
@@ -241,7 +245,7 @@ cli({
         const targets = flags.target ? flags.target.split(',').map((t: string) => t.trim()) : undefined;
         await validate({ config: cfg, targets });
       } catch (err) {
-        console.error('Validation failed:', formatError(err));
+        logger.error('Validation failed: {msg}', { msg: formatError(err) });
         process.exit(1);
       }
     }),
@@ -259,7 +263,7 @@ cli({
       try {
         await init({ name: _.name, yes: flags.yes || false, template: flags.template, target: flags.target });
       } catch (err) {
-        console.error('Init failed:', formatError(err));
+        logger.error('Init failed: {msg}', { msg: formatError(err) });
         process.exit(1);
       }
     }),
@@ -276,7 +280,7 @@ cli({
         const cfg = await loadConfig(flags.config);
         await lint({ config: cfg, json: flags.json || false });
       } catch (err) {
-        console.error('Lint failed:', formatError(err));
+        logger.error('Lint failed: {msg}', { msg: formatError(err) });
         process.exit(1);
       }
     }),
@@ -295,7 +299,7 @@ cli({
         const targets = flags.target ? flags.target.split(',').map((t: string) => t.trim()) : undefined;
         await preview({ config: cfg, targets, diff: flags.diff || false });
       } catch (err) {
-        console.error('Preview failed:', formatError(err));
+        logger.error('Preview failed: {msg}', { msg: formatError(err) });
         process.exit(1);
       }
     }),

@@ -6,7 +6,6 @@
 
 import { resolve, join } from 'node:path';
 import { mkdir, readFile, writeFile, rm } from 'node:fs/promises';
-import chalk from 'chalk';
 import {
   validateUniversal,
   validateForPlatform,
@@ -17,8 +16,11 @@ import {
 } from '@agentplugins/core';
 import { sanitizeJoin, lint, registerEmitter, type LintIssue } from '@agentplugins/compile';
 import { createApp, createBuildCtx, createTargetCtx, AbortError } from '@agentplugins/pipeline';
+import { getCliLogger } from '../logger.js';
 import type { App, Plugin } from '@agentplugins/pipeline';
 import type { LoadedConfig } from '../config.js';
+
+const logger = getCliLogger();
 
 // ─── Target resolution ────────────────────────────────────────────────────────
 
@@ -136,13 +138,13 @@ export async function compile(options: CompileOptions): Promise<CompileResult[]>
       continue;
     }
 
-    if (!silent) console.log(chalk.blue(`\n📦 Building for ${target}...`));
+    if (!silent) logger.info('\n📦 Building for {target}...', { target });
 
     const platformIssues = validateForPlatform(manifest, target);
     const platformErrors = platformIssues.filter(i => i.severity === 'error');
     if (platformErrors.length > 0) {
       const msg = `${platformErrors.length} validation error${platformErrors.length > 1 ? 's' : ''}`;
-      if (!silent) console.log(chalk.red(`   ✗ Build failed for ${target} (${msg})`));
+      if (!silent) logger.error('   ✗ Build failed for {target} ({msg})', { target, msg });
       results.push({ target, files: [], warnings: [], skipped: true, error: msg });
       continue;
     }
@@ -184,12 +186,15 @@ export async function compile(options: CompileOptions): Promise<CompileResult[]>
       }
 
       if (!silent) {
-        console.log(chalk.green(`   ✓ Built ${targetCtx.files.length} file${targetCtx.files.length > 1 ? 's' : ''}`));
+        logger.info('   ✓ Built {count} file{plural}', {
+          count: targetCtx.files.length,
+          plural: targetCtx.files.length > 1 ? 's' : '',
+        });
         if (targetCtx.warnings.length > 0) {
-          for (const w of targetCtx.warnings) console.log(chalk.yellow(`   ⚠ ${w}`));
+          for (const w of targetCtx.warnings) logger.warn('   ⚠ {warning}', { warning: w });
         }
         if (targetCtx.postInstall.length > 0) {
-          console.log(chalk.cyan(`   ⓘ ${targetCtx.postInstall.join('\n   ⓘ ')}`));
+          logger.info('   ⓘ {steps}', { steps: targetCtx.postInstall.join('\n   ⓘ ') });
         }
       }
 
@@ -203,7 +208,7 @@ export async function compile(options: CompileOptions): Promise<CompileResult[]>
     } catch (err) {
       if (err instanceof AbortError) throw err;
       const msg = err instanceof Error ? err.message : String(err);
-      if (!silent) console.log(chalk.red(`   ✗ Build failed for ${target}: ${msg}`));
+      if (!silent) logger.error('   ✗ Build failed for {target}: {msg}', { target, msg });
       results.push({ target, files: [], warnings: [], skipped: true, error: msg });
     }
   }
@@ -230,17 +235,17 @@ export async function build(options: BuildOptions): Promise<void> {
     manifest.targets
   );
 
-  console.log(chalk.bold('\n🌉 AgentPlugins Build\n'));
-  console.log(chalk.gray(`Plugin: ${manifest.name} v${manifest.version}`));
-  console.log(chalk.gray(`Targets: ${targetList.join(', ')}`));
-  console.log(chalk.gray(`Output: ${resolve(outDir)}\n`));
+  logger.info('\n🌉 AgentPlugins Build\n');
+  logger.info('Plugin: {name} v{version}', { name: manifest.name, version: manifest.version });
+  logger.info('Targets: {targets}', { targets: targetList.join(', ') });
+  logger.info('Output: {out}\n', { out: resolve(outDir) });
 
   // Build the pipeline app once — reused for validation, lint, and compile
   const app = await buildApp(config.plugins ?? []);
   const knownTargets = [...ALL_TARGETS, ...app.adapters.keys()];
 
   // Universal validation — custom adapter targets are not spuriously warned
-  console.log(chalk.blue('🔍 Running universal validation...'));
+  logger.info('🔍 Running universal validation...');
   const universalIssues = validateUniversal(manifest, { knownTargets });
   printIssues(universalIssues);
   const hasErrors = universalIssues.some(i => i.severity === 'error');
@@ -249,7 +254,7 @@ export async function build(options: BuildOptions): Promise<void> {
   }
 
   // Lint — includes any lint rules from defineConfig plugins
-  console.log(chalk.blue('🔍 Running lint...'));
+  logger.info('🔍 Running lint...');
   const inlineSources = await collectInlineSources(manifest, config.root);
   const lintIssues = lint({ manifest, inlineHandlerSource: inlineSources, extraRules: [...app.lintRules] });
   printLintIssues(lintIssues);
@@ -278,36 +283,46 @@ export async function build(options: BuildOptions): Promise<void> {
   }
 
   // Summary
-  console.log(chalk.bold('\n✅ Build complete!\n'));
-  console.log(chalk.gray('Install your plugins:'));
+  logger.info('\n✅ Build complete!\n');
+  logger.info('Install your plugins:');
   for (const r of results) {
     if (r.skipped) continue;
     const cmd = getInstallCommand(r.target, manifest.name);
-    console.log(chalk.gray(`  ${r.target}: ${cmd}`));
+    logger.info('  {target}: {cmd}', { target: r.target, cmd });
   }
-  console.log();
+  logger.info('');
 }
 
 function printLintIssues(issues: LintIssue[]): void {
   for (const issue of issues) {
-    const color = issue.severity === 'error' ? chalk.red : chalk.yellow;
-    const icon = issue.severity === 'error' ? '✗' : '⚠';
-    const field = issue.field ? chalk.gray(`[${issue.field}] `) : '';
-    console.log(color(`   ${icon} ${field}${issue.message}`));
+    const field = issue.field ? ` [${issue.field}]` : '';
+    const rule = ` (${issue.rule})`;
+    const message = `  ${issue.severity === 'error' ? '✗' : '⚠'} ${issue.message}${field}${rule}`;
+    if (issue.severity === 'error') {
+      logger.error(message);
+    } else {
+      logger.warn(message);
+    }
     if (issue.suggestion) {
-      console.log(chalk.cyan(`     → ${issue.suggestion}`));
+      logger.info('     → {suggestion}', { suggestion: issue.suggestion });
     }
   }
 }
 
 function printIssues(issues: Array<{ severity: string; field?: string; message: string; suggestion?: string }>): void {
   for (const issue of issues) {
-    const color = issue.severity === 'error' ? chalk.red : issue.severity === 'warning' ? chalk.yellow : chalk.gray;
     const icon = issue.severity === 'error' ? '✗' : issue.severity === 'warning' ? '⚠' : 'ℹ';
-    const field = issue.field ? chalk.gray(`[${issue.field}] `) : '';
-    console.log(color(`   ${icon} ${field}${issue.message}`));
+    const field = issue.field ? `[${issue.field}] ` : '';
+    const message = `   ${icon} ${field}${issue.message}`;
+    if (issue.severity === 'error') {
+      logger.error(message);
+    } else if (issue.severity === 'warning') {
+      logger.warn(message);
+    } else {
+      logger.info(message);
+    }
     if (issue.suggestion) {
-      console.log(chalk.cyan(`     → ${issue.suggestion}`));
+      logger.info('     → {suggestion}', { suggestion: issue.suggestion });
     }
   }
 }

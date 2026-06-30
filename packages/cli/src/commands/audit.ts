@@ -22,7 +22,6 @@
 
 import { resolve, join, basename } from 'node:path';
 import { existsSync, statSync, readFileSync } from 'node:fs';
-import chalk from 'chalk';
 import { isValidManifest } from '@agentplugins/schema';
 import {
   hashDirectory,
@@ -33,6 +32,9 @@ import {
   evaluateScriptPolicy,
   DEFAULT_POLICY,
 } from '@agentplugins/security';
+import { getCliLogger } from '../logger.js';
+
+const logger = getCliLogger();
 
 export interface AuditOptions {
   source: string;
@@ -107,10 +109,10 @@ export async function audit(options: AuditOptions): Promise<number> {
   const resolved = resolveSource(source);
 
   if (resolved.kind === 'github-url') {
-    console.error(chalk.yellow('Note: GitHub URL auditing is best-effort in v0.3.0. Clone the repo locally for full checks.'));
+    logger.warn('Note: GitHub URL auditing is best-effort in v0.3.0. Clone the repo locally for full checks.');
   }
   if (resolved.kind === 'npm-spec') {
-    console.error(chalk.yellow('Note: npm spec auditing in v0.3.0 only checks provenance + README. Clone the tarball locally for full checks.'));
+    logger.warn('Note: npm spec auditing in v0.3.0 only checks provenance + README. Clone the tarball locally for full checks.');
   }
 
   const localPath = resolved.path;
@@ -292,75 +294,83 @@ function readManifest(localPath: string): ManifestReadResult | null {
 }
 
 function printHuman(report: AuditReport): void {
-  const tag = report.summary.verdict === 'pass' ? chalk.green('PASS') : report.summary.verdict === 'warn' ? chalk.yellow('WARN') : chalk.red('FAIL');
-  console.log(chalk.bold(`\n🔍 AgentPlugins Audit — ${tag}\n`));
-  console.log(chalk.gray(`Source:  ${report.source}`));
-  console.log(chalk.gray(`Kind:    ${report.resolved.kind}`));
-  if (report.resolved.repo) console.log(chalk.gray(`Repo:    ${report.resolved.repo}`));
-  if (report.resolved.spec) console.log(chalk.gray(`Spec:    ${report.resolved.spec}`));
+  const tag = report.summary.verdict.toUpperCase();
+  logger.info('\n🔍 AgentPlugins Audit — {tag}\n', { tag });
+  logger.info('Source:  {source}', { source: report.source });
+  logger.info('Kind:    {kind}', { kind: report.resolved.kind });
+  if (report.resolved.repo) logger.info('Repo:    {repo}', { repo: report.resolved.repo });
+  if (report.resolved.spec) logger.info('Spec:    {spec}', { spec: report.resolved.spec });
 
-  console.log(chalk.bold('\n📋 Manifest'));
-  if (report.manifest?.name) console.log(`  Name:        ${report.manifest.name}`);
-  if (report.manifest?.version) console.log(`  Version:     ${report.manifest.version}`);
-  console.log(`  Schema:      ${report.schema.valid ? chalk.green('valid') : chalk.red('invalid')}`);
+  logger.info('\n📋 Manifest');
+  if (report.manifest?.name) logger.info('  Name:        {name}', { name: report.manifest.name as string });
+  if (report.manifest?.version) logger.info('  Version:     {version}', { version: report.manifest.version as string });
+  logger.info('  Schema:      {status}', { status: report.schema.valid ? 'valid' : 'invalid' });
 
-  console.log(chalk.bold('\n🔐 Integrity'));
-  console.log(`  Actual:      ${report.integrity.actual.slice(0, 20)}... (${report.integrity.files} files, ${report.integrity.bytes} bytes)`);
+  logger.info('\n🔐 Integrity');
+  logger.info('  Actual:      {hash}... ({files} files, {bytes} bytes)', {
+    hash: report.integrity.actual.slice(0, 20),
+    files: report.integrity.files,
+    bytes: report.integrity.bytes,
+  });
   if (report.integrity.expected) {
-    console.log(`  Expected:    ${report.integrity.expected.slice(0, 20)}...`);
-    console.log(`  Match:       ${report.integrity.matches ? chalk.green('yes') : chalk.red('NO')}`);
+    logger.info('  Expected:    {hash}...', { hash: report.integrity.expected.slice(0, 20) });
+    logger.info('  Match:       {match}', { match: report.integrity.matches ? 'yes' : 'NO' });
   } else {
-    console.log(chalk.gray('  No pinned integrity.'));
+    logger.info('  No pinned integrity.');
   }
 
   if (report.scorecard) {
-    console.log(chalk.bold('\n📊 OpenSSF Scorecard'));
+    logger.info('\n📊 OpenSSF Scorecard');
     if (report.scorecard.skipped) {
-      console.log(chalk.gray(`  ${report.scorecard.note}`));
+      logger.info('  {note}', { note: report.scorecard.note });
     } else if (report.scorecard.score !== null) {
-      const color = report.scorecard.score >= 7 ? chalk.green : report.scorecard.score >= 5 ? chalk.yellow : chalk.red;
-      console.log(`  Score:       ${color(report.scorecard.score.toFixed(1) + ' / 10')}`);
+      logger.info('  Score:       {score} / 10', { score: report.scorecard.score.toFixed(1) });
     }
   }
 
-  console.log(chalk.bold('\n🛡  OSV'));
+  logger.info('\n🛡  OSV');
   if (report.osv?.skipped) {
-    console.log(chalk.gray(`  ${report.osv.note}`));
+    logger.info('  {note}', { note: report.osv.note });
   } else if (report.osv) {
-    console.log(`  Findings:    ${report.osv.findings.length}`);
-    if (report.osv.hasCriticalOrHigh) console.log(chalk.red('  ⚠  CRITICAL or HIGH findings present'));
+    logger.info('  Findings:    {count}', { count: report.osv.findings.length });
+    if (report.osv.hasCriticalOrHigh) logger.error('  ⚠  CRITICAL or HIGH findings present');
     for (const f of report.osv.findings.slice(0, 5)) {
-      console.log(`    - [${f.severity}] ${f.package}: ${f.advisory}`);
+      logger.info('    - [{severity}] {package}: {advisory}', { severity: f.severity, package: f.package, advisory: f.advisory });
     }
   }
 
   if (report.provenance) {
-    console.log(chalk.bold('\n🔏 npm provenance'));
+    logger.info('\n🔏 npm provenance');
     if (report.provenance.skipped) {
-      console.log(chalk.gray(`  ${report.provenance.note}`));
+      logger.info('  {note}', { note: report.provenance.note });
     } else {
-      console.log(`  Signed:      ${report.provenance.signed === true ? chalk.green('yes') : report.provenance.signed === false ? chalk.red('NO') : chalk.gray('unknown')}`);
+      const signed = report.provenance.signed === true ? 'yes' : report.provenance.signed === false ? 'NO' : 'unknown';
+      logger.info('  Signed:      {signed}', { signed });
     }
   }
 
   if (report.scripts) {
-    console.log(chalk.bold('\n📜 Lifecycle scripts'));
-    console.log(`  Total:       ${report.scripts.decisions.length}`);
-    console.log(`  Denied:      ${chalk.red(String(report.scripts.deniedCount))}`);
-    console.log(`  Review:      ${chalk.yellow(String(report.scripts.reviewCount))}`);
+    logger.info('\n📜 Lifecycle scripts');
+    logger.info('  Total:       {count}', { count: report.scripts.decisions.length });
+    logger.info('  Denied:      {count}', { count: report.scripts.deniedCount });
+    logger.info('  Review:      {count}', { count: report.scripts.reviewCount });
     for (const d of report.scripts.decisions.slice(0, 5)) {
-      const color = d.decision === 'deny' ? chalk.red : d.decision === 'require-review' ? chalk.yellow : chalk.green;
-      console.log(`    - [${color(d.decision)}] ${d.dependency} (${d.phase}): ${d.command.slice(0, 60)}`);
+      logger.info('    - [{decision}] {dependency} ({phase}): {command}', {
+        decision: d.decision,
+        dependency: d.dependency,
+        phase: d.phase,
+        command: d.command.slice(0, 60),
+      });
     }
   }
 
-  console.log(chalk.bold(`\n📊 Summary`));
-  console.log(`  Errors:      ${report.summary.errors}`);
-  console.log(`  Warnings:    ${report.summary.warnings}`);
-  console.log(`  Notes:       ${report.summary.notes}`);
-  console.log(`  Verdict:     ${tag}\n`);
+  logger.info('\n📊 Summary');
+  logger.info('  Errors:      {count}', { count: report.summary.errors });
+  logger.info('  Warnings:    {count}', { count: report.summary.warnings });
+  logger.info('  Notes:       {count}', { count: report.summary.notes });
+  logger.info('  Verdict:     {tag}\n', { tag });
 }
 
 function printError(msg: string): void {
-  console.error(chalk.red(`\n✗ ${msg}\n`));
+  logger.error('\n✗ {msg}\n', { msg });
 }

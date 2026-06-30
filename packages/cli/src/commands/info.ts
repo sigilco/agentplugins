@@ -4,8 +4,10 @@
  * Shows detailed information about an installed plugin.
  */
 
-import chalk from 'chalk';
 import { getPluginInfo } from '@agentplugins/core';
+import { getCliLogger } from '../logger.js';
+
+const logger = getCliLogger();
 
 export interface InfoOptions {
   name: string;
@@ -16,7 +18,7 @@ export async function info(options: InfoOptions): Promise<void> {
   const plugin = getPluginInfo(options.name);
 
   if (!plugin) {
-    console.error(chalk.red(`Plugin "${options.name}" is not installed.`));
+    logger.error('Plugin "{name}" is not installed.', { name: options.name });
     process.exit(1);
   }
 
@@ -38,17 +40,17 @@ export async function info(options: InfoOptions): Promise<void> {
 
   const m = plugin.meta;
 
-  console.log(chalk.bold(`\nℹ️  ${m.name}\n`));
+  logger.info('\nℹ️  {name}\n', { name: m.name });
 
-  console.log(chalk.cyan('  Metadata'));
-  console.log(chalk.gray(`    Name:        ${m.name}`));
-  console.log(chalk.gray(`    Version:     ${m.version}`));
-  console.log(chalk.gray(`    Source:      ${m.source}`));
-  console.log(chalk.gray(`    Commit:      ${m.commit}`));
-  console.log(chalk.gray(`    Installed:   ${m.installedAt}`));
-  console.log(chalk.gray(`    Updated:     ${m.updatedAt}`));
-  console.log(chalk.gray(`    Manifest:    ${m.manifestPath}`));
-  console.log(chalk.gray(`    Store path:  ${plugin.path}`));
+  logger.info('  Metadata');
+  logger.info('    Name:        {name}', { name: m.name });
+  logger.info('    Version:     {version}', { version: m.version });
+  logger.info('    Source:      {source}', { source: m.source });
+  logger.info('    Commit:      {commit}', { commit: m.commit });
+  logger.info('    Installed:   {installed}', { installed: m.installedAt });
+  logger.info('    Updated:     {updated}', { updated: m.updatedAt });
+  logger.info('    Manifest:    {manifest}', { manifest: m.manifestPath });
+  logger.info('    Store path:  {path}', { path: plugin.path });
 
   // Manifest details
   if (plugin.manifest) {
@@ -60,37 +62,41 @@ export async function info(options: InfoOptions): Promise<void> {
     const skills = manifest['skills'];
     const tools = manifest['tools'];
 
-    console.log(chalk.cyan('\n  Manifest'));
-    if (description) console.log(chalk.gray(`    Description: ${description}`));
+    logger.info('\n  Manifest');
+    if (description) logger.info('    Description: {description}', { description });
     if (author) {
       const authorStr = typeof author === 'string' ? author : (author as Record<string, string>)?.name || '';
-      if (authorStr) console.log(chalk.gray(`    Author:      ${authorStr}`));
+      if (authorStr) logger.info('    Author:      {author}', { author: authorStr });
     }
-    if (license) console.log(chalk.gray(`    License:     ${license}`));
+    if (license) logger.info('    License:     {license}', { license });
 
     if (hooks && typeof hooks === 'object') {
       const hookNames = Object.keys(hooks as Record<string, unknown>);
-      console.log(chalk.gray(`    Hooks:       ${hookNames.join(', ')}`));
+      logger.info('    Hooks:       {hooks}', { hooks: hookNames.join(', ') });
     }
     if (Array.isArray(skills)) {
-      console.log(chalk.gray(`    Skills:      ${skills.length}`));
+      logger.info('    Skills:      {count}', { count: skills.length });
     }
     if (Array.isArray(tools)) {
-      console.log(chalk.gray(`    Tools:       ${tools.length}`));
+      logger.info('    Tools:       {count}', { count: tools.length });
     }
   }
 
   // Symlinks
   if (plugin.symlinks.length > 0) {
-    console.log(chalk.cyan('\n  Symlinks'));
+    logger.info('\n  Symlinks');
     for (const s of plugin.symlinks) {
-      const status = s.valid ? chalk.green('✓') : chalk.red('✗');
-      console.log(chalk.gray(`    ${status} ${s.agentDisplayName.padEnd(20)} ${s.linkPath}`));
+      const status = s.valid ? '✓' : '✗';
+      logger.info('    {status} {agent} {path}', {
+        status,
+        agent: s.agentDisplayName.padEnd(20),
+        path: s.linkPath,
+      });
     }
   } else {
-    console.log(chalk.cyan('\n  Symlinks'));
-    console.log(chalk.gray('    (none — no agent harnesses detected)'));
+    logger.info('\n  Symlinks');
+    logger.info('    (none — no agent harnesses detected)');
   }
 
-  console.log();
+  logger.info('');
 }

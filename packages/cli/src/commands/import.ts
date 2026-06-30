@@ -11,11 +11,13 @@
 
 import { resolve, join } from 'node:path';
 import { existsSync, writeFileSync, copyFileSync, mkdirSync } from 'node:fs';
-import chalk from 'chalk';
 import { ingest, type IngestFormat, type IngestResult } from '@agentplugins/ingest';
 import { isValidManifest } from '@agentplugins/schema';
 import { installPlugin, getStorePath } from '@agentplugins/core';
 import { verifyIntegrity, evaluateManifestScripts } from '@agentplugins/security';
+import { getCliLogger } from '../logger.js';
+
+const logger = getCliLogger();
 
 export interface ImportOptions {
   format: string;
@@ -31,31 +33,34 @@ const SUPPORTED_FORMATS: readonly IngestFormat[] = ['claude-code', 'codex', 'ski
 export async function importCommand(options: ImportOptions): Promise<void> {
   const format = options.format as IngestFormat;
   if (!SUPPORTED_FORMATS.includes(format)) {
-    console.error(chalk.red(`Unknown format "${options.format}". Supported: ${SUPPORTED_FORMATS.join(', ')}`));
+    logger.error('Unknown format "{format}". Supported: {supported}', {
+      format: options.format,
+      supported: SUPPORTED_FORMATS.join(', '),
+    });
     process.exit(2);
   }
 
   const source = resolve(options.source);
   if (!existsSync(source)) {
-    console.error(chalk.red(`Source path does not exist: ${source}`));
+    logger.error('Source path does not exist: {source}', { source });
     process.exit(2);
   }
 
-  console.log(chalk.bold(`\n📥 Importing ${format} plugin from ${source}\n`));
+  logger.info('\n📥 Importing {format} plugin from {source}\n', { format, source });
 
   let result: IngestResult;
   try {
     result = ingest(format, source);
   } catch (err) {
-    console.error(chalk.red('Import failed:'), err instanceof Error ? err.message : String(err));
+    logger.error('Import failed: {msg}', { msg: err instanceof Error ? err.message : String(err) });
     process.exit(1);
   }
 
   // Schema-validate the synthesized manifest
   const valid = isValidManifest(result.manifest);
   if (!valid) {
-    console.error(chalk.yellow('⚠  The synthesized manifest does not validate against the AgentPlugins v1 schema.'));
-    console.error(chalk.gray('   The output will still be written so you can fix the gaps manually.'));
+    logger.warn('⚠  The synthesized manifest does not validate against the AgentPlugins v1 schema.');
+    logger.info('   The output will still be written so you can fix the gaps manually.');
   }
 
   // Default destination: <source>/agentplugins.imported.json
@@ -64,7 +69,7 @@ export async function importCommand(options: ImportOptions): Promise<void> {
     : join(source, 'agentplugins.imported.json');
 
   writeFileSync(outPath, JSON.stringify(result.manifest, null, 2) + '\n', 'utf-8');
-  console.log(chalk.green(`✓ Manifest written to ${outPath}`));
+  logger.info('✓ Manifest written to {path}', { path: outPath });
 
   // Vendor upstream files into <source>/.agentplugins-vendor/<relative-path>
   if (options.vendor !== false && result.vendorFiles.length > 0) {
@@ -79,16 +84,29 @@ export async function importCommand(options: ImportOptions): Promise<void> {
         // Non-fatal: vendor is best-effort
       }
     }
-    console.log(chalk.gray(`  Vendored ${result.vendorFiles.length} file${result.vendorFiles.length === 1 ? '' : 's'} into ${vendorRoot}`));
+    logger.info('  Vendored {count} file{plural} into {root}', {
+      count: result.vendorFiles.length,
+      plural: result.vendorFiles.length === 1 ? '' : 's',
+      root: vendorRoot,
+    });
   }
 
   // Print warnings to stderr (or stdout in quiet mode)
   if (!options.quiet && result.warnings.length > 0) {
-    console.error(chalk.yellow(`\n⚠  ${result.warnings.length} warning${result.warnings.length === 1 ? '' : 's'} from ingestor:`));
+    logger.warn('\n⚠  {count} warning{plural} from ingestor:', {
+      count: result.warnings.length,
+      plural: result.warnings.length === 1 ? '' : 's',
+    });
     for (const w of result.warnings) {
-      const tag = w.severity === 'error' ? chalk.red('[error]') : w.severity === 'warning' ? chalk.yellow('[warn]') : chalk.gray('[info]');
-      console.error(`  ${tag} ${w.code}: ${w.message}`);
-      if (w.suggestion) console.error(chalk.gray(`         → ${w.suggestion}`));
+      const tag = w.severity === 'error' ? '[error]' : w.severity === 'warning' ? '[warn]' : '[info]';
+      if (w.severity === 'error') {
+        logger.error('  {tag} {code}: {message}', { tag, code: w.code, message: w.message });
+      } else if (w.severity === 'warning') {
+        logger.warn('  {tag} {code}: {message}', { tag, code: w.code, message: w.message });
+      } else {
+        logger.info('  {tag} {code}: {message}', { tag, code: w.code, message: w.message });
+      }
+      if (w.suggestion) logger.info('         → {suggestion}', { suggestion: w.suggestion });
     }
   }
 
@@ -102,7 +120,7 @@ export async function importCommand(options: ImportOptions): Promise<void> {
     if (integrity && integrity.length > 0) {
       const { match, reason } = verifyIntegrity(source, integrity);
       if (!match) {
-        console.error(chalk.red(`\nIntegrity check failed: ${reason}`));
+        logger.error('\nIntegrity check failed: {reason}', { reason });
         process.exit(1);
       }
     }
@@ -111,15 +129,29 @@ export async function importCommand(options: ImportOptions): Promise<void> {
     const scriptCheck = evaluateManifestScripts(result.manifest as Record<string, unknown>, name);
     if (!scriptCheck.ok) {
       for (const issue of scriptCheck.issues) {
-        const tag = issue.decision === 'deny' ? chalk.red('[error]') : chalk.yellow('[review]');
-        console.error(`  ${tag} ${issue.dependency} (${issue.phase}): ${issue.command}`);
-        for (const r of issue.reasons) console.error(chalk.gray(`         ${r}`));
+        const tag = issue.decision === 'deny' ? '[error]' : '[review]';
+        if (issue.decision === 'deny') {
+          logger.error('  {tag} {dependency} ({phase}): {command}', {
+            tag,
+            dependency: issue.dependency,
+            phase: issue.phase,
+            command: issue.command,
+          });
+        } else {
+          logger.warn('  {tag} {dependency} ({phase}): {command}', {
+            tag,
+            dependency: issue.dependency,
+            phase: issue.phase,
+            command: issue.command,
+          });
+        }
+        for (const r of issue.reasons) logger.info('         {reason}', { reason: r });
       }
-      console.error(chalk.red('\nRefusing to install: lifecycle script policy violation'));
+      logger.error('\nRefusing to install: lifecycle script policy violation');
       process.exit(1);
     }
 
-    console.log(chalk.blue(`\nInstalling into store at ${getStorePath()}/${name} ...`));
+    logger.info('\nInstalling into store at {path}/{name} ...', { path: getStorePath(), name });
     try {
       installPlugin(source, {
         source: `import:${format}:${source}`,
@@ -128,12 +160,12 @@ export async function importCommand(options: ImportOptions): Promise<void> {
         manifestPath: 'agentplugins.imported.json',
         version,
       });
-      console.log(chalk.green(`✓ Installed ${name} v${version}`));
+      logger.info('✓ Installed {name} v{version}', { name, version });
     } catch (err) {
-      console.error(chalk.red('Install failed:'), err instanceof Error ? err.message : String(err));
+      logger.error('Install failed: {msg}', { msg: err instanceof Error ? err.message : String(err) });
       process.exit(1);
     }
   } else {
-    console.log(chalk.gray('\nRe-run with --write to install into the universal store.'));
+    logger.info('\nRe-run with --write to install into the universal store.');
   }
 }

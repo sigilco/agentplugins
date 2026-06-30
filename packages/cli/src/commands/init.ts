@@ -7,8 +7,10 @@
 
 import { resolve } from 'node:path';
 import { mkdir, writeFile } from 'node:fs/promises';
-import chalk from 'chalk';
 import * as p from '@clack/prompts';
+import { getCliLogger } from '../logger.js';
+
+const logger = getCliLogger();
 
 export interface InitOptions {
   name?: string;
@@ -68,8 +70,8 @@ const KEBAB_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 export async function init(options: InitOptions): Promise<void> {
   if (options.template && !TEMPLATES.includes(options.template as (typeof TEMPLATES)[number])) {
-    console.error(chalk.red(`Unknown template: ${options.template}`));
-    console.error(chalk.gray(`Available templates: ${TEMPLATES.join(', ')}`));
+    logger.error('Unknown template: {template}', { template: options.template });
+    logger.error('Available templates: {templates}', { templates: TEMPLATES.join(', ') });
     process.exit(1);
   }
 
@@ -77,9 +79,9 @@ export async function init(options: InitOptions): Promise<void> {
 
   if (options.yes) {
     answers = getDefaults(options);
-    console.log(chalk.bold(`\n🆕 Creating AgentPlugins plugin: ${answers.name}\n`));
+    logger.info('\n🆕 Creating AgentPlugins plugin: {name}\n', { name: answers.name });
     await generateFiles(answers);
-    console.log(chalk.green('✅ Plugin scaffolded!\n'));
+    logger.info('✅ Plugin scaffolded!\n');
   } else {
     p.intro('AgentPlugins plugin scaffold');
     answers = await runInteractive(options);
@@ -87,11 +89,11 @@ export async function init(options: InitOptions): Promise<void> {
     p.outro('Plugin scaffolded!');
   }
 
-  console.log(chalk.gray('Next steps:'));
-  console.log(chalk.gray(`  cd ${answers.name}`));
-  console.log(chalk.gray('  npm install'));
-  console.log(chalk.gray('  npm run validate'));
-  console.log(chalk.gray('  npm run build\n'));
+  logger.info('Next steps:');
+  logger.info('  cd {name}', { name: answers.name });
+  logger.info('  npm install');
+  logger.info('  npm run validate');
+  logger.info('  npm run build\n');
 }
 
 // ─── Interactive Flow ─────────────────────────────────────────────────────────
