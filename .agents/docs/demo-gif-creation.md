@@ -8,18 +8,19 @@ We considered a GitHub Action that re-renders `demo.gif` whenever `packages/cli/
 
 ## Tool
 
-[VHS](https://github.com/charmbracelet/vhs) — declarative `.tape` files, real pixel output, regenerable by anyone with VHS installed.
+[VHS](https://github.com/charmbracelet/vhs) — declarative `.tape` files, real pixel output, regenerable by anyone with VHS installed. [gum](https://github.com/charmbracelet/gum) drives the fake-agent HUD (Frame 3).
 
 ```bash
-mise install vhs
+mise install     # picks up vhs + aqua:charmbracelet/gum from mise.toml
 ```
 
 ## Files
 
 ```
-docs/public/demo.tape    # source of truth (declarative script)
-docs/public/demo.gif     # rendered artifact (committed, referenced in README)
-docs/public/demo.mp4     # rendered artifact (committed, for social posts)
+docs/public/demo.tape           # source of truth (declarative script)
+docs/public/demo-agent-hud.sh   # scripted fake-agent HUD (gum banner/spinner/tool-call lines)
+docs/public/demo.gif            # rendered artifact (committed, referenced in README)
+docs/public/demo.mp4            # rendered artifact (committed, for social posts)
 ```
 
 ## Render locally
@@ -39,17 +40,17 @@ Re-render whenever any of these change:
 
 | Frame | Duration | What happens |
 | --- | --- | --- |
-| 1 | 0–3s | User starts a Claude session (`$ claude`) |
-| 2 | 3–8s | User asks the agent to build a plugin |
-| 3 | 8–18s | Agent scaffolds + compiles + pushes to GitHub (response is a fixture, not a live capture) |
-| 4 | 18–28s | User exits, runs `agentplugins add sigilco/agentplugins-conventional-commits` |
-| 5 | 28–33s | Final frame: `✓ Installed in: Claude Code, Codex, OpenCode, Pi` (the punchline) |
+| 1 | 0–1s | `cd` into a pre-warmed demo folder |
+| 2 | 1–2s | User's natural-language ask typed live (shell comment, cosmetic only) |
+| 3 | 2–6s | Scripted fake-agent HUD runs (`docs/public/demo-agent-hud.sh`), prints `Plugin is ready` |
+| 4 | 6–7s | `clear` |
+| 5 | 7–12s | Real `agentplugins add sigilco/agentplugins-conventional-commits -y`, waits for `Installed to:` (the punchline) |
 
-Total budget: 30–45s, width 1200, height 700, font size 16.
+Total budget: 15–30s, width 1200, height 700, font size 18.
 
-## Agent response (Frame 3) — why a fixture
+## Agent HUD (Frame 3) — why scripted
 
-A live capture of the agent scaffolding the plugin is more authentic, but brittle: any agent behavior change breaks the tape, and re-recording takes ~10 minutes. A scripted fixture (text captured once, committed as `docs/public/demo-frames/agent-response.txt`, typed by VHS) is reproducible in 30 seconds and is honest enough for a launch demo. If you want a live capture, replace the `Type` step with `Require`-style waits + a live terminal — accept the maintenance cost.
+A live capture of the agent scaffolding the plugin is more authentic, but brittle and slow: any agent behavior change breaks the tape, and a real `claude` run takes 5–15 minutes to render. Instead `docs/public/demo-agent-hud.sh` drives [`gum`](https://github.com/charmbracelet/gum) (mise tool `aqua:charmbracelet/gum`) to render a real bordered banner, a real animated spinner, and boxed tool-call lines — deterministic, no network/API calls, runs in ~3s. The install segment stays a real, live `agentplugins add` call; it's already fast and deterministic, and is the visual punchline.
 
 ## Plumbing
 

@@ -1,3 +1,4 @@
 [tools]
 pnpm = "11"
 node = "24"
+"aqua:charmbracelet/gum" = "0.17.0"
