@@ -41,6 +41,25 @@ jobs:
       - name: Build packages
         run: pnpm --filter './packages/**' build
 
+      - name: Guard against publishing an older version as latest
+        run: |
+          set -euo pipefail
+          for dir in packages/*/; do
+            pkg_json="${dir}package.json"
+            [ -f "$pkg_json" ] || continue
+            is_private=$(node -p "require('./$pkg_json').private === true")
+            [ "$is_private" = "true" ] && continue
+            name=$(node -p "require('./$pkg_json').name")
+            local_version=$(node -p "require('./$pkg_json').version")
+            published_latest=$(npm view "$name" dist-tags.latest 2>/dev/null || echo "")
+            if [ -n "$published_latest" ]; then
+              if ! npx --yes semver "$local_version" -r ">$published_latest" >/dev/null 2>&1; then
+                echo "::error::$name: local version $local_version is not greater than published latest ($published_latest). Refusing to publish — this would move npm's 'latest' tag backwards."
+                exit 1
+              fi
+            fi
+          done
+
       - name: Create release PR or publish to npm
         id: changesets
         uses: changesets/action@v1
