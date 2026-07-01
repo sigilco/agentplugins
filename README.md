@@ -1,23 +1,22 @@
-# AgentPlugins
-
-<p align="left">
+<p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./docs/public/img/logo-dark.png" />
     <img src="./docs/public/img/logo-light.png" alt="AgentPlugins" height="96" />
   </picture>
 </p>
 
-<p align="left">
+<h1 align="center">AgentPlugins</h1>
+
+<p align="center">
+  <strong>Write AI agent plugins once, ship to any harness.</strong>
+</p>
+
+<p align="center">
   <a href="https://github.com/sigilco/agentplugins/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/github/license/sigilco/agentplugins?style=flat-square"/></a>
   <a href="https://www.npmjs.com/package/@agentplugins/cli"><img alt="npm version" src="https://img.shields.io/npm/v/@agentplugins/cli?style=flat-square"/></a>
   <a href="https://www.npmjs.com/package/@agentplugins/cli"><img alt="npm downloads" src="https://img.shields.io/npm/dm/@agentplugins/cli?style=flat-square"/></a>
   <a href="https://github.com/sigilco/agentplugins/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/sigilco/agentplugins/ci.yml?branch=main&style=flat-square"/></a>
-</p>
-
-> Write AI agent plugins once, ship to any harness.
-
-<p align="center">
-  <img src="./docs/public/demo.gif" width="100%" alt="AgentPlugins demo: build once, install everywhere" />
+  <a href="https://buy.polar.sh/polar_cl_Mv1gdlG7bw3I70EC9IHtfeSHJj4PEKvA7JAUz23CFhj"><img alt="Sponsor" src="https://img.shields.io/badge/Sponsor-❤️-ff69b4?style=flat-square"/></a>
 </p>
 
 ## Why
@@ -28,21 +27,26 @@
 - **Honest capability matrix** — capability gaps emit `WARN` at compile time and surface on the [capability matrix page](https://agentplugins.pages.dev/guide/capability-matrix)
 - **Plays nicely with what you already have** — install a plugin into a harness that already has its own plugins; they coexist
 
-Install any plugin into every supported AI agent — **Tier-1:** Claude Code, Codex, OpenCode, Pi. **Tier-2:** Copilot, Gemini, Kimi.
+## Install
+
+Install the CLI, then add any plugin to every supported AI agent — **Tier-1:** Claude Code, Codex, OpenCode, Pi. **Tier-2:** Copilot, Gemini, Kimi.
+
+```bash
+curl -fsSL https://agentplugins.pages.dev/install.sh | bash
+agentplugins add user/awesome-plugin
+```
+
+Or skip the install and use `npx`:
 
 ```bash
 npx @agentplugins/cli add user/awesome-plugin
 ```
 
-```bash
-agentplugins add sigilco/agentplugins-ponytail
-```
+Full guide → [agentplugins.pages.dev/guide/install](https://agentplugins.pages.dev/guide/install)
 
-Or install the CLI globally first:
-
-```bash
-curl -fsSL https://agentplugins.pages.dev/install.sh | bash
-```
+<p align="center">
+  <img src="./docs/public/demo.gif" width="100%" alt="AgentPlugins demo: build once, install everywhere" />
+</p>
 
 ## Quick start
 
