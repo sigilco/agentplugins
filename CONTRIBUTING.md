@@ -40,6 +40,10 @@ One logical change per commit. Keep commits independently revertable.
 
 Community plugins live in separate repos (`agentplugins-<name>`) — not in this monorepo. They are ground-up rewrites, not mechanical ports. See the [plugin authoring guide](https://agentplugins.pages.dev/guide/creating-plugins).
 
+## Release hygiene
+
+When backfilling historical GitHub Releases, only use `gh release create <tag>` / edit release notes. Never re-run `pnpm release`, `changeset publish`, or `npm publish` against an old checked-out tag once a newer version is already live on the registry — npm's default `latest` dist-tag goes to whichever publish happens *last*, not whichever semver is highest, so a backfill publish silently drags `latest` backward.
+
 ## PR checklist
 
 - [ ] `pnpm test` passes

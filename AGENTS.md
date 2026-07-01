@@ -18,3 +18,4 @@ Full detail: [`prd.md`](.agents/docs/prd.md)
 - Feature work on `feat/*` branches off `develop`; merge to `develop`, then PR `develop → main` to release
 - All plans in `.agents/plans/<date>-<purpose>.md` before implementation begins
 - All work linked to a refined issue in [Project 14](https://github.com/users/espetro/projects/14/views/1)
+- Backfilling GitHub Releases must never trigger an npm publish — see [`CONTRIBUTING.md`](CONTRIBUTING.md#release-hygiene).
