@@ -1,6 +1,6 @@
 {
   "name": "@agentplugins/contract",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Single-source-of-truth manifest schema for AgentPlugins. Zod schema → TypeScript types → manifest.schema.json.",
   "type": "module",
   "main": "./dist/index.js",

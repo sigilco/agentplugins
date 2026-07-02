@@ -1,6 +1,6 @@
 {
   "name": "@agentplugins/adapter-opencode",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "OpenCode platform adapter for AgentPlugins - generates OpenCode-compatible plugins from universal manifests",
   "type": "module",
   "main": "./dist/index.js",

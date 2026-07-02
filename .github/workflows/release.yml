@@ -41,11 +41,31 @@ jobs:
       - name: Build packages
         run: pnpm --filter './packages/**' build
 
+      - name: Guard against publishing an older version as latest
+        run: |
+          set -euo pipefail
+          for dir in packages/*/; do
+            pkg_json="${dir}package.json"
+            [ -f "$pkg_json" ] || continue
+            is_private=$(node -p "require('./$pkg_json').private === true")
+            [ "$is_private" = "true" ] && continue
+            name=$(node -p "require('./$pkg_json').name")
+            local_version=$(node -p "require('./$pkg_json').version")
+            published_latest=$(npm view "$name" dist-tags.latest 2>/dev/null || echo "")
+            if [ -n "$published_latest" ]; then
+              if ! npx --yes semver "$local_version" -r ">$published_latest" >/dev/null 2>&1; then
+                echo "::error::$name: local version $local_version is not greater than published latest ($published_latest). Refusing to publish — this would move npm's 'latest' tag backwards."
+                exit 1
+              fi
+            fi
+          done
+
       - name: Create release PR or publish to npm
         id: changesets
         uses: changesets/action@v1
         with:
           publish: pnpm release
+          createGithubReleases: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -119,17 +139,22 @@ jobs:
       - name: Create archive
         run: |
           if [[ "${{ matrix.target }}" == *"windows"* ]]; then
-            zip agentplugins-${{ matrix.target }}.zip agentplugins-${{ matrix.target }}
+            zip agentplugins-${{ matrix.target }}.zip agentplugins-${{ matrix.target }}.exe
           else
             tar -czf agentplugins-${{ matrix.target }}.tar.gz agentplugins-${{ matrix.target }}
           fi
 
       - name: Generate checksum
         run: |
-          if command -v shasum &>/dev/null; then
-            shasum -a 256 agentplugins-${{ matrix.target }} | awk '{print $1}' > agentplugins-${{ matrix.target }}.sha256
+          if [[ "${{ matrix.target }}" == *"windows"* ]]; then
+            BIN="agentplugins-${{ matrix.target }}.exe"
           else
-            sha256sum agentplugins-${{ matrix.target }} | awk '{print $1}' > agentplugins-${{ matrix.target }}.sha256
+            BIN="agentplugins-${{ matrix.target }}"
+          fi
+          if command -v shasum &>/dev/null; then
+            shasum -a 256 "$BIN" | awk '{print $1}' > agentplugins-${{ matrix.target }}.sha256
+          else
+            sha256sum "$BIN" | awk '{print $1}' > agentplugins-${{ matrix.target }}.sha256
           fi
 
       - name: Upload artifact
@@ -146,7 +171,7 @@ jobs:
   github-release:
     name: Create GitHub Release
     needs: [release-npm, build-binaries]
-    if: needs.release-npm.outputs.published == 'true'
+    if: always() && needs.release-npm.outputs.published == 'true' && needs.build-binaries.result != 'cancelled'
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
@@ -198,7 +223,7 @@ jobs:
   update-homebrew-tap:
     name: Update Homebrew Tap
     needs: [release-npm, github-release]
-    if: needs.release-npm.outputs.published == 'true'
+    if: always() && needs.release-npm.outputs.published == 'true' && needs.github-release.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: write
