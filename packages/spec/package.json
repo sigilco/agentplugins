@@ -1,9 +1,9 @@
 {
-  "name": "@any-harness/cli",
+  "name": "@any-harness/spec",
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "exports": { ".": "./src/index.ts" },"bin":{"harness":"./dist/cli.js"},
+  "exports": { ".": "./src/index.ts" },
   "scripts": {
     "build": "echo 'build: not yet implemented'",
     "typecheck": "tsc --noEmit",

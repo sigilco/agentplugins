@@ -1,21 +1,39 @@
-GitHub Project is [https://github.com/users/espetro/projects/14](https://github.com/users/espetro/projects/14/views/1) .
+# AGENTS.md — AnyHarness (v2)
 
-## Operating Principles
+> **v2 rewrite in progress.** The v1 TS codebase is frozen on the `legacy` branch.
+> Current plan: `.agents/plans/2026-10-07-v2-foundation.md`.
+> Project board: https://github.com/users/espetro/projects/14
 
-**Tier-1 harnesses: Claude Code, Codex, OpenCode, Pi.** Tier-2: Copilot, Gemini, Kimi.
+## What this is
 
-1. **Tier-1 parity is the bar.** Every shipped capability must work across all four Tier-1 harnesses at the functionality level (not TUI level).
-2. **Codegen first, guided per-harness fallback second.** Universal codegen where possible; otherwise guide the author via the escape hatch rather than dropping the feature.
-3. **Compat matrix is the contract.** `docs/guide/capability-matrix.md` — universal-codegen / guided-per-harness / unsupported, per harness. Keep it current.
-4. **Lean, no global SDK.** Primitives express intent; each adapter owns its plumbing.
-5. **Community plugins are ground-up rewrites** in `agentplugins-<name>` sibling repos (e.g. `../agentplugins-caveman`), not mechanical ports.
+AnyHarness is the **convergence layer for agent extensions**: package manager +
+trust layer + versioned bridge protocol + per-harness emitters. We follow specs
+and standards (MCP, Agent Skills spec, Agent Plugins 1.0) rather than porting to
+every harness; our spec contribution is the extension-management + bridge slot.
 
-Full detail: [`prd.md`](.agents/docs/prd.md)
+## Operating principles
+
+1. **Convergence, not ports.** Tier-1 attaches to *converged surfaces* (≥2 harnesses
+   sharing an SDK shape), not only marquee names. One emitter can cover a family.
+2. **Isomorphic core.** `packages/sdk` and `packages/metaharness` must contain zero
+   `node:*` imports — use `unenv`/`unstorage`/`ofetch`. Environment differences
+   arrive via injected `Capabilities`, never conditionals. This is what lets the
+   same codebase ship as npm package, `scriptc` binary, and browser bundle.
+3. **Coexistence in `~/.agents/`.** We own `harness/`; we adopt `skills/`; we never
+   touch `plugins/` (Codex catalog) or rival claimants' keys.
+4. **Data, not code.** Manifests are JSON (Agent Plugins `plugin.json` base +
+   `dev.anyharness/` namespace). Authoring stays TS, compiled to JSON at build
+   time — no runtime eval.
+5. **Bridge is a versioned protocol**, not an ABI. `protocolVersion` handshake +
+   capability negotiation; three transports (stdio / HTTP loopback / in-process).
+6. **Spec-first.** Behavior changes start in `spec/`, get reviewed, then land in
+   `packages/spec` as types + JSON Schema.
 
 ## Commit & branch conventions
 
-- Atomic conventional commits (`feat(adapter-pimono): fix subagentStop collision`)
-- Feature work on `feat/*` branches off `develop`; merge to `develop`, then PR `develop → main` to release
-- All plans in `.agents/plans/<date>-<purpose>.md` before implementation begins
-- All work linked to a refined issue in [Project 14](https://github.com/users/espetro/projects/14/views/1)
-- Backfilling GitHub Releases must never trigger an npm publish — see [`CONTRIBUTING.md`](CONTRIBUTING.md#release-hygiene).
+- Atomic conventional commits (`feat(sdk): add store layout reader`)
+- v2 work on `feat/*` branches off `v2`; PR into `v2`. `legacy` is frozen;
+  `main` stays the v1 release line until v2 supersedes.
+- All plans in `.agents/plans/<date>-<purpose>.md` before implementation begins.
+- All work linked to a refined issue in [Project 14](https://github.com/users/espetro/projects/14/views/1).
+- No `Co-authored-by:` trailers.
