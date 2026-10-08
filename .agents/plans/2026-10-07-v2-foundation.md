@@ -67,3 +67,23 @@ only), write final report to a file and attach it (channel output truncates).
 - Registry/marketplace backend (M4+)
 - Cloud-harness (Devin) emitter — hypothesis stays tier-2/post-M3
 - npm org creation `@any-harness` (Quim action when publishing time comes)
+
+## Wave 2 — implementation (2026-10-08, owner decisions applied)
+
+Pinned cross-child interface (both sides code against this; drift reconciled at merge):
+
+```ts
+// @any-harness/sdk — isomorphic ONLY (zero node:*)
+interface StorePorts { fs: FsPort; exec: ExecPort }
+createStore(root: string, ports: StorePorts): Store
+// Store: list / install / remove / setEnabled / materialize / verify / doctor
+resolveSource(input: string): SourceRef  // git | github | local | registry coords
+handleBridgeRequest(store, req: JsonRpcRequest): Promise<JsonRpcResponse> // all 8 ops
+// node ports (node:fs, child_process git) live in packages/cli/src/ports/ — cli owns them
+```
+
+| # | Workstream | Branch → PR target | Deliverable |
+|---|-----------|--------------------|-------------|
+| W8 | sdk core (swe-2-max) | `feat/sdk-core` → PR into `v2` | `packages/sdk`: store layout + atomic writes + mutex, sources (git binary/github/local), lockfile + SRI digest, config.toml, trust policy + audit.log, materialization, all 8 bridge ops via `handleBridgeRequest`; in-memory test ports; zero node:* |
+| W9 | cli + serve (swe-2-high) | `feat/cli` → PR into `v2` | `packages/cli`: flag-driven `add/remove/list/enable/disable/verify/doctor/audit/serve` per scriptc island constraints; node ports impl; `serve` = stdio NDJSON pump → `handleBridgeRequest` |
+| W10 | claurst reference-integration design (swe-2-high) | n/a — report + scratch PoC | Design doc: bridge client PR vs `plugin.toml` loader + manifest translation; Rust client PoC vs spec/bridge (NDJSON fixtures); draft PR outline; #186 window re-check |
