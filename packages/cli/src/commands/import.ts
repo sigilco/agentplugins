@@ -112,11 +112,13 @@ export async function importCommand(options: ImportOptions): Promise<void> {
 
   // --write: install into the universal store
   if (options.write) {
-    const name = (result.manifest.name as string) ?? 'imported-plugin';
-    const version = (result.manifest.version as string) ?? '0.0.0';
+    // scriptc: `any` binding — Record property reads have no static lowering.
+    const manifest: any = result.manifest;
+    const name = (manifest.name as string) ?? 'imported-plugin';
+    const version = (manifest.version as string) ?? '0.0.0';
 
     // B17: verify pinned integrity (opt-in)
-    const integrity = result.manifest.integrity as string | undefined;
+    const integrity = manifest.integrity;
     if (integrity && integrity.length > 0) {
       const { match, reason } = verifyIntegrity(source, integrity);
       if (!match) {
@@ -126,7 +128,7 @@ export async function importCommand(options: ImportOptions): Promise<void> {
     }
 
     // B18: evaluate lifecycle script policy
-    const scriptCheck = evaluateManifestScripts(result.manifest as Record<string, unknown>, name);
+    const scriptCheck = evaluateManifestScripts(manifest, name);
     if (!scriptCheck.ok) {
       for (const issue of scriptCheck.issues) {
         const tag = issue.decision === 'deny' ? '[error]' : '[review]';

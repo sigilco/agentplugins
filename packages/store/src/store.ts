@@ -17,13 +17,20 @@ import {
   mkdirSync,
   readdirSync,
   rmSync,
-  symlinkSync,
   unlinkSync,
   lstatSync,
   readlinkSync,
   renameSync,
 } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execSync, spawnSync } from 'node:child_process';
+
+// scriptc: the embedded node:fs shim has no symlinkSync — delegate to ln(1).
+// `ln -sfn` covers both 'dir' and 'file' link types used below.
+function symlinkSync(target: string, path: string, type?: 'dir' | 'file' | 'junction'): void {
+  const args = type === 'junction' ? ['-sfn', target, path] : ['-sfn', target, path];
+  const r = spawnSync('ln', args);
+  if (r.status !== 0) throw new Error(`symlink failed: ${target} -> ${path}`);
+}
 
 // ponytail: module-level buffer; reset at the start of each top-level store op (install/remove/update)
 const __linkErrors: string[] = [];

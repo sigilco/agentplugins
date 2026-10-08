@@ -103,11 +103,11 @@ async function runInteractive(opts: InitOptions): Promise<ScaffoldAnswers> {
   if (opts.name) {
     name = toKebabCase(opts.name);
   } else {
-    const raw = await p.text({
+    const raw: any = await p.text({
       message: 'Plugin name (kebab-case)',
       placeholder: 'my-plugin',
       defaultValue: DEFAULTS.name,
-      validate: (v) =>
+      validate: (v: any): any =>
         !v || v.length === 0 || !KEBAB_RE.test(v)
           ? 'Use kebab-case (lowercase letters, digits, hyphens)'
           : undefined,
@@ -126,7 +126,7 @@ async function runInteractive(opts: InitOptions): Promise<ScaffoldAnswers> {
     await p.text({
       message: 'Description',
       placeholder: 'Describe what your plugin does...',
-      validate: (v) =>
+      validate: (v: any): any =>
         !v || v.trim().length < 10 ? 'Description must be at least 10 characters' : undefined,
     }),
   );
@@ -143,7 +143,7 @@ async function runInteractive(opts: InitOptions): Promise<ScaffoldAnswers> {
     targets = opts.target.split(',').map((t) => t.trim()).filter(Boolean);
   } else {
     const picked = assertValue(
-      await p.multiselect<string>({
+      await p.multiselect({
         message: 'Target platforms',
         options: TARGET_OPTIONS,
         required: false,
@@ -153,7 +153,7 @@ async function runInteractive(opts: InitOptions): Promise<ScaffoldAnswers> {
   }
 
   const pickedHooks = assertValue(
-    await p.multiselect<string>({
+    await p.multiselect({
       message: 'Hook coverage',
       options: HOOK_OPTIONS,
       required: false,
@@ -173,14 +173,14 @@ async function runInteractive(opts: InitOptions): Promise<ScaffoldAnswers> {
         message: 'Skill name',
         placeholder: `${name}-skill`,
         defaultValue: `${name}-skill`,
-        validate: (v) => (!v || v.length === 0 ? 'Skill name is required' : undefined),
+        validate: (v: any): any => (!v || v.length === 0 ? 'Skill name is required' : undefined),
       }),
     );
     skillDescription = assertValue(
       await p.text({
         message: 'Skill description',
         placeholder: `Describe what the ${name} skill does...`,
-        validate: (v) =>
+        validate: (v: any): any =>
           !v || v.trim().length < 10 ? 'Description must be at least 10 characters' : undefined,
       }),
     );
@@ -428,7 +428,7 @@ ${getInstallCommand(t, a.name)}
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
-function assertValue<T>(value: T | symbol): T {
+function assertValue(value: any): any {
   if (p.isCancel(value)) {
     p.cancel('Cancelled');
     process.exit(0);

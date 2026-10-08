@@ -5,17 +5,20 @@
  */
 
 import { resolve, join } from 'node:path';
-import { mkdir, readFile, writeFile, rm } from 'node:fs/promises';
+import { rmSync } from 'node:fs';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import {
   validateUniversal,
   validateForPlatform,
   ALL_TARGETS,
+  UNIVERSAL_HOOK_NAMES,
   type TargetPlatform,
   type PluginManifest,
+  type PlatformAdapter,
   type CompileOptions as AdapterCompileOptions,
 } from '@agentplugins/core';
 import { sanitizeJoin, lint, registerEmitter, type LintIssue } from '@agentplugins/compile';
-import { createApp, createBuildCtx, createTargetCtx, AbortError } from '@agentplugins/pipeline';
+import { createApp, createBuildCtx, createTargetCtx } from '@agentplugins/pipeline';
 import { getCliLogger } from '../logger.js';
 import type { App, Plugin } from '@agentplugins/pipeline';
 import type { LoadedConfig } from '../config.js';
@@ -49,15 +52,28 @@ const BUILTIN_ADAPTER_SPECS: AdapterSpec[] = [
   { platform: 'pimono',    pkg: '@agentplugins/adapter-pimono',    exportName: 'createPiMonoAdapter' },
 ];
 
+// scriptc: import() only accepts literal specifiers (the module graph embeds at
+// build time), so each builtin adapter resolves through an explicit arm.
+async function importAdapterFactory(pkg: string): Promise<any> {
+  switch (pkg) {
+    case '@agentplugins/adapter-claude':   return (await import('@agentplugins/adapter-claude')).createClaudeAdapter;
+    case '@agentplugins/adapter-codex':    return (await import('@agentplugins/adapter-codex')).createCodexAdapter;
+    case '@agentplugins/adapter-copilot':  return (await import('@agentplugins/adapter-copilot')).createCopilotAdapter;
+    case '@agentplugins/adapter-gemini':   return (await import('@agentplugins/adapter-gemini')).createGeminiAdapter;
+    case '@agentplugins/adapter-kimi':     return (await import('@agentplugins/adapter-kimi')).createKimiAdapter;
+    case '@agentplugins/adapter-opencode': return (await import('@agentplugins/adapter-opencode')).createOpenCodeAdapter;
+    case '@agentplugins/adapter-pimono':   return (await import('@agentplugins/adapter-pimono')).createPiMonoAdapter;
+    default: return undefined;
+  }
+}
+
 async function buildApp(userPlugins: Plugin[] = []): Promise<App> {
   const app = createApp();
 
   // Register builtin adapters first (lower precedence)
-  for (const { platform, pkg, exportName } of BUILTIN_ADAPTER_SPECS) {
+  for (const { platform, pkg } of BUILTIN_ADAPTER_SPECS) {
     try {
-      // @ts-ignore — loaded dynamically at runtime
-      const mod = await import(pkg);
-      const factory = mod[exportName] as (() => ReturnType<typeof mod[typeof exportName]>) | undefined;
+      const factory = await importAdapterFactory(pkg);
       if (typeof factory === 'function') {
         app.use({ name: platform, adapter: factory() });
       }
@@ -73,7 +89,10 @@ async function buildApp(userPlugins: Plugin[] = []): Promise<App> {
 
   // Register custom code emitters into the global codegen registry
   for (const [, emitter] of app.emitters) {
-    registerEmitter(emitter as Parameters<typeof registerEmitter>[0]);
+    // scriptc: `as any` casts of dynamic-package values are checked casts — bind
+    // through an any-typed local instead (also bridges pipeline/compile CodeEmitter).
+    const e: any = emitter;
+    registerEmitter(e);
   }
 
   return app;
@@ -132,7 +151,11 @@ export async function compile(options: CompileOptions): Promise<CompileResult[]>
   const results: CompileResult[] = [];
 
   for (const target of targetList) {
-    const adapter = app.adapters.get(target);
+    // scriptc: ReadonlyMap.get has no lowering — look the adapter up by iteration.
+    let adapter: PlatformAdapter | undefined;
+    for (const [p, a] of app.adapters) {
+      if (p === target) { adapter = a; break; }
+    }
     if (!adapter) {
       results.push({ target, files: [], warnings: [], skipped: true });
       continue;
@@ -150,7 +173,9 @@ export async function compile(options: CompileOptions): Promise<CompileResult[]>
     }
 
     try {
-      const output = adapter.compile(manifest, { pluginRoot } as AdapterCompileOptions);
+      const adapterOpts: AdapterCompileOptions = {};
+      if (pluginRoot !== undefined) adapterOpts.pluginRoot = pluginRoot;
+      const output = adapter.compile(manifest, adapterOpts);
 
       // Run postEmit hooks; plugins can append/rewrite files
       const targetCtx = createTargetCtx({ manifest, target, pluginRoot });
@@ -166,7 +191,8 @@ export async function compile(options: CompileOptions): Promise<CompileResult[]>
 
       if (write && outDir) {
         const targetDir = join(resolve(outDir), target);
-        await rm(targetDir, { recursive: true, force: true });
+        // scriptc: promises.rm() with an options object has no lowering; rmSync does.
+        rmSync(targetDir, { recursive: true, force: true });
         await mkdir(targetDir, { recursive: true });
         for (const file of targetCtx.files) {
           const filePath = join(targetDir, file.path);
@@ -206,7 +232,7 @@ export async function compile(options: CompileOptions): Promise<CompileResult[]>
         skipped: false,
       });
     } catch (err) {
-      if (err instanceof AbortError) throw err;
+      if (err instanceof Error && err.name === 'AbortError') throw err;
       const msg = err instanceof Error ? err.message : String(err);
       if (!silent) logger.error('   ✗ Build failed for {target}: {msg}', { target, msg });
       results.push({ target, files: [], warnings: [], skipped: true, error: msg });
@@ -230,8 +256,7 @@ export async function build(options: BuildOptions): Promise<void> {
   const manifest = config.manifest;
   // CLI --target flag > defineConfig targets > manifest.targets > ALL_TARGETS
   const targetList = resolveTargets(
-    options.targets as TargetPlatform[] | undefined
-      ?? config.configTargets as TargetPlatform[] | undefined,
+    options.targets ?? config.configTargets,
     manifest.targets
   );
 
@@ -242,7 +267,11 @@ export async function build(options: BuildOptions): Promise<void> {
 
   // Build the pipeline app once — reused for validation, lint, and compile
   const app = await buildApp(config.plugins ?? []);
-  const knownTargets = [...ALL_TARGETS, ...app.adapters.keys()];
+  // scriptc: array-literal spreads and Map.keys() have no lowering — append
+  // via for-of + push instead (Map entry iteration is supported).
+  const knownTargets: any = [];
+  for (const t of ALL_TARGETS) knownTargets.push(t);
+  for (const [k] of app.adapters) knownTargets.push(k);
 
   // Universal validation — custom adapter targets are not spuriously warned
   logger.info('🔍 Running universal validation...');
@@ -256,7 +285,10 @@ export async function build(options: BuildOptions): Promise<void> {
   // Lint — includes any lint rules from defineConfig plugins
   logger.info('🔍 Running lint...');
   const inlineSources = await collectInlineSources(manifest, config.root);
-  const lintIssues = lint({ manifest, inlineHandlerSource: inlineSources, extraRules: [...app.lintRules] });
+  // scriptc: spread arguments are unsupported — build the copy explicitly.
+  const extraRules: any = [];
+  for (const r of app.lintRules) extraRules.push(r);
+  const lintIssues = lint({ manifest, inlineHandlerSource: inlineSources, extraRules });
   printLintIssues(lintIssues);
   const lintErrors = lintIssues.filter(i => i.severity === 'error');
   if (options.strict && lintErrors.length > 0) {
@@ -343,7 +375,11 @@ function getInstallCommand(target: string, pluginName: string): string {
 async function collectInlineSources(manifest: PluginManifest, pluginRoot: string): Promise<string[]> {
   const sources: string[] = [];
   if (!manifest.hooks) return sources;
-  for (const def of Object.values(manifest.hooks)) {
+  // scriptc: Object.values/for-in have no lowering — enumerate the declared
+  // hook names and index into the `any` record instead.
+  const hooksAny: any = manifest.hooks;
+  for (const hookName of UNIVERSAL_HOOK_NAMES) {
+    const def = hooksAny[hookName];
     if (!def) continue;
     const handler = def.handler as { type: string; code?: string; source?: string };
     if (handler.type === 'inline') {

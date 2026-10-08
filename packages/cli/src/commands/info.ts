@@ -4,7 +4,7 @@
  * Shows detailed information about an installed plugin.
  */
 
-import { getPluginInfo } from '@agentplugins/core';
+import { getPluginInfo, UNIVERSAL_HOOK_NAMES } from '@agentplugins/core';
 import { getCliLogger } from '../logger.js';
 
 const logger = getCliLogger();
@@ -15,7 +15,8 @@ export interface InfoOptions {
 }
 
 export async function info(options: InfoOptions): Promise<void> {
-  const plugin = getPluginInfo(options.name);
+  // scriptc: `any` binding — Record property reads have no static lowering.
+  const plugin: any = getPluginInfo(options.name);
 
   if (!plugin) {
     logger.error('Plugin "{name}" is not installed.', { name: options.name });
@@ -55,9 +56,9 @@ export async function info(options: InfoOptions): Promise<void> {
   // Manifest details
   if (plugin.manifest) {
     const manifest = plugin.manifest;
-    const description = manifest['description'] as string | undefined;
+    const description = manifest['description'];
     const author = manifest['author'];
-    const license = manifest['license'] as string | undefined;
+    const license = manifest['license'];
     const hooks = manifest['hooks'];
     const skills = manifest['skills'];
     const tools = manifest['tools'];
@@ -65,19 +66,25 @@ export async function info(options: InfoOptions): Promise<void> {
     logger.info('\n  Manifest');
     if (description) logger.info('    Description: {description}', { description });
     if (author) {
-      const authorStr = typeof author === 'string' ? author : (author as Record<string, string>)?.name || '';
+      const authorStr = typeof author === 'string' ? author : author?.name || '';
       if (authorStr) logger.info('    Author:      {author}', { author: authorStr });
     }
     if (license) logger.info('    License:     {license}', { license });
 
     if (hooks && typeof hooks === 'object') {
-      const hookNames = Object.keys(hooks as Record<string, unknown>);
+      // scriptc: Object.keys/values/for-in have no lowering — enumerate the
+      // declared hook names and index into the `any` record instead.
+      const hookNames: string[] = [];
+      for (const n of UNIVERSAL_HOOK_NAMES) {
+        if (hooks[n] !== undefined) hookNames.push(n);
+      }
       logger.info('    Hooks:       {hooks}', { hooks: hookNames.join(', ') });
     }
-    if (Array.isArray(skills)) {
+    // scriptc: Array.isArray has no lowering — probe for the array-only `join`.
+    if (typeof skills?.join === 'function') {
       logger.info('    Skills:      {count}', { count: skills.length });
     }
-    if (Array.isArray(tools)) {
+    if (typeof tools?.join === 'function') {
       logger.info('    Tools:       {count}', { count: tools.length });
     }
   }

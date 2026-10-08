@@ -14,15 +14,16 @@ export interface ListOptions {
 }
 
 export async function list(options: ListOptions): Promise<void> {
-  const plugins = listPlugins();
+  // scriptc: `any` binding — Record property reads have no static lowering.
+  const plugins: any = listPlugins();
 
   if (options.json) {
-    console.log(JSON.stringify(plugins.map((p) => ({
+    console.log(JSON.stringify(plugins.map((p: any) => ({
       name: p.meta.name,
       version: p.meta.version,
       source: p.meta.source,
       updatedAt: p.meta.updatedAt,
-      symlinks: p.symlinks.map((s) => s.agent),
+      symlinks: p.symlinks.map((s: any) => s.agent),
     })), null, 2));
     return;
   }
@@ -37,7 +38,7 @@ export async function list(options: ListOptions): Promise<void> {
 
   for (const plugin of plugins) {
     const symlinkCount = plugin.symlinks.length;
-    const brokenCount = plugin.symlinks.filter((s) => !s.valid).length;
+    const brokenCount = plugin.symlinks.filter((s: any) => !s.valid).length;
 
     const description = (plugin.manifest?.['description'] as string) ?? plugin.meta.source;
 
@@ -50,7 +51,7 @@ export async function list(options: ListOptions): Promise<void> {
     logger.info('    updated: {updated}', { updated: plugin.meta.updatedAt });
 
     if (symlinkCount > 0) {
-      const agentNames = plugin.symlinks.map((s) => s.agent).join(', ');
+      const agentNames = plugin.symlinks.map((s: any) => s.agent).join(', ');
       logger.info('    linked:  {agents}{broken}', {
         agents: agentNames,
         broken: brokenCount > 0 ? ` (${brokenCount} broken)` : '',

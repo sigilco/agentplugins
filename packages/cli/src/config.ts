@@ -12,8 +12,7 @@
 
 import { existsSync } from 'node:fs';
 import { resolve, extname } from 'node:path';
-import { createJiti } from 'jiti';
-import type { PluginManifest, AgentPluginsConfig } from '@agentplugins/core';
+import type { PluginManifest } from '@agentplugins/core';
 import type { Plugin } from '@agentplugins/pipeline';
 
 export interface LoadedConfig {
@@ -29,15 +28,6 @@ export interface LoadedConfig {
   configTargets?: string[];
 }
 
-function isDefineConfig(obj: unknown): obj is AgentPluginsConfig {
-  return (
-    typeof obj === 'object' &&
-    obj !== null &&
-    'manifest' in obj &&
-    typeof (obj as Record<string, unknown>).manifest === 'object'
-  );
-}
-
 /**
  * Load configuration from a file path.
  * Supports .ts, .js, .mjs, .cjs, and .json config files.
@@ -50,7 +40,9 @@ export async function loadConfig(configPath: string): Promise<LoadedConfig> {
   }
 
   const ext = extname(resolvedPath);
-  let manifest: PluginManifest;
+  // scriptc: `any` binding — checked casts of jiti/JSON.parse output to
+  // PluginManifest have no lowering.
+  let manifest: any;
   let plugins: Plugin[] = [];
   let configTargets: string[] | undefined;
 
@@ -58,22 +50,13 @@ export async function loadConfig(configPath: string): Promise<LoadedConfig> {
     // JSON config — always a bare manifest
     const { readFile } = await import('node:fs/promises');
     const content = await readFile(resolvedPath, 'utf-8');
-    manifest = JSON.parse(content) as PluginManifest;
+    manifest = JSON.parse(content);
   } else {
-    // TypeScript/JavaScript config — use jiti
-    const jiti = createJiti(resolvedPath, { interopDefault: true });
-    const mod = await jiti.import(resolvedPath);
-    const exported = (mod as Record<string, unknown>)?.default ?? mod;
-
-    if (typeof exported === 'function') {
-      manifest = await (exported as () => Promise<PluginManifest>)();
-    } else if (isDefineConfig(exported)) {
-      manifest = exported.manifest;
-      plugins = exported.plugins ?? [];
-      configTargets = exported.targets;
-    } else {
-      manifest = exported as PluginManifest;
-    }
+    // SPIKE: jiti evals configs via node:vm — not provided by scriptc's island.
+    // Only .json configs work in this build.
+    throw new Error(
+      `scriptc build only supports .json config files (jiti requires node:vm): ${resolvedPath}`
+    );
   }
 
   // Validate required fields

@@ -60,9 +60,9 @@ cli({
       flags: {
         yes: { type: Boolean, alias: 'y', description: 'Skip the setup trust prompt (still denylist-gated)' },
         noSetup: { type: Boolean, default: false, description: 'Do not run any setup script after install' },
-      },
+      } as any,
       help: { description: 'Install a plugin from GitHub to the store + all agents' },
-    }, async ({ _, flags }) => {
+    } as any, async ({ _, flags }: any) => {
       try {
         await add({ source: _.source, yes: flags.yes, noSetup: flags.noSetup });
       } catch (err) {
@@ -77,9 +77,11 @@ cli({
       flags: {
         force: { type: Boolean, alias: 'f', description: 'Re-prompt even if the setup command is unchanged/trusted' },
         yes: { type: Boolean, alias: 'y', description: 'Skip the trust prompt (still denylist-gated)' },
-      },
+      } as any,
       help: { description: "Run an installed plugin's setup script (re-runnable)" },
-    }, async ({ _, flags }) => {
+    // scriptc: launder the options object — flag types hold function values that
+    // cannot cross the static→dynamic boundary as a typed literal.
+    } as any, async ({ _, flags }: { _: any; flags: any }) => {
       try {
         await setup({ name: _.name, force: flags.force, yes: flags.yes });
       } catch (err) {
@@ -93,9 +95,9 @@ cli({
       parameters: ['<name>'],
       flags: {
         force: { type: Boolean, alias: 'f', default: false, description: 'Skip confirmation' },
-      },
+      } as any,
       help: { description: 'Remove a plugin from the store and unlink all symlinks' },
-    }, async ({ _, flags }) => {
+    } as any, async ({ _, flags }: any) => {
       try {
         await remove({ name: _.name, force: flags.force });
       } catch (err) {
@@ -108,9 +110,9 @@ cli({
       name: 'list',
       flags: {
         json: { type: Boolean, description: 'Output as JSON' },
-      },
+      } as any,
       help: { description: 'List installed plugins' },
-    }, async ({ flags }) => {
+    } as any, async ({ flags }: any) => {
       try {
         await list({ json: flags.json });
       } catch (err) {
@@ -124,9 +126,9 @@ cli({
       parameters: ['[name]'],
       flags: {
         all: { type: Boolean, alias: 'a', description: 'Update all installed plugins' },
-      },
+      } as any,
       help: { description: 'Update plugin(s) from source' },
-    }, async ({ _, flags }) => {
+    } as any, async ({ _, flags }: any) => {
       try {
         await update({ name: _.name, all: flags.all });
       } catch (err) {
@@ -140,9 +142,9 @@ cli({
       parameters: ['<name>'],
       flags: {
         json: { type: Boolean, description: 'Output as JSON' },
-      },
+      } as any,
       help: { description: 'Show detailed information about an installed plugin' },
-    }, async ({ _, flags }) => {
+    } as any, async ({ _, flags }: any) => {
       try {
         await info({ name: _.name, json: flags.json });
       } catch (err) {
@@ -155,9 +157,9 @@ cli({
       name: 'doctor',
       flags: {
         json: { type: Boolean, description: 'Output as JSON' },
-      },
+      } as any,
       help: { description: 'Run diagnostics on store, agents, and symlinks' },
-    }, async ({ flags }) => {
+    } as any, async ({ flags }: any) => {
       try {
         await doctor({ json: flags.json });
       } catch (err) {
@@ -174,9 +176,9 @@ cli({
         write: { type: Boolean, default: false, description: 'Install the generated manifest into the universal store' },
         noVendor: { type: Boolean, default: false, description: 'Skip copying upstream files into .agentplugins-vendor/' },
         quiet: { type: Boolean, alias: 'q', default: false, description: 'Suppress warning output' },
-      },
+      } as any,
       help: { description: 'Translate a community plugin (Claude Code, Codex, Skills.sh) into an AgentPlugins manifest' },
-    }, async ({ _, flags }) => {
+    } as any, async ({ _, flags }: any) => {
       try {
         await importCommand({
           format: _.format,
@@ -198,9 +200,9 @@ cli({
       flags: {
         json: { type: Boolean, default: false, description: 'Output the report as JSON' },
         noScripts: { type: Boolean, default: false, description: 'Skip lifecycle script policy evaluation' },
-      },
+      } as any,
       help: { description: 'Audit a plugin source for installability and supply-chain risk without writing to the store' },
-    }, async ({ _, flags }) => {
+    } as any, async ({ _, flags }: any) => {
       try {
         const code = await audit({ source: _.source, json: flags.json, scripts: !flags.noScripts });
         process.exit(code);
@@ -219,11 +221,11 @@ cli({
         outDir: { type: String, alias: 'o', placeholder: '<dir>', default: 'dist', description: 'Output directory' },
         strict: { type: Boolean, default: false, description: 'Fail on warnings' },
         config: { type: String, placeholder: '<file>', default: 'agentplugins.config.ts', description: 'Config file path' },
-      },
+      } as any,
       help: { description: 'Build plugin for target platforms' },
-    }, async ({ flags }) => {
+    } as any, async ({ flags }: any) => {
       try {
-        const cfg = await loadConfig(flags.config);
+        const cfg = await (loadConfig as any)(flags.config);
         const targets = flags.target ? flags.target.split(',').map((t: string) => t.trim()) : undefined;
         await build({ config: cfg, targets, outDir: flags.outDir, strict: flags.strict });
       } catch (err) {
@@ -237,11 +239,11 @@ cli({
       flags: {
         config: { type: String, placeholder: '<file>', default: 'agentplugins.config.ts', description: 'Config file path' },
         target: { type: String, alias: 't', placeholder: '<targets>', description: 'Validate for specific targets only' },
-      },
+      } as any,
       help: { description: 'Validate plugin configuration' },
-    }, async ({ flags }) => {
+    } as any, async ({ flags }: any) => {
       try {
-        const cfg = await loadConfig(flags.config);
+        const cfg = await (loadConfig as any)(flags.config);
         const targets = flags.target ? flags.target.split(',').map((t: string) => t.trim()) : undefined;
         await validate({ config: cfg, targets });
       } catch (err) {
@@ -257,11 +259,12 @@ cli({
         yes: { type: Boolean, alias: 'y', description: 'Skip prompts and use defaults' },
         template: { type: String, alias: 't', placeholder: '<name>', description: 'Template: minimal | logger | security-guard | formatter' },
         target: { type: String, placeholder: '<targets>', description: 'Target platforms (comma-separated)' },
-      },
+      } as any,
       help: { description: 'Scaffold a new AgentPlugins plugin' },
-    }, async ({ _, flags }) => {
+    } as any, async ({ _, flags }: any) => {
       try {
-        await init({ name: _.name, yes: flags.yes || false, template: flags.template, target: flags.target });
+        const initFn: any = init;
+        await initFn({ name: _.name, yes: flags.yes || false, template: flags.template, target: flags.target });
       } catch (err) {
         logger.error('Init failed: {msg}', { msg: formatError(err) });
         process.exit(1);
@@ -273,11 +276,11 @@ cli({
       flags: {
         config: { type: String, placeholder: '<file>', default: 'agentplugins.config.ts', description: 'Config file path' },
         json: { type: Boolean, description: 'Output as JSON' },
-      },
+      } as any,
       help: { description: 'Static analysis of plugin manifest' },
-    }, async ({ flags }) => {
+    } as any, async ({ flags }: any) => {
       try {
-        const cfg = await loadConfig(flags.config);
+        const cfg = await (loadConfig as any)(flags.config);
         await lint({ config: cfg, json: flags.json || false });
       } catch (err) {
         logger.error('Lint failed: {msg}', { msg: formatError(err) });
@@ -291,11 +294,11 @@ cli({
         config: { type: String, placeholder: '<file>', default: 'agentplugins.config.ts', description: 'Config file path' },
         target: { type: String, alias: 't', placeholder: '<targets>', description: 'Comma-separated target platforms' },
         diff: { type: Boolean, description: 'Show diff against existing dist/ output' },
-      },
+      } as any,
       help: { description: 'Preview compile output without writing to disk' },
-    }, async ({ flags }) => {
+    } as any, async ({ flags }: any) => {
       try {
-        const cfg = await loadConfig(flags.config);
+        const cfg = await (loadConfig as any)(flags.config);
         const targets = flags.target ? flags.target.split(',').map((t: string) => t.trim()) : undefined;
         await preview({ config: cfg, targets, diff: flags.diff || false });
       } catch (err) {

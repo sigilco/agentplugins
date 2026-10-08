@@ -20,12 +20,10 @@ import {
 } from '@agentplugins/core';
 import { join } from 'node:path';
 import { existsSync, rmSync } from 'node:fs';
-import { createJiti } from 'jiti';
 import { compile } from './build.js';
 import { runSetupFlow } from './setup.js';
-import { createApp, createInstallCtx, AbortError } from '@agentplugins/pipeline';
+import { createApp, createInstallCtx } from '@agentplugins/pipeline';
 import { getCliLogger } from '../logger.js';
-import type { PluginManifest } from '@agentplugins/core';
 
 const logger = getCliLogger();
 
@@ -67,7 +65,9 @@ export async function add(options: AddOptions): Promise<void> {
   const pluginDir = subdir ? join(tempDir, subdir) : tempDir;
 
   // Find manifest — try JSON/SKILL.md first
-  let manifestResult = findManifestInDir(pluginDir);
+  // scriptc: keep this binding `any` — Record<string, unknown> property reads
+  // (dot or index) have no lowering in the static compiler.
+  let manifestResult: any = findManifestInDir(pluginDir);
 
   // Fallback: try TypeScript config via jiti
   if (!manifestResult) {
@@ -81,10 +81,13 @@ export async function add(options: AddOptions): Promise<void> {
     process.exit(1);
   }
 
-  const rawName = manifestResult.manifest['name'] as string;
+  const rawName = manifestResult.manifest.name as string;
   // Strip npm scope prefix (@scope/name → name) for use as a filesystem-safe plugin identifier
   const name = rawName.replace(/^@[^/]+\//, '');
-  const version = (manifestResult.manifest['version'] as string) || '0.0.0';
+  const version = (manifestResult.manifest.version as string) || '0.0.0';
+  // scriptc: keep the manifest as an untyped binding — `as unknown as PluginManifest`
+  // performs a checked cast the static compiler cannot lower.
+  const pluginManifest: any = manifestResult.manifest;
 
   logger.info('\nPlugin: {name} v{version}', { name, version });
   logger.info('Manifest: {path} ({type})', { path: manifestResult.path, type: manifestResult.type });
@@ -94,13 +97,13 @@ export async function add(options: AddOptions): Promise<void> {
   const installCtx = createInstallCtx({
     pluginName: name,
     installDir: tempDir,
-    manifest: manifestResult.manifest as unknown as PluginManifest,
+    manifest: pluginManifest,
     meta: {},
   });
   try {
     await installApp.runInstall(installCtx);
   } catch (err) {
-    if (err instanceof AbortError) {
+    if (err instanceof Error && err.name === 'AbortError') {
       logger.error('\n{msg}', { msg: err.message });
       rmSync(tempDir, { recursive: true, force: true });
       process.exit(1);
@@ -122,14 +125,14 @@ export async function add(options: AddOptions): Promise<void> {
   }
 
   // Compile for harnesses that load compiled artifacts (opencode, pimono)
-  const compilableAgents = agents.filter((a) => a.pluginPath);
+  const compilableAgents = agents.filter((a: any) => a.pluginPath);
   if (compilableAgents.length > 0) {
     const targets = compilableAgents.map((a) => a.name);
     logger.info('\nCompiling for {targets}...', { targets: targets.join(', ') });
     const distDir = join(pluginDir, '.agentplugins-dist');
     try {
       await compile({
-        manifest: manifestResult.manifest as unknown as PluginManifest,
+        manifest: pluginManifest,
         targets: targets as any,
         write: true,
         outDir: distDir,
@@ -175,25 +178,14 @@ export async function add(options: AddOptions): Promise<void> {
   logger.info('');
 }
 
-/** Try loading a TypeScript config via jiti */
-async function tryTsConfig(dir: string): Promise<{ path: string; manifest: Record<string, unknown>; type: 'json' | 'skill-md' } | null> {
+/** Try loading a TypeScript config — jiti needs node:vm, absent in scriptc's island. */
+async function tryTsConfig(dir: string): Promise<any> {
   const candidates = ['agentplugins.config.ts', 'agentplugins.config.js', 'agentplugins.config.mjs'];
   for (const candidate of candidates) {
     const fullPath = join(dir, candidate);
     if (!existsSync(fullPath)) continue;
-    try {
-      const loader = createJiti(fullPath, { interopDefault: true });
-      const mod = await loader.import(fullPath);
-      const exported = (mod as Record<string, unknown>)?.['default' as keyof typeof mod] ?? mod;
-      const manifest = typeof exported === 'function'
-        ? await (exported as () => Promise<Record<string, unknown>>)()
-        : exported as Record<string, unknown>;
-      if (manifest && typeof manifest['name'] === 'string') {
-        return { path: candidate, manifest, type: 'json' };
-      }
-    } catch {
-      continue;
-    }
+    void fullPath;
+    continue;
   }
   return null;
 }
