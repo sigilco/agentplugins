@@ -33,11 +33,16 @@ and one versioned bridge protocol so harnesses never build their own plugin syst
 ```
 ~/.agents/
   skills/<name>/           # Agent Skills spec (already standard)
-  harness/<name>/          # installed packages (our store)
+  harness/
+    packages/<name>/       # installed packages (our store)
+    extensions.lock        # our lockfile
+    config.toml            # our config
   mcp.json                 # shared MCP declarations
-  extensions.lock          # our lockfile
-  anyharness.toml          # our config
+  plugins/                 # NOT ours — Codex's catalog lives here; never touch
 ```
+
+Rule: we own exactly one root key — `harness/`. Everything we add lives under it;
+nothing else in `~/.agents/` is ours to create or modify.
 
 ## Status
 
