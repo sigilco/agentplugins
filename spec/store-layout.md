@@ -108,6 +108,12 @@ a read/write shared location with the following compatibility guarantees:
 4. AnyHarness MUST NOT treat `plugins/`, `harness/`, or any non-skill root
    entry as a skill.
 
+The shared skills root is the **default** materialization target for
+`skill`-kind Extensions — it is the standard every reader already scans.
+`harness/packages/<name>/` remains an allowed per-Extension install target
+for authors who want store-local containment; the lockfile `targets[]`
+records whichever was used.
+
 ### 5.2 `~/.agents/mcp.json` — shared MCP declarations
 
 `mcp.json` at the store root is a shared file in the de-facto

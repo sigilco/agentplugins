@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://anyharness.dev/schemas/l0/0.1/store-layout.schema.json",
+  "$id": "https://raw.githubusercontent.com/sigilco/agentplugins/v2/spec/store-layout.schema.json",
   "title": "AnyHarness store descriptor (harness/store.json)",
   "description": "Machine-readable schema for the ~/.agents/harness/store.json descriptor defined by spec/store-layout.md §8. The spec text is authoritative if it conflicts with this schema.",
   "type": "object",

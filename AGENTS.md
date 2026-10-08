@@ -28,6 +28,12 @@ every harness; our spec contribution is the extension-management + bridge slot.
    capability negotiation; three transports (stdio / HTTP loopback / in-process).
 6. **Spec-first.** Behavior changes start in `spec/`, get reviewed, then land in
    `packages/spec` as types + JSON Schema.
+7. **scriptc-first packaging.** The `harness` binary ships via `scriptc --dynamic`
+   (owner decision — no Windows target yet; `bun --compile` is the Windows hatch).
+   The CLI must stay inside the island's constraints: JSON-only config (never
+   runtime TS eval), no TUI prompt libs (flag-driven), git ops via the `git`
+   binary, no `symlinkSync` (`ln`+copy fallback), console-shim logging — no
+   logtape/jiti/clack-class deps.
 
 ## Commit & branch conventions
 

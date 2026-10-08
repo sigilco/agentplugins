@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://anyharness.dev/schemas/l0/0.1/lockfile.schema.json",
+  "$id": "https://raw.githubusercontent.com/sigilco/agentplugins/v2/spec/lockfile.schema.json",
   "title": "AnyHarness lockfile (harness/extensions.lock)",
   "description": "Machine-readable schema for ~/.agents/harness/extensions.lock (spec/lockfile.md). The spec text is authoritative if it conflicts with this schema.",
   "type": "object",

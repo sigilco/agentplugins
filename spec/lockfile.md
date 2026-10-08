@@ -92,9 +92,18 @@ Each value of `extensions` is an **Extension** — the installed unit
 | Field | Type | Required | Description |
 | ----- | ---- | -------- | ----------- |
 | `type` | string | yes | One of `git`, `github`, `registry`, `local`. Closed enum; new source types are a spec minor change. |
-| `uri` | string | yes | Source identifier in canonical form for its type: `git` → clone URL; `github` → `owner/repo` or repo URL (SHOULD normalize to `owner/repo`); `registry` → registry URL + package coordinates; `local` → absolute or store-relative path at install time. |
+| `uri` | string | yes | Source identifier in canonical form for its type: `git` → clone URL; `github` → `owner/repo` or repo URL (SHOULD normalize to `owner/repo`); `registry` → index URL + package coordinates (see registry note below); `local` → absolute or store-relative path at install time. |
 | `ref` | string | no | Resolved revision: commit SHA, tag, branch, or registry version. For `git`/`github` the installer MUST resolve floating refs to a commit SHA at install time and record the SHA — reproducibility depends on it. |
 | `path` | string | no | Subpath within the source where the package lives (monorepo sources), e.g. `plugins/deploy-tools`. |
+
+Registry note (current posture): a `registry`-type source denotes an index
+that resolves package coordinates to a concrete `git`/`github` source. The
+first-party index is **discovery over GitHub topics** — publishers tag
+extension repositories with a designated topic and the index answers
+search/lookup queries from that corpus; a hosted skills.sh-style site MAY
+later serve the same index. The lockfile records only the resolved source
+(`type`, `uri`, `ref`), never index-internal state, so the file format is
+agnostic to which index answered.
 
 Interop note (skills.sh conventions): `uri`/`ref`/`installedAt`/`updatedAt`
 follow the same semantics as `sourceUrl`/`ref`/`installedAt`/`updatedAt` in
