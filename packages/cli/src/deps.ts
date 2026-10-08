@@ -25,7 +25,7 @@ export interface CliDeps {
   w: OutWriters;
   log: Logger;
   env: Record<string, string | undefined>;
-  /** Resolved `~/.agents/harness` directory. */
+  /** Resolved agents root (`~/.agents`); the sdk owns `harness/` beneath it. */
   storeRoot: string;
   /** stdin is an interactive TTY (confirm prompts allowed). */
   interactive: boolean;

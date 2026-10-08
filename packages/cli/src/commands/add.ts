@@ -4,7 +4,9 @@
  * Source resolution and the install itself are sdk operations; the cli
  * owns the flag surface and the trust discipline around them:
  *   - `--skill-target shared|store` picks the skill materialization root
- *     (shared `~/.agents/skills/` is the spec default — store-layout §5.1)
+ *     (shared `~/.agents/skills/` is the spec default — store-layout §5.1;
+ *     `store` maps to the sdk's `installTarget: "packages"`)
+ *   - `--update` allows replacing an existing lock entry (trust.md §3.3)
  *   - `-y` attests the mutating op; without it an interactive TTY gets a
  *     y/N prompt and a non-interactive caller is refused
  *   - the resolved `actor` rides along so the sdk's trust layer can keep
@@ -21,7 +23,7 @@ import {
 import { confirm } from "../confirm.js";
 import { emit, table } from "../output.js";
 
-const KNOWN = ["skill-target", "y", "yes", "json"] as const;
+const KNOWN = ["skill-target", "update", "y", "yes", "json"] as const;
 
 export const cmdAdd = async (deps: CliDeps, args: ParsedArgs): Promise<void> => {
   assertNoUnknownFlags(args.flags, KNOWN);
@@ -36,22 +38,26 @@ export const cmdAdd = async (deps: CliDeps, args: ParsedArgs): Promise<void> => 
   const source = deps.resolveSource(sourceInput);
   await confirm(deps, `install ${source.type} source ${source.uri}?`, { yes });
 
-  const extension = await deps.store.install(source, {
-    skillTarget,
+  const result = await deps.store.install(source, {
+    installTarget: skillTarget === "store" ? "packages" : "shared",
+    update: flagBool(args.flags, "update") || undefined,
     actor: deps.actor,
   });
+  const extension = result.extension;
 
   emit(
     deps.w,
-    { installed: extension },
+    { installed: extension, location: result.location, warnings: result.warnings },
     () =>
       table([
         ["installed", extension.id],
         ["kind", extension.kind],
+        ["location", result.location],
         [
           "provides",
           extension.provides?.length ? extension.provides.join(",") : "-",
         ],
+        ...result.warnings.map((w): [string, string] => ["warning", w]),
       ]),
     json,
   );

@@ -39,5 +39,18 @@ const exitCodeForKind = (kind: string): number => KIND_EXIT[kind] ?? 1;
 export const toCliError = (err: unknown): CliError => {
   if (err instanceof CliError) return err;
   const message = err instanceof Error ? err.message : String(err);
+  // sdk StoreErrors carry a spec-defined kind + data; forward both so the
+  // operator sees e.g. "trust-violation" rather than "internal". Structural
+  // check, not instanceof — the sdk is a separate package boundary.
+  if (
+    typeof err === "object" &&
+    err !== null &&
+    (err as { name?: string }).name === "StoreError"
+  ) {
+    const se = err as { kind?: string; data?: Record<string, unknown> };
+    return new CliError(se.kind ?? "internal", message, {
+      details: se.data,
+    });
+  }
   return new CliError("internal", message);
 };

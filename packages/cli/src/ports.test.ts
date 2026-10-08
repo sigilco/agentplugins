@@ -15,28 +15,31 @@ afterEach(async () => {
   await rm(dir, { recursive: true, force: true });
 });
 
+const text = (b: Uint8Array) => new TextDecoder().decode(b);
+const bytes = (s: string) => new TextEncoder().encode(s);
+
 describe("ExecPort", () => {
   const exec = createExecPort();
 
-  it("exec runs one token + argv (no shell)", async () => {
-    const res = await exec.exec("echo", ["hello"]);
+  it("run spawns one token + argv (no shell)", async () => {
+    const res = await exec.run("echo", ["hello"]);
     expect(res.code).toBe(0);
     expect(res.stdout.trim()).toBe("hello");
   });
 
-  it("exec surfaces non-zero exits as results, not throws", async () => {
-    const res = await exec.exec("false");
+  it("run surfaces non-zero exits as results, not throws", async () => {
+    const res = await exec.run("false");
     expect(res.code).not.toBe(0);
   });
 
   it("the git binary is reachable (island rule: git via exec)", async () => {
-    const res = await exec.exec("git", ["--version"]);
+    const res = await exec.run("git", ["--version"]);
     expect(res.code).toBe(0);
     expect(res.stdout).toContain("git version");
   });
 
   it("run honors cwd", async () => {
-    const res = await exec.run("pwd", { cwd: dir });
+    const res = await exec.run("pwd", [], { cwd: dir });
     expect(res.stdout.trim()).toBe(dir);
   });
 });
@@ -45,43 +48,54 @@ describe("FsPort", () => {
   const exec = createExecPort();
   const fs = createFsPort(exec);
 
-  it("writes atomically and reads back", async () => {
+  it("writes bytes and reads back", async () => {
     const p = join(dir, "a", "b.txt");
-    await fs.writeFile(p, "hello");
-    expect(await fs.readFile(p)).toBe("hello");
+    await fs.writeFile(p, bytes("hello"));
+    expect(text(await fs.readFile(p))).toBe("hello");
     const s = await stat(p);
     expect(s.isFile()).toBe(true);
   });
 
   it("appendFile appends", async () => {
     const p = join(dir, "log.txt");
-    await fs.appendFile(p, "one\n");
-    await fs.appendFile(p, "two\n");
-    expect(await fs.readFile(p)).toBe("one\ntwo\n");
+    await fs.appendFile(p, bytes("one\n"));
+    await fs.appendFile(p, bytes("two\n"));
+    expect(text(await fs.readFile(p))).toBe("one\ntwo\n");
   });
 
-  it("exists/stat/list/mkdir/remove", async () => {
+  it("stat returns null on missing; readDir lists dirents", async () => {
     const sub = join(dir, "pkg");
-    expect(await fs.exists(sub)).toBe(false);
+    expect(await fs.stat(sub)).toBeNull();
     await fs.mkdir(sub);
-    await fs.writeFile(join(sub, "plugin.json"), "{}");
-    expect(await fs.exists(sub)).toBe(true);
-    expect((await fs.stat(sub)).kind).toBe("directory");
-    expect((await fs.stat(join(sub, "plugin.json"))).kind).toBe("file");
-    expect(await fs.list(sub)).toEqual(["plugin.json"]);
+    await fs.writeFile(join(sub, "plugin.json"), bytes("{}"));
+    expect((await fs.stat(sub))?.type).toBe("directory");
+    expect((await fs.stat(join(sub, "plugin.json")))?.type).toBe("file");
+    expect(await fs.readDir(sub)).toEqual([
+      { name: "plugin.json", type: "file" },
+    ]);
     await fs.remove(sub);
-    expect(await fs.exists(sub)).toBe(false);
+    expect(await fs.stat(sub)).toBeNull();
   });
 
-  it("symlink via ln creates a real link; copy is the fallback", async () => {
+  it("createExclusive wins once then yields", async () => {
+    const p = join(dir, ".lock");
+    expect(await fs.createExclusive(p, bytes("x"))).toBe(true);
+    expect(await fs.createExclusive(p, bytes("y"))).toBe(false);
+    expect(text(await fs.readFile(p))).toBe("x");
+  });
+
+  it("errors carry a .code field the store can inspect", async () => {
+    await expect(fs.readFile(join(dir, "nope"))).rejects.toMatchObject({
+      code: "not-found",
+    });
+  });
+
+  it("symlink via ln creates a real link", async () => {
     const target = join(dir, "target.txt");
     const link = join(dir, "link.txt");
-    await fs.writeFile(target, "x");
+    await fs.writeFile(target, bytes("x"));
     await fs.symlink!(target, link);
-    expect(await fs.readlink!(link)).toBe(target);
+    expect(await fs.readlink(link)).toBe(target);
     expect(await readFile(link, "utf8")).toBe("x");
-    const copied = join(dir, "copied.txt");
-    await fs.copy(target, copied);
-    expect(await fs.readFile(copied)).toBe("x");
   });
 });

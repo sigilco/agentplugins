@@ -1,7 +1,9 @@
 /**
  * Store-root resolution — store-layout.md §3.5. Precedence:
- * `--root` flag > `ANYHARNESS_STORE` > `ANYHARNESS_HOME`/harness >
- * `~/.agents/harness`.
+ * `--root` flag > `ANYHARNESS_STORE` > `ANYHARNESS_HOME` > `~/.agents`.
+ *
+ * The resolved value is the **agents root** (`~/.agents`) — the sdk owns
+ * `harness/` underneath it and reads the `skills/` + `mcp.json` siblings.
  */
 export const resolveStoreRoot = (
   env: Record<string, string | undefined>,
@@ -10,6 +12,5 @@ export const resolveStoreRoot = (
 ): string => {
   if (rootFlag) return rootFlag;
   if (env.ANYHARNESS_STORE) return env.ANYHARNESS_STORE;
-  const agentsRoot = env.ANYHARNESS_HOME ?? `${home}/.agents`;
-  return `${agentsRoot}/harness`;
+  return env.ANYHARNESS_HOME ?? `${home}/.agents`;
 };
