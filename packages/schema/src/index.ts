@@ -1,18 +1,12 @@
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
 import { Ajv, type ErrorObject } from 'ajv';
+import { manifestJson, adapterJson, agentPathsJson } from './schemas.js';
 import type { ManifestSchema, AgentPathsRegistry } from './types.js';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
-function loadJson<T>(file: string): T {
-  return JSON.parse(readFileSync(join(__dirname, '..', 'schemas', file), 'utf-8')) as T;
-}
-
-export const manifestSchema = loadJson<Record<string, unknown>>('manifest.schema.json');
-export const adapterSchema = loadJson<Record<string, unknown>>('adapter.schema.json');
-export const agentPaths = loadJson<AgentPathsRegistry>('agent-paths.json');
+// scriptc/bun: schemas are inlined (schemas.ts) — readFileSync(__dirname) has no
+// file to read inside embedded bundles.
+export const manifestSchema: Record<string, unknown> = manifestJson;
+export const adapterSchema: Record<string, unknown> = adapterJson;
+export const agentPaths: AgentPathsRegistry = agentPathsJson as AgentPathsRegistry;
 
 export const SCHEMA_VERSION = 1;
 export const HOSTED_SCHEMA_URL = 'https://agentplugins.pages.dev/schema/v1.json';

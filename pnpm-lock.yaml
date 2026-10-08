@@ -41,6 +41,9 @@ importers:
       '@changesets/cli':
         specifier: ^2.31.0
         version: 2.31.0(@types/node@22.20.0)
+      '@scriptc/runtime-darwin-arm64':
+        specifier: 0.2.6
+        version: 0.2.6
       vite:
         specifier: ^6.0.0
         version: 6.4.3(@types/node@22.20.0)(jiti@2.7.0)
@@ -1483,6 +1486,9 @@ packages:
     resolution: {integrity: sha512-X+zaP2x+j4RXGfbp/seSoRHWnPxzApilDszisZxbYH5C/jTxFhCtDNdPGZb9lJyYPs24wGxruPF7Y+sIXt9Gzw==}
     cpu: [x64]
     os: [win32]
+
+  '@scriptc/runtime-darwin-arm64@0.2.6':
+    resolution: {integrity: sha512-gdd1MThKxYGpDYAfG1EKd1EVazse9O7ZXhtQIZSOilbfdInQQD53aHnHWCzebid5tfwFwVVCHf+wwZ+lYChIJw==}
 
   '@shikijs/core@2.5.0':
     resolution: {integrity: sha512-uu/8RExTKtavlpH7XqnVYBrfBkUc20ngXiX9NSrBhOVZYv/7XQRKUyhtkeflY5QsxC0GbJThCerruZfsUaSldg==}
@@ -4443,6 +4449,8 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.61.1':
     optional: true
+
+  '@scriptc/runtime-darwin-arm64@0.2.6': {}
 
   '@shikijs/core@2.5.0':
     dependencies:
