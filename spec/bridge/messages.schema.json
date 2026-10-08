@@ -1,0 +1,475 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spec.anyharness.dev/bridge/messages.schema.json",
+  "title": "AnyHarness Bridge Protocol v0.1 — message schemas",
+  "description": "JSON-RPC 2.0 envelope and per-operation params/result schemas for the AnyHarness bridge protocol. Companion prose: protocol.md, operations.md, capabilities.md, transports.md, security.md. Sibling specs referenced by name: spec/manifest.md (plugin.json documents), spec/store-layout.md (paths), spec/lockfile.md (integrity), spec/trust.md (policy).",
+  "type": "object",
+  "$defs": {
+    "RequestId": {
+      "type": ["string", "number"],
+      "description": "JSON-RPC request id; unique among in-flight requests in a session."
+    },
+    "Request": {
+      "type": "object",
+      "required": ["jsonrpc", "id", "method"],
+      "properties": {
+        "jsonrpc": { "const": "2.0" },
+        "id": { "$ref": "#/$defs/RequestId" },
+        "method": {
+          "type": "string",
+          "enum": [
+            "capabilities.negotiate",
+            "extensions.list",
+            "extensions.get",
+            "hooks.invoke",
+            "commands.resolve",
+            "skills.materialize",
+            "tools.call",
+            "events.notify"
+          ]
+        },
+        "params": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    "Notification": {
+      "type": "object",
+      "required": ["jsonrpc", "method"],
+      "properties": {
+        "jsonrpc": { "const": "2.0" },
+        "method": { "type": "string" },
+        "params": { "type": "object" }
+      },
+      "not": { "required": ["id"] },
+      "additionalProperties": false
+    },
+    "Response": {
+      "type": "object",
+      "required": ["jsonrpc", "id"],
+      "properties": {
+        "jsonrpc": { "const": "2.0" },
+        "id": { "$ref": "#/$defs/RequestId" },
+        "result": {},
+        "error": { "$ref": "#/$defs/Error" }
+      },
+      "additionalProperties": false
+    },
+    "Error": {
+      "type": "object",
+      "required": ["code", "message"],
+      "properties": {
+        "code": {
+          "type": "integer",
+          "enum": [
+            -32700, -32600, -32601, -32602, -32603,
+            -32001, -32002, -32003, -32004, -32005, -32006,
+            -32007, -32008, -32009, -32010, -32011, -32012,
+            -32800
+          ]
+        },
+        "message": { "type": "string" },
+        "data": {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": [
+                "version-mismatch", "handshake-required",
+                "capability-unsupported", "not-found", "manifest-invalid",
+                "hook-failed", "policy-denied", "trust-violation",
+                "auth-failed", "transport-unavailable", "conflict",
+                "forbidden", "request-cancelled", "mcp"
+              ]
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "ExtensionKind": {
+      "type": "string",
+      "enum": ["skill", "mcp", "plugin", "hook", "command", "agent", "rule"]
+    },
+    "ManifestRef": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "type": "string", "description": "plugin.json `name`" },
+        "version": { "type": "string", "description": "Exact installed version (semver string)" },
+        "integrity": { "type": "string", "description": "Integrity value per spec/lockfile.md, e.g. sha256-…" }
+      },
+      "additionalProperties": false
+    },
+    "Extension": {
+      "type": "object",
+      "required": ["id", "kind", "manifest", "enabled"],
+      "properties": {
+        "id": { "type": "string", "description": "Stable id '<name>@<version>'; the extensions.lock key" },
+        "kind": { "$ref": "#/$defs/ExtensionKind" },
+        "manifest": { "$ref": "#/$defs/ManifestRef" },
+        "enabled": { "type": "boolean" },
+        "provides": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ExtensionKind" },
+          "uniqueItems": true
+        },
+        "supported": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    },
+    "SlotStrength.storage": { "type": "string", "enum": ["fs", "kv", "none"] },
+    "SlotStrength.secrets": { "type": "string", "enum": ["host", "prompt", "none"] },
+    "SlotStrength.skills": { "type": "string", "enum": ["read-write", "read", "none"] },
+    "SlotStrength.mcp": { "type": "string", "enum": ["managed", "external", "none"] },
+    "Capabilities": {
+      "type": "object",
+      "required": ["kinds", "hookEvents", "slots"],
+      "properties": {
+        "kinds": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ExtensionKind" },
+          "uniqueItems": true
+        },
+        "hookEvents": {
+          "type": "array",
+          "items": { "type": "string" },
+          "uniqueItems": true
+        },
+        "slots": {
+          "type": "object",
+          "properties": {
+            "storage": { "$ref": "#/$defs/SlotStrength.storage" },
+            "secrets": { "$ref": "#/$defs/SlotStrength.secrets" },
+            "exec": { "type": "boolean" },
+            "skills": { "$ref": "#/$defs/SlotStrength.skills" },
+            "mcp": { "$ref": "#/$defs/SlotStrength.mcp" }
+          },
+          "required": ["storage", "secrets", "exec", "skills", "mcp"],
+          "additionalProperties": true
+        },
+        "experimental": { "type": "object" }
+      },
+      "additionalProperties": true
+    },
+    "HookEvent": {
+      "type": "string",
+      "description": "Canonical v0.1 events: session.start, prompt.submit, tool.pre, tool.post, response.stop, session.end. Harness-specific events allowed, SHOULD be namespaced."
+    },
+    "FileEntry": {
+      "type": "object",
+      "required": ["path"],
+      "properties": {
+        "path": { "type": "string" },
+        "size": { "type": "integer", "minimum": 0 },
+        "content": { "type": "string" },
+        "contentBase64": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "capabilities.negotiate.params": {
+      "type": "object",
+      "required": ["protocol", "client", "capabilities"],
+      "properties": {
+        "protocol": {
+          "type": "object",
+          "required": ["supported"],
+          "properties": {
+            "supported": {
+              "type": "array",
+              "items": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+$" },
+              "minItems": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        "specs": {
+          "type": "object",
+          "description": "Sibling L0 spec versions the client understands, newest first (spec/manifest.md versioning policy).",
+          "additionalProperties": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 1
+          }
+        },
+        "client": {
+          "type": "object",
+          "required": ["name", "version"],
+          "properties": {
+            "name": { "type": "string" },
+            "version": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "capabilities": { "$ref": "#/$defs/Capabilities" }
+      },
+      "additionalProperties": false
+    },
+    "capabilities.negotiate.result": {
+      "type": "object",
+      "required": ["protocol", "server", "session", "capabilities"],
+      "properties": {
+        "protocol": {
+          "type": "object",
+          "required": ["version"],
+          "properties": { "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+$" } },
+          "additionalProperties": false
+        },
+        "specs": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        },
+        "server": {
+          "type": "object",
+          "required": ["name", "version"],
+          "properties": {
+            "name": { "type": "string" },
+            "version": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "session": {
+          "type": "object",
+          "required": ["id"],
+          "properties": { "id": { "type": "string" } },
+          "additionalProperties": false
+        },
+        "capabilities": { "$ref": "#/$defs/Capabilities" }
+      },
+      "additionalProperties": false
+    },
+    "extensions.list.params": {
+      "type": "object",
+      "properties": {
+        "kinds": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ExtensionKind" },
+          "uniqueItems": true
+        },
+        "includeUnsupported": { "type": "boolean", "default": false },
+        "enabledOnly": { "type": "boolean", "default": true }
+      },
+      "additionalProperties": false
+    },
+    "extensions.list.result": {
+      "type": "object",
+      "required": ["extensions"],
+      "properties": {
+        "extensions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Extension" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "extensions.get.params": {
+      "type": "object",
+      "oneOf": [
+        { "required": ["id"], "properties": { "id": { "type": "string" } } },
+        { "required": ["manifest"], "properties": { "manifest": { "$ref": "#/$defs/ManifestRef" } } }
+      ],
+      "additionalProperties": false
+    },
+    "extensions.get.result": {
+      "type": "object",
+      "required": ["extension", "document"],
+      "properties": {
+        "extension": { "$ref": "#/$defs/Extension" },
+        "document": {
+          "type": "object",
+          "description": "plugin.json manifest document per spec/manifest.md at the negotiated spec version"
+        },
+        "files": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/FileEntry" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "hooks.invoke.params": {
+      "type": "object",
+      "required": ["event", "input"],
+      "properties": {
+        "event": { "$ref": "#/$defs/HookEvent" },
+        "input": { "type": "object" },
+        "context": {
+          "type": "object",
+          "properties": {
+            "cwd": { "type": "string" },
+            "session": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string" },
+                "agent": { "type": "string" }
+              },
+              "additionalProperties": false
+            },
+            "extension": { "type": "string", "description": "Extension.id — restrict to one provider" }
+          },
+          "additionalProperties": false
+        },
+        "stream": { "type": "boolean", "default": false },
+        "timeoutMs": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "hooks.invoke.result": {
+      "type": "object",
+      "required": ["status", "results"],
+      "properties": {
+        "status": { "type": "string", "enum": ["continue", "modify", "block"] },
+        "output": { "type": "object" },
+        "results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["extension", "status"],
+            "properties": {
+              "extension": { "type": "string" },
+              "status": { "type": "string", "enum": ["continue", "modify", "block", "skipped", "error"] },
+              "output": { "type": "object" },
+              "skippedReason": { "type": "string", "enum": ["policy", "capability", "unsupported-event"] },
+              "durationMs": { "type": "number", "minimum": 0 }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "commands.resolve.params": {
+      "type": "object",
+      "oneOf": [
+        {
+          "required": ["name"],
+          "properties": {
+            "name": { "type": "string" },
+            "argv": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        {
+          "required": ["text"],
+          "properties": { "text": { "type": "string" } }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "commands.resolve.result": {
+      "type": "object",
+      "required": ["command", "expansion"],
+      "properties": {
+        "command": {
+          "type": "object",
+          "required": ["name", "source"],
+          "properties": {
+            "name": { "type": "string" },
+            "source": {
+              "type": "object",
+              "required": ["extension", "manifest"],
+              "properties": {
+                "extension": { "type": "string" },
+                "manifest": { "$ref": "#/$defs/ManifestRef" }
+              },
+              "additionalProperties": false
+            },
+            "description": { "type": "string" },
+            "argv": { "type": "array", "items": { "type": "string" } }
+          },
+          "additionalProperties": false
+        },
+        "expansion": {
+          "type": "object",
+          "required": ["prompt"],
+          "properties": {
+            "prompt": { "type": "string" },
+            "context": {
+              "type": "object",
+              "additionalProperties": { "type": "string" }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "skills.materialize.params": {
+      "type": "object",
+      "required": ["extension"],
+      "properties": {
+        "extension": { "type": "string", "description": "Extension.id" },
+        "target": { "type": "string", "enum": ["store", "inline"], "default": "store" },
+        "include": {
+          "type": "array",
+          "items": { "type": "string" },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "skills.materialize.result": {
+      "type": "object",
+      "required": ["skills"],
+      "properties": {
+        "skills": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "manifest", "files"],
+            "properties": {
+              "name": { "type": "string" },
+              "manifest": { "$ref": "#/$defs/ManifestRef" },
+              "files": {
+                "type": "array",
+                "items": { "$ref": "#/$defs/FileEntry" }
+              },
+              "materializedTo": { "type": "string" }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "tools.call.params": {
+      "type": "object",
+      "required": ["server", "tool", "arguments"],
+      "properties": {
+        "server": { "type": "string", "description": "mcp.json server key" },
+        "tool": { "type": "string" },
+        "arguments": { "type": "object" },
+        "meta": {
+          "type": "object",
+          "properties": {
+            "progressToken": { "type": ["string", "number"] }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "tools.call.result": {
+      "type": "object",
+      "description": "MCP tools/call result, verbatim passthrough",
+      "required": ["content"],
+      "properties": {
+        "content": { "type": "array", "items": { "type": "object" } },
+        "isError": { "type": "boolean" },
+        "structuredContent": { "type": "object" }
+      },
+      "additionalProperties": true
+    },
+    "events.notify.params": {
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "description": "Well-known: extensions.changed, lock.changed, hook.progress, hook.delta, request.cancelled, log, store.warning. Unknown kinds ignored."
+        },
+        "data": { "type": "object" },
+        "streamId": { "type": "string", "description": "Correlates a streamed notification to the request id that produced it" }
+      },
+      "additionalProperties": false
+    }
+  }
+}
