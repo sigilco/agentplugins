@@ -8,7 +8,7 @@
     "build": "echo 'build: not yet implemented'",
     "typecheck": "tsc --noEmit",
     "lint": "echo 'lint: not yet implemented'",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "clean": "rm -rf dist .playground-store"
   },
   "dependencies": {

@@ -4,6 +4,9 @@ packages:
   - 'packages/bridge-clients/*'
   - 'apps/*'
 
+allowBuilds:
+  esbuild: true
+
 catalog:
   typescript: '^6.0.0'
   vitest: '^4.0.0'
