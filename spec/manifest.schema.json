@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://anyharness.dev/schemas/l0/0.1/manifest.schema.json",
+  "title": "AnyHarness manifest (plugin.json)",
+  "description": "Machine-readable schema for an AnyHarness package manifest: the Agent Plugins 1.0 plugin.json base plus the dev.anyharness namespace (spec/manifest.md). The spec text is authoritative if it conflicts with this schema.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Canonical Agent Plugins manifest schema identifier, e.g. https://agent-plugins.org/schemas/1.0.0/plugin.schema.json. Selects the base spec version."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^(?!.*(?:--|\\.\\.))[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$",
+      "description": "Plugin name (Agent Plugins 1.0 §5.5 constraints). Becomes the packages/<name>/ directory name."
+    },
+    "version": {
+      "type": "string",
+      "description": "Version string (Semantic Versioning RECOMMENDED). Required in practice for ManifestRef and update checks."
+    },
+    "description": { "type": "string" },
+    "author": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "url": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "homepage": { "type": "string" },
+    "repository": { "type": "string" },
+    "license": { "type": "string" },
+    "keywords": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "extensions": {
+      "type": "object",
+      "description": "Client-specific manifest data keyed by reverse-domain namespace (Agent Plugins §8). Namespaces other than dev.anyharness are ignored without validation.",
+      "properties": {
+        "dev.anyharness": { "$ref": "#/$defs/AnyharnessNamespace" }
+      },
+      "additionalProperties": { "type": "object" }
+    }
+  },
+  "required": ["$schema", "name"],
+  "additionalProperties": false,
+  "$defs": {
+    "AnyharnessNamespace": {
+      "type": "object",
+      "description": "dev.anyharness namespace object (spec/manifest.md §4).",
+      "properties": {
+        "namespaceVersion": {
+          "type": "integer",
+          "const": 1,
+          "description": "Version of the dev.anyharness data format. spec/manifest.md defines 1."
+        },
+        "capabilities": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/CapabilitySlot" },
+          "uniqueItems": true,
+          "description": "Capabilities slots the package's components request (declaration, not grant)."
+        },
+        "engines": {
+          "type": "object",
+          "properties": {
+            "harness": {
+              "type": "string",
+              "description": "SemVer range (npm range syntax) evaluated against the AnyHarness implementation version."
+            }
+          },
+          "additionalProperties": false
+        },
+        "hooksFormat": {
+          "type": "integer",
+          "const": 1,
+          "description": "Version of dev.anyharness/hooks.json. Defaults to 1."
+        },
+        "componentsFormat": {
+          "type": "integer",
+          "const": 1,
+          "description": "Frontmatter format version for commands/, agents/, rules/ files. Defaults to 1."
+        }
+      },
+      "required": ["namespaceVersion"],
+      "additionalProperties": true
+    },
+    "CapabilitySlot": {
+      "type": "string",
+      "description": "Name of a host-injected environment slot. Seed set defined by spec/manifest.md §6 (e.g. storage, secrets, exec, network, fs); unknown slot names are ignored by hosts.",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "HookEntry": {
+      "type": "object",
+      "description": "One hook entry in dev.anyharness/hooks.json (spec/manifest.md §5.1).",
+      "properties": {
+        "command": {
+          "type": "string",
+          "description": "One executable token: bare name or './'-prefixed package-relative path (Agent Plugins §7.2.1 semantics)."
+        },
+        "args": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "timeout": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Seconds."
+        }
+      },
+      "required": ["command"],
+      "additionalProperties": false
+    },
+    "HooksFile": {
+      "type": "object",
+      "description": "dev.anyharness/hooks.json, hooksFormat 1.",
+      "properties": {
+        "hooks": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/HookEntry" }
+          },
+          "description": "Event name -> ordered hook entries. Unknown event names are ignored."
+        }
+      },
+      "required": ["hooks"],
+      "additionalProperties": false
+    }
+  }
+}
