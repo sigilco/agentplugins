@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://spec.anyharness.dev/bridge/messages.schema.json",
+  "$id": "https://raw.githubusercontent.com/sigilco/agentplugins/v2/spec/bridge/messages.schema.json",
   "title": "AnyHarness Bridge Protocol v0.1 — message schemas",
   "description": "JSON-RPC 2.0 envelope and per-operation params/result schemas for the AnyHarness bridge protocol. Companion prose: protocol.md, operations.md, capabilities.md, transports.md, security.md. Sibling specs referenced by name: spec/manifest.md (plugin.json documents), spec/store-layout.md (paths), spec/lockfile.md (integrity), spec/trust.md (policy).",
   "type": "object",

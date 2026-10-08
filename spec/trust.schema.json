@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://anyharness.dev/schemas/l0/0.1/trust.schema.json",
+  "$id": "https://raw.githubusercontent.com/sigilco/agentplugins/v2/spec/trust.schema.json",
   "title": "AnyHarness audit log record (harness/audit.log line)",
   "description": "Machine-readable schema for one JSONL record in ~/.agents/harness/audit.log (spec/trust.md §6). The spec text is authoritative if it conflicts with this schema.",
   "type": "object",

@@ -27,3 +27,20 @@ Pinned interface names shared across specs: `Extension`, `ExtensionKind` (`skill
 - Agent Plugins 1.0 (`plugin.json`) — package manifest base
 - MCP — tool surface; `tools.call` in the bridge is a passthrough
 - A2A — agent↔agent (adjacent, not ours)
+
+## Governance & versioning
+
+These specs are **implementation-led**: they stabilize from real adopters,
+not committee review. Documents carry a semver version; breaking changes
+bump the spec's major, additive optional fields bump minor.
+
+Adoption pledge: the protocol and schemas are open — once **two or more
+external harnesses** implement the bridge, stewardship moves toward a
+neutral home (e.g. a foundation track such as AAIF) rather than staying
+single-vendor. Until then, spec issues and change proposals go through this
+repo's tracker.
+
+Schema `$id`s are minted under
+`https://raw.githubusercontent.com/sigilco/agentplugins/v2/spec/` as an
+interim domain — resolvable and surviving GitHub's repo-transfer redirects;
+a canonical domain replaces it once the org's domain is set.
