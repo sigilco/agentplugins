@@ -34,30 +34,12 @@ export class FsError extends Error {
 
 /**
  * Ambient cross-runtime globals this package relies on
- * (TextEncoder/TextDecoder/URL/setTimeout) — present in node ≥11, every
- * browser, and every worker runtime. Declared here so the package needs
- * neither node builtin imports nor @types/node.
+ * (TextEncoder/TextDecoder/URL/setTimeout/crypto/btoa) — present in node
+ * ≥11, every browser, and every worker runtime. They come from the
+ * package tsconfig's `lib: ["DOM"]` (self-check) or the consumer's
+ * @types/node — never declared here, where they would collide with
+ * either.
  */
-declare global {
-  class TextEncoder {
-    encode(input?: string): Uint8Array;
-  }
-  class TextDecoder {
-    constructor(label?: string, options?: { fatal?: boolean; ignoreBOM?: boolean });
-    decode(input?: Uint8Array): string;
-  }
-  class URL {
-    constructor(input: string, base?: string);
-    protocol: string;
-    hostname: string;
-    host: string;
-    pathname: string;
-    search: string;
-    hash: string;
-  }
-  function setTimeout(handler: () => void, timeout?: number): number;
-  function clearTimeout(handle: number): void;
-}
 
 /**
  * Minimal filesystem surface the store needs. All paths are absolute,

@@ -36,7 +36,7 @@ export const cmdVerify = async (
     // trust.md §3.2 — mismatch means untrusted; remediation is reinstall.
     throw new CliError(
       "trust-violation",
-      `integrity mismatch for "${name}": reinstall with \`harness add --reinstall\` (expected ${result.expected ?? "?"}, got ${result.actual ?? "?"})`,
+      `integrity mismatch for "${name}": reinstall with \`harness add --update\` (expected ${result.expected ?? "?"}, got ${result.actual ?? "?"})`,
       { details: { expected: result.expected, actual: result.actual } },
     );
   }

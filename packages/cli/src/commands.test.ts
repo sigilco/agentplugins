@@ -9,7 +9,6 @@ import { cmdList } from "./commands/list.js";
 import { cmdRemove } from "./commands/remove.js";
 import { cmdVerify } from "./commands/verify.js";
 import { CliError } from "./errors.js";
-import { createMemoryFs } from "./testing/memory-fs.js";
 import { createMockStore } from "./testing/mock-store.js";
 import { createTestDeps } from "./testing/deps.js";
 import type { Extension } from "./api.js";
@@ -42,7 +41,8 @@ describe("harness add", () => {
       parseArgs(["acme/tools", "-y", "--skill-target", "store"]),
     );
     expect(t.store.installs[0].opts).toEqual({
-      skillTarget: "store",
+      installTarget: "packages",
+      update: undefined,
       actor: "agent",
     });
   });
@@ -177,16 +177,15 @@ describe("harness doctor", () => {
 });
 
 describe("harness audit", () => {
-  const LOG = [
-    JSON.stringify({ ts: "t1", event: "install", actor: "user", extension: { name: "a", version: "1" } }),
-    '{"broken":', // partial line — skipped
-    JSON.stringify({ ts: "t2", event: "exec.deny", actor: "agent", extension: { name: "b", version: "2" }, decision: "deny" }),
-  ].join("\n");
+  const EVENTS = [
+    { ts: "t1", event: "install", actor: "user", extension: { name: "a", version: "1" } },
+    { ts: "t2", event: "exec.deny", actor: "agent", extension: { name: "b", version: "2" }, decision: "deny" },
+  ] as const;
 
-  it("reads audit.log via the fs port, skipping partial lines", async () => {
-    const fs = createMemoryFs({ "/test/.agents/harness/audit.log": LOG });
-    const t = createTestDeps();
-    t.deps.fs = fs;
+  it("reads audit records via the store, skipping partial lines", async () => {
+    const store = createMockStore();
+    store.audit.push(...EVENTS);
+    const t = createTestDeps({ store });
     await cmdAudit(t.deps, parseArgs(["--json"]));
     const out = JSON.parse(t.out[0]);
     expect(out.events).toHaveLength(2);
@@ -194,9 +193,9 @@ describe("harness audit", () => {
   });
 
   it("filters by --event and --limit", async () => {
-    const fs = createMemoryFs({ "/test/.agents/harness/audit.log": LOG });
-    const t = createTestDeps();
-    t.deps.fs = fs;
+    const store = createMockStore();
+    store.audit.push(...EVENTS);
+    const t = createTestDeps({ store });
     await cmdAudit(t.deps, parseArgs(["--event", "exec.deny", "--json"]));
     const out = JSON.parse(t.out[0]);
     expect(out.events).toHaveLength(1);

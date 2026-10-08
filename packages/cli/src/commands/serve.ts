@@ -32,11 +32,14 @@ export const cmdServe = async (
     throw new CliError("usage", `unsupported transport "${transport}"`);
   }
 
-  const configPath = `${deps.storeRoot}/config.toml`;
+  // config.toml lives inside the store's `harness/` dir (store-layout §3).
+  const configPath = `${deps.storeRoot}/harness/config.toml`;
   let policy = defaultPolicy();
   let callers: ReturnType<typeof callersFromToml> = [];
-  if (await deps.fs.exists(configPath)) {
-    const root = parseToml(await deps.fs.readFile(configPath));
+  if ((await deps.fs.stat(configPath)) !== null) {
+    const root = parseToml(
+      new TextDecoder().decode(await deps.fs.readFile(configPath)),
+    );
     policy = policyFromToml(root);
     callers = callersFromToml(root);
   }

@@ -1,4 +1,5 @@
 import type { CliDeps } from "../deps.js";
+import type { ExtensionKind } from "../api.js";
 import {
   assertNoUnknownFlags,
   flagBool,
@@ -18,18 +19,13 @@ export const cmdList = async (
   const kindsRaw = args.flags.kinds;
   const kinds =
     typeof kindsRaw === "string"
-      ? kindsRaw.split(",").map((k) => k.trim())
+      ? (kindsRaw.split(",").map((k) => k.trim()) as ExtensionKind[])
       : undefined;
 
-  let extensions = await deps.store.list();
-  if (!all) extensions = extensions.filter((e) => e.enabled);
-  if (kinds) {
-    extensions = extensions.filter(
-      (e) =>
-        kinds.includes(e.kind) ||
-        e.provides?.some((p) => kinds.includes(p)) === true,
-    );
-  }
+  const extensions = await deps.store.list({
+    kinds,
+    enabledOnly: all ? undefined : true,
+  });
 
   emit(
     deps.w,

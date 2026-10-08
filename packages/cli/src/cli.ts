@@ -23,11 +23,12 @@ import { createLogger, emitError, stdoutWriters } from "./output.js";
 import { createNodePorts } from "./ports/index.js";
 import { resolveStoreRoot } from "./root.js";
 import { sdkApi } from "./sdk-bind.js";
+import type { ApproveExec } from "./api.js";
 
 const USAGE = `harness — AnyHarness package manager + bridge server
 
 usage:
-  harness add <source> [--skill-target shared|store] [-y] [--json]
+  harness add <source> [--skill-target shared|store] [--update] [-y] [--json]
   harness remove <name> [-y] [--json]
   harness list [--all] [--kinds skill,mcp] [--json]
   harness enable <name> [--json]
@@ -38,8 +39,8 @@ usage:
   harness serve [--transport stdio]
 
 global flags:
-  --root <dir>   store root (default: $ANYHARNESS_STORE,
-                 $ANYHARNESS_HOME/harness, or ~/.agents/harness)
+  --root <dir>   agents root (default: $ANYHARNESS_STORE,
+                 $ANYHARNESS_HOME, or ~/.agents)
   --json         machine-readable output on stdout
   -h, --help     this text
   --version      print version
@@ -139,8 +140,22 @@ const main = async (): Promise<void> => {
       process.env.HOME ?? "",
       flagString(args.flags, "root"),
     );
+    const actor =
+      command === "serve"
+        ? ("daemon" as const)
+        : detectActor(process.env, interactive);
     const deps: CliDeps = {
-      store: sdkApi.createStore(storeRoot, ports),
+      store: sdkApi.createStore(storeRoot, ports, {
+        actor,
+        approveExec: interactive
+          ? async (req: Parameters<ApproveExec>[0]) => {
+              const ask = ttyConfirm((s) => w.err(s));
+              return ask(
+                `allow ${req.execClass} exec from ${req.extension.name}@${req.extension.version}: ${req.command} ${req.args.join(" ")} (${req.reason})?`,
+              );
+            }
+          : undefined,
+      }),
       resolveSource: sdkApi.resolveSource,
       handleBridgeRequest: sdkApi.handleBridgeRequest,
       fs: ports.fs,
@@ -149,10 +164,7 @@ const main = async (): Promise<void> => {
       env: process.env,
       storeRoot,
       interactive,
-      actor:
-        command === "serve"
-          ? "daemon"
-          : detectActor(process.env, interactive),
+      actor,
       confirm: interactive ? ttyConfirm((s) => w.err(s)) : undefined,
       setExitCode: (code) => {
         process.exitCode = code;
