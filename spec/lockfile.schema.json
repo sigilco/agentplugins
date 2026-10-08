@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://anyharness.dev/schemas/l0/0.1/lockfile.schema.json",
+  "title": "AnyHarness lockfile (harness/extensions.lock)",
+  "description": "Machine-readable schema for ~/.agents/harness/extensions.lock (spec/lockfile.md). The spec text is authoritative if it conflicts with this schema.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Canonical schema identifier for this document."
+    },
+    "version": {
+      "type": "integer",
+      "const": 1,
+      "description": "Lockfile format version. lockfile.md defines 1."
+    },
+    "extensions": {
+      "type": "object",
+      "description": "Map from Extension directory name to Extension entry.",
+      "propertyNames": {
+        "minLength": 1,
+        "maxLength": 64,
+        "pattern": "^(?!.*(?:--|\\.\\.))[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$"
+      },
+      "additionalProperties": { "$ref": "#/$defs/Extension" }
+    }
+  },
+  "required": ["version", "extensions"],
+  "additionalProperties": false,
+  "$defs": {
+    "ExtensionKind": {
+      "type": "string",
+      "enum": ["skill", "mcp", "plugin", "hook", "command", "agent", "rule"],
+      "description": "Closed kind enumeration (store-layout.md §2). Mirrored from store-layout.schema.json/$defs/ExtensionKind."
+    },
+    "ManifestRef": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^(?!.*(?:--|\\.\\.))[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$"
+        },
+        "version": { "type": "string" }
+      },
+      "required": ["name", "version"],
+      "additionalProperties": false,
+      "description": "Pointer to the extension's manifest plus the version resolved at install time. Mirrored from store-layout.schema.json/$defs/ManifestRef."
+    },
+    "Source": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["git", "github", "registry", "local"],
+          "description": "Source type (closed enum; new types are a spec minor change)."
+        },
+        "uri": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Canonical source identifier: clone URL, owner/repo, registry coordinates, or local path."
+        },
+        "ref": {
+          "type": "string",
+          "description": "Resolved revision. For git/github sources the installer records the commit SHA, not a floating ref."
+        },
+        "path": {
+          "type": "string",
+          "description": "Subpath within the source containing the package (monorepo sources)."
+        }
+      },
+      "required": ["type", "uri"],
+      "additionalProperties": false
+    },
+    "ComponentRef": {
+      "type": "object",
+      "properties": {
+        "kind": { "$ref": "#/$defs/ExtensionKind" },
+        "name": { "type": "string", "minLength": 1 }
+      },
+      "required": ["kind", "name"],
+      "additionalProperties": false,
+      "description": "Inventory record of one contributed component."
+    },
+    "Extension": {
+      "type": "object",
+      "description": "One installed unit (store-layout.md §2).",
+      "properties": {
+        "kind": { "$ref": "#/$defs/ExtensionKind" },
+        "manifest": { "$ref": "#/$defs/ManifestRef" },
+        "source": { "$ref": "#/$defs/Source" },
+        "integrity": {
+          "type": "string",
+          "pattern": "^sha256-[A-Za-z0-9+/=]+$",
+          "description": "SRI-syntax sha256 digest of the installed package tree's manifest-of-files (lockfile.md §4)."
+        },
+        "treeHash": {
+          "type": "string",
+          "description": "Optional GitHub tree SHA for github sources (skills.sh skillFolderHash convention) for cheap remote update checks."
+        },
+        "installedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "RFC 3339 / ISO 8601 UTC timestamp of first install."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of last update; equals installedAt until first update."
+        },
+        "targets": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Harness identifiers the extension was materialized/emitted to."
+        },
+        "components": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ComponentRef" },
+          "description": "Optional inventory of contributed components."
+        },
+        "capabilities": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Capability slots granted at install time."
+        },
+        "attestations": {
+          "type": "array",
+          "items": { "type": "object" },
+          "description": "Reserved for signing/provenance attestations (trust.md §5); entries are opaque to the lockfile."
+        }
+      },
+      "required": [
+        "kind",
+        "manifest",
+        "source",
+        "integrity",
+        "installedAt",
+        "updatedAt",
+        "targets"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
