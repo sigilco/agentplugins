@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://anyharness.dev/schemas/l0/0.1/trust.schema.json",
+  "title": "AnyHarness audit log record (harness/audit.log line)",
+  "description": "Machine-readable schema for one JSONL record in ~/.agents/harness/audit.log (spec/trust.md §6). The spec text is authoritative if it conflicts with this schema.",
+  "type": "object",
+  "properties": {
+    "ts": {
+      "type": "string",
+      "format": "date-time",
+      "description": "RFC 3339 / ISO 8601 UTC timestamp."
+    },
+    "event": {
+      "type": "string",
+      "enum": [
+        "install",
+        "update",
+        "remove",
+        "integrity.verify",
+        "integrity.fail",
+        "exec.allow",
+        "exec.deny",
+        "policy.change",
+        "lockfile.corrupt",
+        "skills.conflict"
+      ],
+      "description": "Trust event type (trust.md §6.2)."
+    },
+    "actor": {
+      "type": "string",
+      "enum": ["user", "agent", "daemon"],
+      "description": "Who initiated the operation: interactive user, agent/non-interactive context, or bridge daemon."
+    },
+    "extension": { "$ref": "#/$defs/ManifestRef" },
+    "decision": {
+      "type": "string",
+      "enum": ["allow", "deny", "ask"],
+      "description": "Policy decision taken, for exec.* and policy events."
+    },
+    "integrity": {
+      "type": "string",
+      "pattern": "^sha256-[A-Za-z0-9+/=]+$",
+      "description": "SRI-syntax sha256 digest relevant to the event."
+    },
+    "source": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["git", "github", "registry", "local"]
+        },
+        "uri": { "type": "string" },
+        "ref": { "type": "string" },
+        "path": { "type": "string" }
+      },
+      "required": ["type", "uri"],
+      "additionalProperties": false,
+      "description": "Lockfile Source object for install/update events."
+    },
+    "details": {
+      "type": "object",
+      "description": "Free-form event payload. MUST NOT contain secrets, credential values, env contents, or file contents."
+    }
+  },
+  "required": ["ts", "event", "actor"],
+  "additionalProperties": true,
+  "$defs": {
+    "ManifestRef": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^(?!.*(?:--|\\.\\.))[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$"
+        },
+        "version": { "type": "string" }
+      },
+      "required": ["name", "version"],
+      "additionalProperties": false,
+      "description": "Pointer to an extension's manifest + version. Mirrored from store-layout.schema.json/$defs/ManifestRef."
+    }
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://anyharness.dev/schemas/l0/0.1/store-layout.schema.json",
+  "title": "AnyHarness store descriptor (harness/store.json)",
+  "description": "Machine-readable schema for the ~/.agents/harness/store.json descriptor defined by spec/store-layout.md §8. The spec text is authoritative if it conflicts with this schema.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Canonical schema identifier for this document."
+    },
+    "layoutVersion": {
+      "type": "integer",
+      "const": 1,
+      "description": "Store layout version. store-layout.md defines 1."
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "RFC 3339 / ISO 8601 UTC timestamp of store creation."
+    },
+    "createdBy": {
+      "type": "string",
+      "description": "Implementation identifier, e.g. 'anyharness-cli 0.2.0'."
+    }
+  },
+  "required": ["layoutVersion", "createdAt"],
+  "additionalProperties": false,
+  "$defs": {
+    "ExtensionKind": {
+      "type": "string",
+      "enum": ["skill", "mcp", "plugin", "hook", "command", "agent", "rule"],
+      "description": "Closed enumeration of extension/component kinds defined by spec/store-layout.md §2."
+    },
+    "ManifestRef": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^(?!.*(?:--|\\.\\.))[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$",
+          "description": "The manifest's name field (Agent Plugins 1.0 §5.5 constraints)."
+        },
+        "version": {
+          "type": "string",
+          "description": "The manifest's version field as resolved at install time."
+        }
+      },
+      "required": ["name", "version"],
+      "additionalProperties": false,
+      "description": "Pointer to a manifest document plus the version resolved at install time (spec/store-layout.md §2)."
+    }
+  }
+}
