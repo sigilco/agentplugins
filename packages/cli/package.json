@@ -3,15 +3,21 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "exports": { ".": "./src/index.ts" },"bin":{"harness":"./dist/cli.js"},
+  "exports": { ".": "./src/index.ts" },
+  "bin": { "harness": "./dist/cli.js" },
   "scripts": {
-    "build": "echo 'build: not yet implemented'",
+    "build": "tsdown",
     "typecheck": "tsc --noEmit",
     "lint": "echo 'lint: not yet implemented'",
     "test": "vitest run",
     "clean": "rm -rf dist"
   },
+  "dependencies": {
+    "@any-harness/sdk": "workspace:*"
+  },
   "devDependencies": {
+    "@types/node": "catalog:",
+    "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }
