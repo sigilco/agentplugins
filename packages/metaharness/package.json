@@ -11,7 +11,11 @@
     "test": "vitest run",
     "clean": "rm -rf dist"
   },
+  "dependencies": {
+    "ai": "catalog:"
+  },
   "devDependencies": {
+    "@ai-sdk/provider": "^4.0.0",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }
