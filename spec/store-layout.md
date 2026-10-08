@@ -146,7 +146,20 @@ file. AnyHarness SHOULD read `.skill-lock.json` when reconciling `skills/`
 ownership (§7.3) and MAY read a project `skills-lock.json` when importing
 skill provenance.
 
-### 5.5 Everything else
+### 5.5 `harness/config.toml` — namespaced configuration
+
+`config.toml` is ours but sectioned by spec document so sibling specs own
+their keys without interleaving:
+
+| Key prefix | Owned by | Notes |
+| ---------- | -------- | ----- |
+| `[policy]` | `trust.md` §4.1 | Exec/script policy and source allowlists. |
+| `[[serve.caller]]` | `spec/bridge/transports.md` §3 | Reserved. HTTP-loopback daemon caller table: caller identity + per-token `allow`/`deny` op lists. This document defines only the reservation; semantics live there. |
+| everything else | unspecified | Future spec revisions allocate new top-level tables explicitly; implementations MUST ignore unknown tables. |
+
+This document defines no other `config.toml` keys.
+
+### 5.6 Everything else
 
 Root entries not listed here — `AGENTS.md`, `commands/`, `agents/`,
 `models.json`, `modes/`, `manifest.yaml`, other tools' dotfiles — belong to
@@ -257,7 +270,7 @@ Rules:
 | `mcp.json` | yes | merge only | `mcpServers` member-level merge; foreign keys preserved (§5.2). |
 | `plugins/` | no | no | Never touched (§5.3). |
 | `.skill-lock.json`, `skills-lock.json` | yes | no | Read-only provenance/conflict evidence (§5.4). |
-| other root entries | ignore | no | None created; none interpreted (§3, §5.5). |
+| other root entries | ignore | no | None created; none interpreted (§3, §5.6). |
 
 ## 10. Normative references
 
