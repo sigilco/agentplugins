@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "exports": { ".": "./src/index.ts" },
-  "bin": { "harness": "./dist/cli.mjs" },
+  "bin": { "harness": "./dist/cli.js" },
   "scripts": {
     "build": "tsdown",
     "typecheck": "tsc --noEmit",
