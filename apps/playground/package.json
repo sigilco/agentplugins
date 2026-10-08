@@ -1,21 +1,25 @@
 {
-  "name": "@any-harness/metaharness",
+  "name": "@any-harness/playground",
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "exports": { ".": "./src/index.ts" },
   "scripts": {
+    "start": "tsx src/cli.ts",
     "build": "echo 'build: not yet implemented'",
     "typecheck": "tsc --noEmit",
     "lint": "echo 'lint: not yet implemented'",
     "test": "vitest run",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist .playground-store"
   },
   "dependencies": {
-    "ai": "catalog:"
+    "@any-harness/metaharness": "workspace:*",
+    "@ai-sdk/openai-compatible": "^3.0.0",
+    "ai": "catalog:",
+    "unstorage": "catalog:"
   },
   "devDependencies": {
-    "@ai-sdk/provider": "^4.0.0",
+    "@types/node": "catalog:",
+    "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }
